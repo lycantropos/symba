@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  symba-pypy:
+    build:
+      context: .
+      args:
+        - IMAGE_NAME=${PYPY_IMAGE_NAME}
+        - IMAGE_VERSION=${PYPY_IMAGE_VERSION}
+    image: lycantropos/symba-pypy:0.0.0
+    volumes:
+      - ./pytest.ini:/opt/symba/pytest.ini
+      - ./README.md:/opt/symba/README.md
+      - ./requirements-tests.txt:/opt/symba/requirements-tests.txt
+      - ./requirements.txt:/opt/symba/requirements.txt
+      - ./setup.py:/opt/symba/setup.py
+      - ./symba:/opt/symba/symba
+      - ./tests:/opt/symba/tests
+    entrypoint: pytest
