@@ -167,21 +167,40 @@ class Form(Expression):
                 else NotImplemented)
 
     def __truediv__(self, other: Union[Real, Constant, Term, 'Form']
-                    ) -> Union[Constant, 'Form']:
-        from .ratio import Ratio
+                    ) -> Union[Constant, 'Form', 'Ratio']:
         return (Form(*[term / other for term in self.terms],
                      tail=self.tail / other)
                 if isinstance(other, (Real, Constant))
                 else (sum([term / other for term in self.terms],
                           self.tail / other)
                       if isinstance(other, Term)
-                      else (Ratio.from_components(self, other)
+                      else (self._divide_by_form(other)
                             if isinstance(other, Form)
                             else NotImplemented)))
 
     def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
         return sum([term.evaluate(square_rooter) for term in self.terms],
                    self.tail.evaluate(square_rooter))
+
+    def _divide_by_form(self, other: 'Form') -> Union[Constant, 'Ratio']:
+        has_tail = bool(self.tail)
+        if (has_tail is bool(other.tail)
+                and len(self.terms) == len(other.terms)):
+            terms_scales = {term.argument: term.scale for term in self.terms}
+            other_terms_scales = {term.argument: term.scale
+                                  for term in other.terms}
+            if terms_scales.keys() == other_terms_scales.keys():
+                scales_ratios = (scale / other_terms_scales[term]
+                                 for term, scale in terms_scales.items())
+                first_scales_ratio = (self.tail / other.tail
+                                      if has_tail
+                                      else next(scales_ratios))
+                if all(scales_ratio == first_scales_ratio
+                       for scales_ratio in scales_ratios):
+                    return first_scales_ratio
+        else:
+            from .ratio import Ratio
+            return Ratio.from_components(self, other)
 
     def _square(self) -> 'Form':
         return sum([2 * (self.terms[step] * self.terms[index])
