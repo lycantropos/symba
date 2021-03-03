@@ -46,7 +46,15 @@ class Expression(ABC):
 
     @abstractmethod
     def __rmul__(self, other: Union[Real, 'Expression']) -> 'Expression':
-        """Returns multiplication of the expression with the other."""
+        """Returns multiplication of the other with the expression."""
+
+    def __rsub__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns difference of the other with the expression."""
+        return other + (-self)
+
+    def __sub__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns difference of the expression with the other."""
+        return self + (-other)
 
     @abstractmethod
     def __truediv__(self, other: Union[Real, 'Expression']) -> 'Expression':

@@ -83,9 +83,6 @@ class Constant(Expression):
                 if isinstance(other, Real)
                 else NotImplemented)
 
-    def __rsub__(self, other: Real) -> 'Constant':
-        return other + (-self)
-
     def __rtruediv__(self, other: Real) -> 'Constant':
         return (Constant(other / self.value)
                 if isinstance(other, Real)
@@ -93,9 +90,6 @@ class Constant(Expression):
 
     def __str__(self) -> str:
         return str(self.value)
-
-    def __sub__(self, other: Union[Real, 'Constant']) -> 'Constant':
-        return self + (-other)
 
     def __truediv__(self, other: Union[Real, 'Constant']) -> 'Constant':
         return (Constant(self.value / other)

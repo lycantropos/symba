@@ -131,12 +131,6 @@ class Form(Expression):
                 if isinstance(other, (Real, Constant, Term))
                 else NotImplemented)
 
-    def __rsub__(self, other: Union[Real, Constant, Term]
-                 ) -> Union[Constant, 'Form']:
-        return (other + (-self)
-                if isinstance(other, (Real, Constant, Term))
-                else NotImplemented)
-
     def __rtruediv__(self, other: Union[Real, Constant, Term]
                      ) -> Union[Constant, 'Form', 'Ratio']:
         components = (*self.terms, self.tail) if self.tail else self.terms
@@ -159,12 +153,6 @@ class Form(Expression):
                 + (' ' + _to_signed_value(self.tail)
                    if self.tail
                    else ''))
-
-    def __sub__(self, other: Union[Real, Constant, Term, 'Form']
-                ) -> Union[Constant, Term, 'Form']:
-        return (self + (-other)
-                if isinstance(other, (Real, Constant, Term, Form))
-                else NotImplemented)
 
     def __truediv__(self, other: Union[Real, Constant, Term, 'Form']
                     ) -> Union[Constant, 'Form', 'Ratio']:

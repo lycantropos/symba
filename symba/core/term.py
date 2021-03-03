@@ -147,11 +147,6 @@ class Term(Expression):
                 if isinstance(other, (Real, Constant))
                 else NotImplemented)
 
-    def __rsub__(self, other: Union[Real, Constant]) -> 'Form':
-        return (other + (-self)
-                if isinstance(other, (Real, Constant))
-                else NotImplemented)
-
     def __rtruediv__(self, other: Union[Real, Constant]) -> 'Term':
         return (Term.from_components(other / self.scale, One / self.argument)
                 if isinstance(other, (Real, Constant))
@@ -164,11 +159,6 @@ class Term(Expression):
                        if self.scale == -One
                        else '{} * '.format(self.scale)))
                 + 'sqrt({})'.format(self.argument))
-
-    def __sub__(self, other: Union[Real, Constant, 'Term']) -> 'Form':
-        return (self + (-other)
-                if isinstance(other, (Real, Constant, Term))
-                else NotImplemented)
 
     def __truediv__(self, other: Union[Real, Constant, 'Term']) -> 'Term':
         return (Term(self.scale / other, self.argument)
