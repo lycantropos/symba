@@ -9,7 +9,6 @@ from .abcs import Expression
 from .constant import (Constant,
                        Zero)
 from .hints import SquareRooter
-from .ratio import Ratio
 from .term import (Term,
                    term_ceil,
                    term_floor)
@@ -140,6 +139,7 @@ class Form(Expression):
         components = (*self.terms, self.tail) if self.tail else self.terms
         components_count = len(components)
         if components_count > 2:
+            from .ratio import Ratio
             return Ratio.from_components(Constant(other)
                                          if isinstance(other, Real)
                                          else other,
@@ -174,6 +174,7 @@ class Form(Expression):
 
     def __truediv__(self, other: Union[Real, Constant, Term, 'Form']
                     ) -> Union[Constant, 'Form']:
+        from .ratio import Ratio
         return (Form(*[term / other for term in self.terms],
                      tail=self.tail / other)
                 if isinstance(other, (Real, Constant))
