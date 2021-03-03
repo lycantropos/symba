@@ -66,7 +66,7 @@ class Form(Expression):
         return (self is other
                 or (self.tail == other.tail
                     and len(self.terms) == len(other.terms)
-                    and sorted(self.terms) == sorted(other.terms))
+                    and set(self.terms) == set(other.terms))
                 if isinstance(other, Form)
                 else (False
                       if isinstance(other, (Real, Constant, Term))
