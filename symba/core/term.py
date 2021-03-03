@@ -158,7 +158,12 @@ class Term(Expression):
                 else NotImplemented)
 
     def __str__(self) -> str:
-        return '{} * sqrt({})'.format(self.scale, self.argument)
+        return ((''
+                 if self.scale == One
+                 else ('-'
+                       if self.scale == -One
+                       else '{} * '.format(self.scale)))
+                + 'sqrt({})'.format(self.argument))
 
     def __sub__(self, other: Union[Real, Constant, 'Term']) -> 'Form':
         return (self + (-other)
