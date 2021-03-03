@@ -1,6 +1,7 @@
 from collections import defaultdict
 from numbers import Real
-from typing import (Optional,
+from typing import (TYPE_CHECKING,
+                    Optional,
                     Union)
 
 from reprit.base import generate_repr
@@ -12,8 +13,10 @@ from .hints import SquareRooter
 from .term import (Term,
                    term_ceil,
                    term_floor)
-from .utils import (ceil_half,
-                    square)
+from .utils import square
+
+if TYPE_CHECKING:
+    from .ratio import Ratio
 
 
 class Form(Expression):
@@ -144,9 +147,7 @@ class Form(Expression):
                                          if isinstance(other, Real)
                                          else other,
                                          self)
-        delimiter = ceil_half(components_count)
-        subtrahend, minuend = (sum(components[:delimiter]),
-                               sum(components[delimiter:]))
+        subtrahend, minuend = components[0], components[1]
         return ((other * (subtrahend - minuend))
                 / (square(subtrahend) - square(minuend)))
 
@@ -208,7 +209,7 @@ def form_floor(value: Form) -> Constant:
     return sum([term_floor(term) for term in value.terms], value.tail)
 
 
-def is_form_positive(value: Union[Constant, Term, Form]) -> bool:
+def is_form_positive(value: Form) -> bool:
     components = (*value.terms, value.tail) if value.tail else value.terms
     positive, negative = [], []
     for component in components:

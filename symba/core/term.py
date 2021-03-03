@@ -26,8 +26,7 @@ class Term(Expression):
     @classmethod
     def from_components(cls,
                         scale: Constant,
-                        argument: Union[Constant, 'Term', 'Form']
-                        ) -> Union[Constant, 'Term']:
+                        argument: Expression) -> Union[Constant, 'Term']:
         if not (scale and argument):
             return Zero
         if isinstance(argument, Constant):

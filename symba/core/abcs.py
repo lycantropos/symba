@@ -33,12 +33,28 @@ class Expression(ABC):
         """Checks if the expression is lower than the other."""
 
     @abstractmethod
+    def __mul__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns multiplication of the expression with the other."""
+
+    @abstractmethod
     def __neg__(self) -> 'Expression':
         """Returns the expression negated."""
 
     def __pos__(self) -> 'Expression':
         """Returns the expression positive."""
         return self
+
+    @abstractmethod
+    def __rmul__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns multiplication of the expression with the other."""
+
+    @abstractmethod
+    def __truediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns division of the expression by the other."""
+
+    @abstractmethod
+    def __rtruediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns division of the expression by the other."""
 
     @abstractmethod
     def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:

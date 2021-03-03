@@ -6,10 +6,6 @@ def square(value: Any) -> Any:
     return value * value
 
 
-def ceil_half(value: int) -> int:
-    return -(-value // 2)
-
-
 def sqrt_ceil(value: int) -> int:
     value_sqrt_floor = sqrt_floor(value)
     result = value_sqrt_floor + (value > square(value_sqrt_floor))
