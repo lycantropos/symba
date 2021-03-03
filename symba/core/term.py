@@ -38,8 +38,7 @@ class Term(Expression):
                 argument /= argument_numerator
             argument_denominator = argument_value.denominator
             argument_denominator_sqrt_floor = sqrt_floor(argument_denominator)
-            if square(
-                    argument_denominator_sqrt_floor) == argument_denominator:
+            if square(argument_denominator_sqrt_floor) == argument_denominator:
                 scale /= argument_denominator_sqrt_floor
                 argument *= argument_denominator
                 if argument == One:
