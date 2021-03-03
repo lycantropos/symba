@@ -198,9 +198,8 @@ class Form(Expression):
                 if all(scales_ratio == first_scales_ratio
                        for scales_ratio in scales_ratios):
                     return first_scales_ratio
-        else:
-            from .ratio import Ratio
-            return Ratio.from_components(self, other)
+        from .ratio import Ratio
+        return Ratio.from_components(self, other)
 
     def _square(self) -> 'Form':
         return sum([2 * (self.terms[step] * self.terms[index])
