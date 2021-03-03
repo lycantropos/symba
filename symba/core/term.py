@@ -110,8 +110,7 @@ class Term(Expression):
                   and square(other) > square(self.scale) * self.argument)
                  if self.scale > 0
                  else (other > 0
-                       or square(other) < square(
-                        self.scale) * self.argument))
+                       or square(other) < square(self.scale) * self.argument))
                 if isinstance(other, (Real, Constant, Term))
                 else NotImplemented)
 
