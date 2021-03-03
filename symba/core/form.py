@@ -51,8 +51,8 @@ class Form(Expression):
 
     def __add__(self, other: Union[Real, Constant, Term, 'Form']
                 ) -> Union[Constant, 'Form']:
-        return (Form(*self.terms,
-                     tail=self.tail + other)
+        return (Form.from_components(*self.terms,
+                                     tail=self.tail + other)
                 if isinstance(other, (Real, Constant))
                 else (Form.from_components(*self.terms, other,
                                            tail=self.tail)
@@ -112,8 +112,8 @@ class Form(Expression):
 
     def __radd__(self, other: Union[Real, Constant, Term]
                  ) -> Union[Constant, 'Form']:
-        return (Form(*self.terms,
-                     tail=other + self.tail)
+        return (Form.from_components(*self.terms,
+                                     tail=other + self.tail)
                 if isinstance(other, (Real, Constant))
                 else (Form.from_components(other, *self.terms,
                                            tail=self.tail)
@@ -162,16 +162,9 @@ class Form(Expression):
 
     def __sub__(self, other: Union[Real, Constant, Term, 'Form']
                 ) -> Union[Constant, Term, 'Form']:
-        return (Form(*self.terms,
-                     tail=self.tail - other)
-                if isinstance(other, (Real, Constant))
-                else (Form.from_components(*self.terms, -other,
-                                           tail=self.tail)
-                      if isinstance(other, Term)
-                      else (Form.from_components(*self.terms, *(-other).terms,
-                                                 tail=self.tail - other.tail)
-                            if isinstance(other, Form)
-                            else NotImplemented)))
+        return (self + (-other)
+                if isinstance(other, (Real, Constant, Term, Form))
+                else NotImplemented)
 
     def __truediv__(self, other: Union[Real, Constant, Term, 'Form']
                     ) -> Union[Constant, 'Form']:

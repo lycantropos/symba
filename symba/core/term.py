@@ -59,11 +59,11 @@ class Term(Expression):
 
     def __add__(self, other: Union[Real, Constant, 'Term']) -> 'Form':
         from .form import Form
-        return (Form(self,
-                     tail=Constant(other))
+        return (Form.from_components(self,
+                                     tail=Constant(other))
                 if isinstance(other, Real)
-                else (Form(self,
-                           tail=other)
+                else (Form.from_components(self,
+                                           tail=other)
                       if isinstance(other, Constant)
                       else (Form.from_components(self, other)
                             if isinstance(other, Term)
@@ -131,11 +131,11 @@ class Term(Expression):
 
     def __radd__(self, other: Union[Real, Constant, 'Term']) -> 'Form':
         from .form import Form
-        return (Form(self,
-                     tail=Constant(other))
+        return (Form.from_components(self,
+                                     tail=Constant(other))
                 if isinstance(other, Real)
-                else (Form(self,
-                           tail=other)
+                else (Form.from_components(self,
+                                           tail=other)
                       if isinstance(other, Constant)
                       else NotImplemented))
 
@@ -150,14 +150,9 @@ class Term(Expression):
                 else NotImplemented)
 
     def __rsub__(self, other: Union[Real, Constant]) -> 'Form':
-        from .form import Form
-        return (Form(self,
-                     tail=Constant(-other))
-                if isinstance(other, Real)
-                else (Form(self,
-                           tail=-other)
-                      if isinstance(other, Constant)
-                      else NotImplemented))
+        return (other + (-self)
+                if isinstance(other, (Real, Constant))
+                else NotImplemented)
 
     def __rtruediv__(self, other: Union[Real, Constant]) -> 'Term':
         return (Term.from_components(other / self.scale, One / self.argument)
@@ -168,16 +163,9 @@ class Term(Expression):
         return '{} * sqrt({})'.format(self.scale, self.argument)
 
     def __sub__(self, other: Union[Real, Constant, 'Term']) -> 'Form':
-        from .form import Form
-        return (Form(self,
-                     tail=Constant(-other))
-                if isinstance(other, Real)
-                else (Form(self,
-                           tail=-other)
-                      if isinstance(other, Constant)
-                      else (Form.from_components(self, -other)
-                            if isinstance(other, Term)
-                            else NotImplemented)))
+        return (self + (-other)
+                if isinstance(other, (Real, Constant, Term))
+                else NotImplemented)
 
     def __truediv__(self, other: Union[Real, Constant, 'Term']) -> 'Term':
         return (Term(self.scale / other, self.argument)
