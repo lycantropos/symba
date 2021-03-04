@@ -1,4 +1,5 @@
 from collections import defaultdict
+from functools import reduce
 from numbers import (Rational,
                      Real)
 from typing import (TYPE_CHECKING,
@@ -14,7 +15,8 @@ from .constant import (Constant,
                        Zero)
 from .hints import SquareRooter
 from .term import Term
-from .utils import square
+from .utils import (lcm,
+                    square)
 
 if TYPE_CHECKING:
     from .ratio import Ratio
@@ -75,14 +77,28 @@ class Form(Expression):
         return self.upper_bound() > 0 and self.lower_bound() >= 0
 
     def lower_bound(self) -> Rational:
-        term_scale = 10 ** (len(self.terms) + bool(self.tail))
-        return sum([(term_scale * term).lower_bound() / term_scale
-                    for term in self.terms], self.tail.lower_bound())
+        common_denominator = (self._common_denominator()
+                              * 10 ** (len(self.terms) + bool(self.tail)))
+        return (sum([(common_denominator * term).lower_bound()
+                     for term in self.terms],
+                    (common_denominator * self.tail).lower_bound())
+                / common_denominator)
 
     def upper_bound(self) -> Rational:
-        term_scale = 10 ** (len(self.terms) + bool(self.tail))
-        return sum([(term_scale * term).upper_bound() / term_scale
-                    for term in self.terms], self.tail.upper_bound())
+        common_denominator = (self._common_denominator()
+                              * 10 ** (len(self.terms) + bool(self.tail)))
+        return (sum([(common_denominator * term).upper_bound()
+                     for term in self.terms],
+                    (common_denominator * self.tail).upper_bound())
+                / common_denominator)
+
+    def _common_denominator(self) -> int:
+        terms_scales_denominators = [term.scale.value.denominator
+                                     for term in self.terms]
+        return (reduce(lcm, terms_scales_denominators,
+                       self.tail.value.denominator)
+                if self.tail
+                else reduce(lcm, terms_scales_denominators))
 
     def __init__(self, *terms: Term, tail: Constant = Zero) -> None:
         assert all(isinstance(term, Term) for term in terms)

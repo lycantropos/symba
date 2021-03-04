@@ -3,6 +3,13 @@ from fractions import Fraction
 from numbers import Rational
 from typing import Any
 
+try:
+    lcm = math.lcm
+except AttributeError:
+    def lcm(left: int, right: int) -> int:
+        left, right = abs(left), abs(right)
+        return min(left, right) * (max(left, right) // math.gcd(left, right))
+
 
 def rational_sqrt_lower_bound(value: Rational) -> Rational:
     return Fraction(sqrt_floor(value.numerator * value.denominator),
