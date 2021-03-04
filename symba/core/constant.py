@@ -1,5 +1,7 @@
+import math
 from fractions import Fraction
-from numbers import Real
+from numbers import (Rational,
+                     Real)
 from typing import (Optional,
                     Union)
 
@@ -7,16 +9,26 @@ from reprit.base import generate_repr
 
 from .abcs import Expression
 from .hints import SquareRooter
-from .utils import (sqrt_ceil,
-                    sqrt_floor)
 
 
 class Constant(Expression):
-    __slots__ = 'value',
+    __slots__ = '_value',
 
     def __init__(self, value: Real = 0) -> None:
         assert isinstance(value, Real)
-        self.value = Fraction(value)
+        self._value = Fraction(value)
+
+    @property
+    def value(self) -> Rational:
+        return self._value
+
+    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
+        return self.value
+
+    def lower_bound(self) -> Rational:
+        return self.value
+
+    upper_bound = lower_bound
 
     def __abs__(self) -> 'Constant':
         return Constant(abs(self.value))
@@ -31,12 +43,18 @@ class Constant(Expression):
     def __bool__(self) -> bool:
         return bool(self.value)
 
+    def __ceil__(self) -> int:
+        return math.ceil(self.value)
+
     def __eq__(self, other: Union[Real, 'Constant']) -> bool:
         return (self.value == other
                 if isinstance(other, Real)
                 else (self.value == other.value
                       if isinstance(other, Constant)
                       else NotImplemented))
+
+    def __floor__(self) -> int:
+        return math.floor(self.value)
 
     def __ge__(self, other: Union[Real, 'Constant']) -> bool:
         return (self.value >= other
@@ -98,20 +116,5 @@ class Constant(Expression):
                       if isinstance(other, Constant)
                       else NotImplemented))
 
-    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
-        return self.value
-
 
 Zero, One = Constant(0), Constant(1)
-
-
-def constant_sqrt_ceil(value: Constant) -> Constant:
-    fraction = value.value
-    return Constant(Fraction(sqrt_ceil(fraction.numerator),
-                             sqrt_floor(fraction.denominator)))
-
-
-def constant_sqrt_floor(value: Constant) -> Constant:
-    fraction = value.value
-    return Constant(Fraction(sqrt_floor(fraction.numerator),
-                             sqrt_ceil(fraction.denominator)))

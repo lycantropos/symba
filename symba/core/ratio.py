@@ -1,4 +1,5 @@
-from numbers import Real
+from numbers import (Rational,
+                     Real)
 from typing import (Optional,
                     Union)
 
@@ -18,11 +19,13 @@ class Ratio(Expression):
 
     @classmethod
     def from_components(cls,
-                        numerator: Union[Constant, Term, Form],
+                        numerator: Expression,
                         denominator: Form) -> Union[Constant, 'Ratio']:
         if not is_form_positive(denominator):
             numerator, denominator = -numerator, -denominator
-        return cls(numerator, denominator) if numerator else Zero
+        return (cls(numerator.numerator, denominator * numerator.denominator)
+                if isinstance(numerator, Ratio)
+                else cls(numerator, denominator)) if numerator else Zero
 
     def __init__(self, numerator: Expression, denominator: Form) -> None:
         self.numerator, self.denominator = numerator, denominator
@@ -119,3 +122,9 @@ class Ratio(Expression):
     def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
         return (self.numerator.evaluate(square_rooter)
                 / self.denominator.evaluate(square_rooter))
+
+    def lower_bound(self) -> Rational:
+        return (self.numerator / self.denominator.upper_bound()).lower_bound()
+
+    def upper_bound(self) -> Rational:
+        return (self.numerator / self.denominator.lower_bound()).upper_bound()

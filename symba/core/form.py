@@ -1,5 +1,6 @@
 from collections import defaultdict
-from numbers import Real
+from numbers import (Rational,
+                     Real)
 from typing import (TYPE_CHECKING,
                     Optional,
                     Union)
@@ -8,11 +9,10 @@ from reprit.base import generate_repr
 
 from .abcs import Expression
 from .constant import (Constant,
+                       One,
                        Zero)
 from .hints import SquareRooter
-from .term import (Term,
-                   term_ceil,
-                   term_floor)
+from .term import Term
 from .utils import square
 
 if TYPE_CHECKING:
@@ -170,6 +170,16 @@ class Form(Expression):
         return sum([term.evaluate(square_rooter) for term in self.terms],
                    self.tail.evaluate(square_rooter))
 
+    def lower_bound(self) -> Rational:
+        term_scale = 10 ** (len(self.terms) + bool(self.tail))
+        return sum([(term_scale * term).lower_bound() / term_scale
+                    for term in self.terms], self.tail.lower_bound())
+
+    def upper_bound(self) -> Rational:
+        term_scale = 10 ** (len(self.terms) + bool(self.tail))
+        return sum([(term_scale * term).upper_bound() / term_scale
+                    for term in self.terms], self.tail.upper_bound())
+
     def _divide_by_form(self, other: 'Form') -> Union[Constant, 'Ratio']:
         has_tail = bool(self.tail)
         if (has_tail is bool(other.tail)
@@ -200,14 +210,6 @@ class Form(Expression):
                    square(self.tail))
 
 
-def form_ceil(value: Form) -> Constant:
-    return sum([term_ceil(term) for term in value.terms], value.tail)
-
-
-def form_floor(value: Form) -> Constant:
-    return sum([term_floor(term) for term in value.terms], value.tail)
-
-
 def is_form_positive(value: Form) -> bool:
     components = (*value.terms, value.tail) if value.tail else value.terms
     positive, negative = [], []
@@ -227,11 +229,13 @@ def is_form_positive(value: Form) -> bool:
     elif _is_positive(positive_squares_sum
                       - negative_count * negative_squares_sum):
         return True
-    if not form_ceil(value) > Zero:
-        return False
-    elif form_floor(value) >= Zero:
+    elif not _is_positive(negative_count * negative_squares_sum
+                          - positive_squares_sum):
         return True
-    return not is_form_positive(-value)
+    elif _is_positive(negative_squares_sum
+                      - positive_count * positive_squares_sum):
+        return False
+    return value.upper_bound() > 0 and value.lower_bound() >= 0
 
 
 def _is_positive(value: Union[Constant, Term, Form]) -> bool:

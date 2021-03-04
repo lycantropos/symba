@@ -1,19 +1,20 @@
 import math
-from numbers import Real
+from numbers import (Rational,
+                     Real)
 from typing import (TYPE_CHECKING,
                     Optional,
                     Union)
 
 from reprit.base import generate_repr
 
-from symba.core.utils import (sqrt_floor,
+from symba.core.utils import (rational_sqrt_lower_bound,
+                              rational_sqrt_upper_bound,
+                              sqrt_floor,
                               square)
 from .abcs import Expression
 from .constant import (Constant,
                        One,
-                       Zero,
-                       constant_sqrt_ceil,
-                       constant_sqrt_floor)
+                       Zero)
 from .hints import SquareRooter
 
 if TYPE_CHECKING:
@@ -74,22 +75,16 @@ class Term(Expression):
                 else NotImplemented)
 
     def __ge__(self, other: Union[Real, Constant, 'Term']) -> bool:
-        return (((other <= 0
-                  or square(other) <= square(self.scale) * self.argument)
+        return ((other <= 0 or square(other) <= self._square()
                  if self.scale > 0
-                 else
-                 (other <= 0
-                  and square(other) >= square(self.scale) * self.argument))
+                 else other <= 0 and square(other) >= self._square())
                 if isinstance(other, (Real, Constant, Term))
                 else NotImplemented)
 
     def __gt__(self, other: Union[Real, Constant, 'Term']) -> bool:
-        return (((other <= 0
-                  or square(other) < square(self.scale) * self.argument)
+        return ((other <= 0 or square(other) < self._square()
                  if self.scale > 0
-                 else (other <= 0
-                       and square(other) > square(
-                        self.scale) * self.argument))
+                 else other <= 0 and square(other) > self._square())
                 if isinstance(other, (Real, Constant, Term))
                 else NotImplemented)
 
@@ -97,20 +92,16 @@ class Term(Expression):
         return hash((self.scale, self.argument))
 
     def __le__(self, other: Union[Real, Constant, 'Term']) -> bool:
-        return (((other > 0
-                  and square(other) >= square(self.scale) * self.argument)
+        return ((other > 0 and square(other) >= self._square()
                  if self.scale > 0
-                 else other > 0 or (square(other)
-                                    <= square(self.scale) * self.argument))
+                 else other > 0 or square(other) <= self._square())
                 if isinstance(other, (Real, Constant, Term))
                 else NotImplemented)
 
     def __lt__(self, other: Union[Real, Constant, 'Term']) -> bool:
-        return (((other > 0
-                  and square(other) > square(self.scale) * self.argument)
+        return ((other > 0 and square(other) > self._square()
                  if self.scale > 0
-                 else (other > 0
-                       or square(other) < square(self.scale) * self.argument))
+                 else other > 0 or square(other) < self._square())
                 if isinstance(other, (Real, Constant, Term))
                 else NotImplemented)
 
@@ -173,6 +164,16 @@ class Term(Expression):
                    if square_rooter is None
                    else square_rooter)(self.argument.evaluate(square_rooter)))
 
+    def lower_bound(self) -> Rational:
+        return (-(-self).upper_bound()
+                if self < Zero
+                else rational_sqrt_lower_bound(self._square().lower_bound()))
+
+    def upper_bound(self) -> Rational:
+        return (-(-self).lower_bound()
+                if self < Zero
+                else rational_sqrt_upper_bound(self._square().upper_bound()))
+
     def _multiply_with_term(self, other: 'Term') -> Union[Constant, 'Term']:
         scale = self.scale * other.scale
         argument, other_argument = self.argument, other.argument
@@ -187,37 +188,5 @@ class Term(Expression):
             scale *= arguments_gcd
         return Term.from_components(scale, argument * other_argument)
 
-
-def term_floor(term: Term) -> Constant:
-    if term < Zero:
-        return -term_ceil(-term)
-    argument = term.argument
-    argument_floor = (constant_sqrt_floor
-                      (argument
-                       if isinstance(argument, Constant)
-                       else (term_floor(argument)
-                             if isinstance(argument, Term)
-                             else (sum(map(term_floor, argument.terms),
-                                       argument.tail)
-                                   if isinstance(argument, Form)
-                                   else NotImplemented))))
-    assert not square(argument_floor) > argument
-    return term.scale * argument_floor
-
-
-def term_ceil(term: Term) -> Constant:
-    if term < Zero:
-        return -term_floor(-term)
-    argument = term.argument
-    argument_ceil = constant_sqrt_ceil(argument
-                                       if isinstance(argument, Constant)
-                                       else
-                                       (term_ceil(argument)
-                                        if isinstance(argument, Term)
-                                        else
-                                        (sum(map(term_ceil, argument.terms),
-                                             argument.tail)
-                                         if isinstance(argument, Form)
-                                         else NotImplemented)))
-    assert not square(argument_ceil) < argument
-    return term.scale * argument_ceil
+    def _square(self) -> Expression:
+        return square(self.scale) * self.argument

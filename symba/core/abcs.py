@@ -1,6 +1,8 @@
+import math
 from abc import (ABC,
                  abstractmethod)
-from numbers import Real
+from numbers import (Rational,
+                     Real)
 from typing import (Optional,
                     Union)
 
@@ -9,12 +11,32 @@ from .hints import SquareRooter
 
 class Expression(ABC):
     @abstractmethod
+    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
+        """Evaluates the expression."""
+
+    @abstractmethod
+    def lower_bound(self) -> Rational:
+        """Returns lower bound of the expression."""
+
+    @abstractmethod
+    def upper_bound(self) -> Rational:
+        """Returns upper bound of the expression."""
+
+    @abstractmethod
     def __abs__(self) -> 'Expression':
         """Returns an absolute value of the expression."""
 
     @abstractmethod
     def __add__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns sum of the expression with the other."""
+
+    def __ceil__(self) -> int:
+        """Return the ceiling of the expression."""
+        return math.ceil(self.upper_bound())
+
+    def __floor__(self) -> int:
+        """Return the floor of the expression."""
+        return math.floor(self.lower_bound())
 
     @abstractmethod
     def __ge__(self, other: Union[Real, 'Expression']) -> bool:
@@ -63,7 +85,3 @@ class Expression(ABC):
     @abstractmethod
     def __rtruediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns division of the expression by the other."""
-
-    @abstractmethod
-    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
-        """Evaluates the expression."""
