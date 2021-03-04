@@ -10,6 +10,7 @@ from .abcs import Expression
 from .constant import Zero
 from .form import Form
 from .hints import SquareRooter
+from .utils import square
 
 
 class Ratio(Expression):
@@ -34,6 +35,10 @@ class Ratio(Expression):
 
     def lower_bound(self) -> Rational:
         return (self.numerator / self.denominator.upper_bound()).lower_bound()
+
+    def perfect_scale_sqrt(self) -> Rational:
+        return (self.numerator.perfect_scale_sqrt()
+                / self.denominator.perfect_scale_sqrt())
 
     def upper_bound(self) -> Rational:
         return (self.numerator / self.denominator.lower_bound()).upper_bound()

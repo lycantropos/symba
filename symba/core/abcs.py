@@ -19,6 +19,10 @@ class Expression(ABC):
         """Evaluates the expression."""
 
     @abstractmethod
+    def perfect_scale_sqrt(self) -> Rational:
+        """Returns rational square root of scale of the expression."""
+
+    @abstractmethod
     def lower_bound(self) -> Rational:
         """Returns lower bound of the expression."""
 

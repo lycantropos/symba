@@ -1,3 +1,4 @@
+import math
 from collections import defaultdict
 from functools import reduce
 from numbers import (Rational,
@@ -6,6 +7,7 @@ from typing import (TYPE_CHECKING,
                     Any,
                     Dict,
                     Optional,
+                    Sequence,
                     Union)
 
 from reprit.base import generate_repr
@@ -23,8 +25,6 @@ if TYPE_CHECKING:
 
 
 class Form(Expression):
-    __slots__ = 'tail', 'terms'
-
     @classmethod
     def from_components(cls,
                         *terms: Term,
@@ -44,6 +44,33 @@ class Form(Expression):
                  else terms[0])
                 if terms
                 else tail)
+
+    def __init__(self, *terms: Term, tail: Constant = Zero) -> None:
+        self._terms, self._tail = terms, tail
+
+    @property
+    def tail(self) -> Constant:
+        return self._tail
+
+    @property
+    def terms(self) -> Sequence[Term]:
+        return self._terms
+
+    def common_denominator(self) -> int:
+        terms_scales_denominators = [term.scale.value.denominator
+                                     for term in self.terms]
+        return (reduce(lcm, terms_scales_denominators,
+                       self.tail.value.denominator)
+                if self.tail
+                else reduce(lcm, terms_scales_denominators))
+
+    def common_numerator(self) -> int:
+        terms_scales_denominators = [term.scale.value.numerator
+                                     for term in self.terms]
+        return (reduce(math.gcd, terms_scales_denominators,
+                       self.tail.value.numerator)
+                if self.tail
+                else reduce(math.gcd, terms_scales_denominators))
 
     def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
         return sum([term.evaluate(square_rooter) for term in self.terms],
@@ -77,33 +104,26 @@ class Form(Expression):
         return self.upper_bound() > 0 and self.lower_bound() >= 0
 
     def lower_bound(self) -> Rational:
-        common_denominator = (self._common_denominator()
+        common_denominator = (self.common_denominator()
                               * 10 ** (len(self.terms) + bool(self.tail)))
         return (sum([(common_denominator * term).lower_bound()
                      for term in self.terms],
                     (common_denominator * self.tail).lower_bound())
                 / common_denominator)
 
+    def perfect_scale_sqrt(self) -> Rational:
+        return (Constant(self.common_numerator())
+                / self.common_denominator()).perfect_scale_sqrt()
+
     def upper_bound(self) -> Rational:
-        common_denominator = (self._common_denominator()
+        common_denominator = (self.common_denominator()
                               * 10 ** (len(self.terms) + bool(self.tail)))
         return (sum([(common_denominator * term).upper_bound()
                      for term in self.terms],
                     (common_denominator * self.tail).upper_bound())
                 / common_denominator)
 
-    def _common_denominator(self) -> int:
-        terms_scales_denominators = [term.scale.value.denominator
-                                     for term in self.terms]
-        return (reduce(lcm, terms_scales_denominators,
-                       self.tail.value.denominator)
-                if self.tail
-                else reduce(lcm, terms_scales_denominators))
-
-    def __init__(self, *terms: Term, tail: Constant = Zero) -> None:
-        assert all(isinstance(term, Term) for term in terms)
-        assert isinstance(tail, Constant)
-        self.terms, self.tail = terms, tail
+    __slots__ = '_tail', '_terms'
 
     def __abs__(self) -> 'Form':
         return self if self.is_positive() else -self

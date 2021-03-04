@@ -10,7 +10,6 @@ from reprit.base import generate_repr
 
 from symba.core.utils import (rational_sqrt_lower_bound,
                               rational_sqrt_upper_bound,
-                              sqrt_floor,
                               square)
 from .abcs import Expression
 from .constant import (Constant,
@@ -31,23 +30,11 @@ class Term(Expression):
                         argument: Expression) -> Union[Constant, 'Term']:
         if not (scale and argument):
             return Zero
-        if isinstance(argument, Constant):
-            argument_value = argument.value
-            argument_numerator = argument_value.numerator
-            argument_numerator_sqrt_floor = sqrt_floor(argument_numerator)
-            if square(argument_numerator_sqrt_floor) == argument_numerator:
-                scale *= argument_numerator_sqrt_floor
-                argument /= argument_numerator
-            argument_denominator = argument_value.denominator
-            argument_denominator_sqrt_floor = sqrt_floor(argument_denominator)
-            if square(argument_denominator_sqrt_floor) == argument_denominator:
-                scale /= argument_denominator_sqrt_floor
-                argument *= argument_denominator
-                if argument == One:
-                    return scale
-            elif argument_denominator != 1:
-                scale /= argument_denominator
-                argument = Constant(argument_numerator * argument_denominator)
+        argument_perfect_scale_sqrt = argument.perfect_scale_sqrt()
+        scale *= argument_perfect_scale_sqrt
+        argument /= square(argument_perfect_scale_sqrt)
+        if argument == One:
+            return scale
         return cls(scale, argument)
 
     def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
@@ -63,6 +50,9 @@ class Term(Expression):
         return (-(-self).upper_bound()
                 if self < Zero
                 else rational_sqrt_lower_bound(self._square().lower_bound()))
+
+    def perfect_scale_sqrt(self) -> Rational:
+        return self.scale.perfect_scale_sqrt()
 
     def upper_bound(self) -> Rational:
         return (-(-self).lower_bound()

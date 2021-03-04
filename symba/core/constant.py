@@ -10,6 +10,8 @@ from reprit.base import generate_repr
 
 from .abcs import Expression
 from .hints import SquareRooter
+from .utils import (sqrt_floor,
+                    square)
 
 
 class Constant(Expression):
@@ -30,6 +32,21 @@ class Constant(Expression):
 
     def lower_bound(self) -> Rational:
         return self.value
+
+    def perfect_scale_sqrt(self) -> Rational:
+        result = Fraction(1)
+        argument_value = self.value
+        argument_numerator = argument_value.numerator
+        argument_numerator_sqrt_floor = sqrt_floor(argument_numerator)
+        if square(argument_numerator_sqrt_floor) == argument_numerator:
+            result *= argument_numerator_sqrt_floor
+        argument_denominator = argument_value.denominator
+        argument_denominator_sqrt_floor = sqrt_floor(argument_denominator)
+        if square(argument_denominator_sqrt_floor) == argument_denominator:
+            result /= argument_denominator_sqrt_floor
+        elif argument_denominator != 1:
+            result /= argument_denominator
+        return result
 
     upper_bound = lower_bound
 
