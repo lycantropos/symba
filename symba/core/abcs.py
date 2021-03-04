@@ -44,19 +44,27 @@ class Expression(ABC):
 
     def __ge__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is greater than or equal to the other."""
-        return not (other - self).is_positive()
+        return (not (other - self).is_positive()
+                if isinstance(other, (Real, Expression))
+                else NotImplemented)
 
     def __gt__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is greater than the other."""
-        return (self - other).is_positive()
+        return ((self - other).is_positive()
+                if isinstance(other, (Real, Expression))
+                else NotImplemented)
 
     def __le__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is lower than or equal to the other."""
-        return not (self - other).is_positive()
+        return (not (self - other).is_positive()
+                if isinstance(other, (Real, Expression))
+                else NotImplemented)
 
     def __lt__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is lower than the other."""
-        return (other - self).is_positive()
+        return ((other - self).is_positive()
+                if isinstance(other, (Real, Expression))
+                else NotImplemented)
 
     @abstractmethod
     def __mul__(self, other: Union[Real, 'Expression']) -> 'Expression':
@@ -76,11 +84,15 @@ class Expression(ABC):
 
     def __rsub__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns difference of the other with the expression."""
-        return other + (-self)
+        return (other + (-self)
+                if isinstance(other, (Real, Expression))
+                else NotImplemented)
 
     def __sub__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns difference of the expression with the other."""
-        return self + (-other)
+        return (self + (-other)
+                if isinstance(other, (Real, Expression))
+                else NotImplemented)
 
     @abstractmethod
     def __truediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
