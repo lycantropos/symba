@@ -68,9 +68,7 @@ class Term(Expression):
                 if self < Zero
                 else rational_sqrt_upper_bound(self._square().upper_bound()))
 
-    def __init__(self,
-                 scale: Constant,
-                 argument: Union[Constant, 'Term', 'Form']) -> None:
+    def __init__(self, scale: Constant, argument: Expression) -> None:
         self.scale, self.argument = scale, argument
 
     def __abs__(self) -> 'Expression':
