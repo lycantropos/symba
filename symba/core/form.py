@@ -217,6 +217,4 @@ class Form(Expression):
 
 
 def _to_signed_value(value: Union[Constant, Term]) -> str:
-    return ('+ ' + str(value)
-            if value > 0
-            else '- ' + str(-value))
+    return '+ ' + str(value) if value.is_positive() else '- ' + str(-value)
