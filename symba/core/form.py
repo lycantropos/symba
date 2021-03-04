@@ -72,6 +72,9 @@ class Form(Expression):
                 if self.tail
                 else reduce(math.gcd, terms_scales_denominators))
 
+    def significant_digits_count(self) -> int:
+        return len(self.terms) + bool(self.tail)
+
     def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
         return sum([term.evaluate(square_rooter) for term in self.terms],
                    self.tail.evaluate(square_rooter))
@@ -104,24 +107,20 @@ class Form(Expression):
         return self.upper_bound() > 0 and self.lower_bound() >= 0
 
     def lower_bound(self) -> Rational:
-        common_denominator = (self.common_denominator()
-                              * 10 ** (len(self.terms) + bool(self.tail)))
-        return (sum([(common_denominator * term).lower_bound()
-                     for term in self.terms],
-                    (common_denominator * self.tail).lower_bound())
-                / common_denominator)
+        common_scale = self._common_scale()
+        return sum([(common_scale * term).lower_bound()
+                    for term in self.terms],
+                   (common_scale * self.tail).lower_bound()) / common_scale
 
     def perfect_scale_sqrt(self) -> Rational:
         return (Constant(self.common_numerator())
                 / self.common_denominator()).perfect_scale_sqrt()
 
     def upper_bound(self) -> Rational:
-        common_denominator = (self.common_denominator()
-                              * 10 ** (len(self.terms) + bool(self.tail)))
-        return (sum([(common_denominator * term).upper_bound()
-                     for term in self.terms],
-                    (common_denominator * self.tail).upper_bound())
-                / common_denominator)
+        common_scale = self._common_scale()
+        return sum([(common_scale * term).upper_bound()
+                    for term in self.terms],
+                   (common_scale * self.tail).upper_bound()) / common_scale
 
     __slots__ = '_tail', '_terms'
 
@@ -218,6 +217,10 @@ class Form(Expression):
                       else (self._divide_by_form(other)
                             if isinstance(other, Form)
                             else NotImplemented)))
+
+    def _common_scale(self) -> int:
+        return (self.common_denominator()
+                * 10 ** self.significant_digits_count())
 
     def _divide_by_form(self, other: 'Form') -> Expression:
         has_tail = bool(self.tail)

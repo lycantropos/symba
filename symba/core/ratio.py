@@ -10,7 +10,6 @@ from .abcs import Expression
 from .constant import Zero
 from .form import Form
 from .hints import SquareRooter
-from .utils import square
 
 
 class Ratio(Expression):
@@ -34,14 +33,22 @@ class Ratio(Expression):
         return self.numerator.is_positive()
 
     def lower_bound(self) -> Rational:
-        return (self.numerator / self.denominator.upper_bound()).lower_bound()
+        if not self.numerator.is_positive():
+            return -(-self).upper_bound()
+        common_scale = self._common_scale()
+        return ((common_scale * self.numerator).lower_bound()
+                / (common_scale * self.denominator).upper_bound())
 
     def perfect_scale_sqrt(self) -> Rational:
         return (self.numerator.perfect_scale_sqrt()
                 / self.denominator.perfect_scale_sqrt())
 
     def upper_bound(self) -> Rational:
-        return (self.numerator / self.denominator.lower_bound()).upper_bound()
+        if not self.numerator.is_positive():
+            return -(-self).lower_bound()
+        common_scale = self._common_scale()
+        return ((common_scale * self.numerator).upper_bound()
+                / (common_scale * self.denominator).lower_bound())
 
     def __init__(self, numerator: Expression, denominator: Form) -> None:
         self.numerator, self.denominator = numerator, denominator
@@ -110,3 +117,7 @@ class Ratio(Expression):
                 else (self.numerator / (self.denominator * other)
                       if isinstance(other, (Real, Expression))
                       else NotImplemented))
+
+    def _common_scale(self) -> int:
+        return (self.denominator.common_denominator()
+                * 100 ** self.denominator.significant_digits_count())
