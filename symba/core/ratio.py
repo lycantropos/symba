@@ -53,6 +53,16 @@ class Ratio(Expression):
     def __abs__(self) -> 'Ratio':
         return Ratio(abs(self.numerator), self.denominator)
 
+    def __eq__(self, other: Any) -> Any:
+        return (self.numerator == other.numerator
+                if isinstance(other, Ratio)
+                else (False
+                      if isinstance(other, (Real, Expression))
+                      else NotImplemented))
+
+    def __hash__(self) -> int:
+        return hash((self.numerator, self.denominator))
+
     def __mul__(self, other: Union[Real, Expression]) -> Expression:
         return ((self.numerator * other.numerator)
                 / (self.denominator * other.denominator)
