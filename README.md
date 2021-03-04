@@ -42,6 +42,34 @@ Install
 python setup.py install
 ```
 
+Usage
+-----
+```python
+>>> from symba.base import Expression, sqrt
+>>> golden_ratio = (1 + sqrt(5)) / 2
+>>> isinstance(golden_ratio, Expression)
+True
+>>> golden_ratio * golden_ratio == golden_ratio + 1
+True
+>>> 1 / golden_ratio == golden_ratio - 1
+True
+>>> def fibonacci(index: int) -> Expression:
+...     """
+...     Based on:
+...     https://en.wikipedia.org/wiki/Golden_ratio#Relationship_to_Fibonacci_sequence
+...     """
+...     golden_ratio_power = golden_ratio ** index
+...     return ((golden_ratio_power - (-1) ** index / golden_ratio_power)
+...             / sqrt(5))
+>>> fibonacci(0) == 0
+True
+>>> fibonacci(1) == 1
+True
+>>> fibonacci(100) == 354_224_848_179_261_915_075
+True
+
+```
+
 Development
 -----------
 
