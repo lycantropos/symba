@@ -92,8 +92,7 @@ class Form(Expression):
     def __abs__(self) -> 'Form':
         return self if self.is_positive() else -self
 
-    def __add__(self, other: Union[Real, Constant, Term, 'Form']
-                ) -> Union[Constant, 'Form']:
+    def __add__(self, other: Union[Real, Expression]) -> Expression:
         return (Form.from_components(*self.terms,
                                      tail=self.tail + other)
                 if isinstance(other, (Real, Constant))
@@ -118,8 +117,7 @@ class Form(Expression):
     def __hash__(self) -> int:
         return hash((self.terms, self.tail))
 
-    def __mul__(self, other: Union[Real, Constant, Term, 'Form']
-                ) -> Union[Constant, 'Form']:
+    def __mul__(self, other: Union[Real, Expression]) -> Expression:
         return (((self._square()
                   if self == other
                   else sum([term * other for term in self.terms],
@@ -133,8 +131,7 @@ class Form(Expression):
         return Form(*[-term for term in self.terms],
                     tail=-self.tail)
 
-    def __radd__(self, other: Union[Real, Constant, Term]
-                 ) -> Union[Constant, 'Form']:
+    def __radd__(self, other: Union[Real, Expression]) -> Expression:
         return (Form.from_components(*self.terms,
                                      tail=other + self.tail)
                 if isinstance(other, (Real, Constant))
@@ -145,8 +142,7 @@ class Form(Expression):
 
     __repr__ = generate_repr(__init__)
 
-    def __rmul__(self, other: Union[Real, Constant, Term]
-                 ) -> Union[Constant, 'Form']:
+    def __rmul__(self, other: Union[Real, Expression]) -> Expression:
         return ((sum([term * other for term in self.terms],
                      self.tail * other)
                  if other
@@ -154,8 +150,7 @@ class Form(Expression):
                 if isinstance(other, (Real, Constant, Term))
                 else NotImplemented)
 
-    def __rtruediv__(self, other: Union[Real, Constant, Term]
-                     ) -> Union[Constant, 'Form', 'Ratio']:
+    def __rtruediv__(self, other: Union[Real, Expression]) -> Expression:
         components = (*self.terms, self.tail) if self.tail else self.terms
         components_count = len(components)
         if components_count > 2:
@@ -177,8 +172,7 @@ class Form(Expression):
                    if self.tail
                    else ''))
 
-    def __truediv__(self, other: Union[Real, Constant, Term, 'Form']
-                    ) -> Union[Constant, 'Form', 'Ratio']:
+    def __truediv__(self, other: Union[Real, Expression]) -> Expression:
         return (Form(*[term / other for term in self.terms],
                      tail=self.tail / other)
                 if isinstance(other, (Real, Constant))
@@ -189,7 +183,7 @@ class Form(Expression):
                             if isinstance(other, Form)
                             else NotImplemented)))
 
-    def _divide_by_form(self, other: 'Form') -> Union[Constant, 'Ratio']:
+    def _divide_by_form(self, other: 'Form') -> Expression:
         has_tail = bool(self.tail)
         if (has_tail is bool(other.tail)
                 and len(self.terms) == len(other.terms)):
