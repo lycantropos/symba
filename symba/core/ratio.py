@@ -10,6 +10,7 @@ from .abcs import Expression
 from .constant import Zero
 from .form import Form
 from .hints import SquareRooter
+from .utils import BASE
 
 
 class Ratio(Expression):
@@ -124,4 +125,4 @@ class Ratio(Expression):
 
     def _common_scale(self) -> int:
         return (self.denominator.common_denominator()
-                * 10 ** self.significant_digits_count())
+                * BASE ** self.significant_digits_count())

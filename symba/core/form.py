@@ -17,7 +17,8 @@ from .constant import (Constant,
                        Zero)
 from .hints import SquareRooter
 from .term import Term
-from .utils import (lcm,
+from .utils import (BASE,
+                    lcm,
                     square)
 
 if TYPE_CHECKING:
@@ -221,7 +222,7 @@ class Form(Expression):
 
     def _common_scale(self) -> int:
         return (self.common_denominator()
-                * 10 ** self.significant_digits_count())
+                * BASE ** self.significant_digits_count())
 
     def _divide_by_form(self, other: 'Form') -> Expression:
         has_tail = bool(self.tail)

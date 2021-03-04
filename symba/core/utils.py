@@ -3,6 +3,8 @@ from fractions import Fraction
 from numbers import Rational
 from typing import Any
 
+BASE = Fraction(10)
+
 
 def ceil_half(value: int) -> int:
     return -(-value // 2)
