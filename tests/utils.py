@@ -1,3 +1,8 @@
+import pickle
+from typing import TypeVar
+
+Value = TypeVar('Value')
+
 MAX_VALUE = 10 ** 15
 MIN_VALUE = -MAX_VALUE
 
@@ -8,3 +13,7 @@ def equivalence(left_statement: bool, right_statement: bool) -> bool:
 
 def implication(antecedent: bool, consequent: bool) -> bool:
     return not antecedent or consequent
+
+
+def pickle_round_trip(value: Value) -> Value:
+    return pickle.loads(pickle.dumps(value))
