@@ -2,6 +2,7 @@ from collections import defaultdict
 from numbers import (Rational,
                      Real)
 from typing import (TYPE_CHECKING,
+                    Any,
                     Dict,
                     Optional,
                     Union)
@@ -104,14 +105,14 @@ class Form(Expression):
                             if isinstance(other, Form)
                             else NotImplemented)))
 
-    def __eq__(self, other: 'Form') -> bool:
+    def __eq__(self, other: Any) -> Any:
         return (self is other
                 or (self.tail == other.tail
                     and len(self.terms) == len(other.terms)
                     and set(self.terms) == set(other.terms))
                 if isinstance(other, Form)
                 else (False
-                      if isinstance(other, (Real, Constant, Term))
+                      if isinstance(other, (Real, Expression))
                       else NotImplemented))
 
     def __hash__(self) -> int:
