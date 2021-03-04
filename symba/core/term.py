@@ -72,7 +72,7 @@ class Term(Expression):
     def __init__(self, scale: Constant, argument: Expression) -> None:
         self.scale, self.argument = scale, argument
 
-    def __abs__(self) -> 'Expression':
+    def __abs__(self) -> 'Term':
         return Term(abs(self.scale), self.argument)
 
     def __add__(self, other: Union[Real, Constant, 'Term']) -> 'Form':
