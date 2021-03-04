@@ -2,7 +2,8 @@ import math
 from fractions import Fraction
 from numbers import (Rational,
                      Real)
-from typing import (Optional,
+from typing import (Any,
+                    Optional,
                     Union)
 
 from reprit.base import generate_repr
@@ -48,7 +49,7 @@ class Constant(Expression):
     def __ceil__(self) -> int:
         return math.ceil(self.value)
 
-    def __eq__(self, other: Union[Real, 'Constant']) -> bool:
+    def __eq__(self, other: Any) -> Any:
         return (self.value == other
                 if isinstance(other, Real)
                 else (self.value == other.value
