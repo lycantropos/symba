@@ -10,7 +10,7 @@ from reprit.base import generate_repr
 
 from .abcs import Expression
 from .hints import SquareRooter
-from .utils import (integer_digits_count,
+from .utils import (digits_count,
                     sqrt_floor,
                     square)
 
@@ -50,7 +50,7 @@ class Constant(Expression):
         return result
 
     def significant_digits_count(self) -> int:
-        return integer_digits_count(self._value.limit_denominator(1).numerator)
+        return digits_count(self._value.limit_denominator(1).numerator)
 
     upper_bound = lower_bound
 
