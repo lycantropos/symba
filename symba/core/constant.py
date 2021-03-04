@@ -54,7 +54,9 @@ class Constant(Expression):
                 if isinstance(other, Real)
                 else (self.value == other.value
                       if isinstance(other, Constant)
-                      else NotImplemented))
+                      else (False
+                            if isinstance(other, Expression)
+                            else NotImplemented)))
 
     def __floor__(self) -> int:
         return math.floor(self.value)
