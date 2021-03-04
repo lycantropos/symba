@@ -205,7 +205,7 @@ class Form(Expression):
         from .ratio import Ratio
         return Ratio.from_components(self, other)
 
-    def _square(self) -> 'Form':
+    def _square(self) -> Expression:
         return sum([2 * (self.terms[step] * self.terms[index])
                     for step in range(1, len(self.terms))
                     for index in range(step)]
