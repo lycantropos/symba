@@ -15,7 +15,6 @@ class Constant(Expression):
     __slots__ = '_value',
 
     def __init__(self, value: Real = 0) -> None:
-        assert isinstance(value, Real)
         self._value = Fraction(value)
 
     @property
