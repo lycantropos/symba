@@ -36,7 +36,7 @@ class Constant(Expression):
     def __abs__(self) -> 'Constant':
         return Constant(abs(self.value))
 
-    def __add__(self, other: Union[Real, Expression]) -> Expression:
+    def __add__(self, other: Union[Real, 'Constant']) -> 'Constant':
         return (Constant(self.value + other)
                 if isinstance(other, Real)
                 else (Constant(self.value + other.value)
@@ -64,7 +64,7 @@ class Constant(Expression):
     def __hash__(self) -> int:
         return hash(self.value)
 
-    def __mul__(self, other: Union[Real, Expression]) -> Expression:
+    def __mul__(self, other: Union[Real, 'Constant']) -> 'Constant':
         return (Constant(self.value * other.value)
                 if isinstance(other, Constant)
                 else (Constant(self.value * other)
@@ -74,19 +74,19 @@ class Constant(Expression):
     def __neg__(self) -> 'Constant':
         return Constant(-self.value)
 
-    def __radd__(self, other: Union[Real, Expression]) -> Expression:
+    def __radd__(self, other: Union[Real, 'Constant']) -> 'Constant':
         return (Constant(other + self.value)
                 if isinstance(other, Real)
                 else NotImplemented)
 
     __repr__ = generate_repr(__init__)
 
-    def __rmul__(self, other: Union[Real, Expression]) -> Expression:
+    def __rmul__(self, other: Union[Real, 'Constant']) -> 'Constant':
         return (Constant(self.value * other)
                 if isinstance(other, Real)
                 else NotImplemented)
 
-    def __rtruediv__(self, other: Union[Real, Expression]) -> Expression:
+    def __rtruediv__(self, other: Union[Real, 'Constant']) -> 'Constant':
         return (Constant(other / self.value)
                 if isinstance(other, Real)
                 else NotImplemented)
@@ -94,7 +94,7 @@ class Constant(Expression):
     def __str__(self) -> str:
         return str(self.value)
 
-    def __truediv__(self, other: Union[Real, Expression]) -> Expression:
+    def __truediv__(self, other: Union[Real, 'Constant']) -> 'Constant':
         return (Constant(self.value / other)
                 if isinstance(other, Real)
                 else (Constant(self.value / other.value)
