@@ -1,7 +1,8 @@
 import math
 from fractions import Fraction
 from numbers import Rational
-from typing import Any
+from typing import (Any,
+                    List)
 
 BASE = Fraction(10)
 
@@ -12,6 +13,12 @@ def ceil_half(value: int) -> int:
 
 def integer_digits_count(value: int) -> int:
     return len('%i' % abs(value))
+
+
+def integer_to_binary_digits(value: int) -> List[int]:
+    for _ in range(value.bit_length()):
+        yield value % 2
+        value >>= 1
 
 
 try:

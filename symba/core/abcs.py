@@ -7,6 +7,7 @@ from typing import (Optional,
                     Union)
 
 from .hints import SquareRooter
+from .utils import integer_to_binary_digits
 
 
 class Expression(ABC):
@@ -89,6 +90,19 @@ class Expression(ABC):
     def __pos__(self) -> 'Expression':
         """Returns the expression positive."""
         return self
+
+    def __pow__(self, exponent: int) -> 'Expression':
+        if not isinstance(exponent, int):
+            return NotImplemented
+        from .constant import One
+        result, step = One, self
+        if exponent < 0:
+            exponent, step = -exponent, One / step
+        for digit in integer_to_binary_digits(exponent):
+            if digit:
+                result *= step
+            step *= step
+        return result
 
     @abstractmethod
     def __radd__(self, other: Union[Real, 'Expression']) -> 'Expression':
