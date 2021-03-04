@@ -18,7 +18,7 @@ def to_nested_expressions(strategy: Strategy[Expression]
     return (strategy.filter(lambda value: value >= 0).map(sqrt)
             | strategies.builds(add, strategy, reals)
             | (strategies.lists(strategy,
-                                min_size=1,
+                                min_size=2,
                                 max_size=10)
                .map(sum))
             | strategies.builds(mul, strategy, reals)
