@@ -1,16 +1,15 @@
 from numbers import (Rational,
                      Real)
-from typing import (Optional,
+from typing import (Any,
+                    Optional,
                     Union)
 
 from reprit.base import generate_repr
 
 from .abcs import Expression
-from .constant import (Constant,
-                       Zero)
+from .constant import Zero
 from .form import Form
 from .hints import SquareRooter
-from .term import Term
 
 
 class Ratio(Expression):
@@ -19,10 +18,10 @@ class Ratio(Expression):
     @classmethod
     def from_components(cls,
                         numerator: Expression,
-                        denominator: Form) -> Union[Constant, 'Ratio']:
+                        denominator: Form) -> Expression:
         if not denominator.is_positive():
             numerator, denominator = -numerator, -denominator
-        return (cls(numerator.numerator, denominator * numerator.denominator)
+        return (numerator.numerator / (denominator * numerator.denominator)
                 if isinstance(numerator, Ratio)
                 else cls(numerator, denominator)) if numerator else Zero
 
@@ -42,8 +41,7 @@ class Ratio(Expression):
     def __init__(self, numerator: Expression, denominator: Form) -> None:
         self.numerator, self.denominator = numerator, denominator
 
-    def __add__(self, other: Union[Constant, Term, Form, 'Ratio']
-                ) -> Union[Constant, 'Ratio']:
+    def __add__(self, other: Union[Real, Expression]) -> Expression:
         return ((self.numerator * other.denominator
                  + other.numerator * self.denominator)
                 / (self.denominator * other.denominator)
@@ -64,11 +62,10 @@ class Ratio(Expression):
                       if isinstance(other, (Real, Expression))
                       else NotImplemented))
 
-    def __neg__(self) -> 'Expression':
+    def __neg__(self) -> Expression:
         return Ratio(-self.numerator, self.denominator)
 
-    def __radd__(self, other: Union[Constant, Term, Form]
-                 ) -> Union[Constant, 'Ratio']:
+    def __radd__(self, other: Union[Real, Expression]) -> Expression:
         return Ratio.from_components(self.numerator + other * self.denominator,
                                      self.denominator)
 
@@ -79,7 +76,7 @@ class Ratio(Expression):
                 if isinstance(other, (Real, Expression))
                 else NotImplemented)
 
-    def __rtruediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __rtruediv__(self, other: Union[Real, Expression]) -> Expression:
         return ((self.denominator * other) / self.numerator
                 if isinstance(other, (Real, Expression))
                 else NotImplemented)
@@ -90,7 +87,7 @@ class Ratio(Expression):
                                   else self.numerator,
                                   self.denominator)
 
-    def __truediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __truediv__(self, other: Union[Real, Expression]) -> Expression:
         return ((self.numerator * other.denominator)
                 / (self.denominator * other.numerator)
                 if isinstance(other, Ratio)
