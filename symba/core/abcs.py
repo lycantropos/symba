@@ -7,7 +7,7 @@ from typing import (Optional,
                     Union)
 
 from .hints import SquareRooter
-from .utils import integer_to_binary_digits
+from .utils import to_binary_digits
 
 
 class Expression(ABC):
@@ -92,13 +92,14 @@ class Expression(ABC):
         return self
 
     def __pow__(self, exponent: int) -> 'Expression':
+        """Returns the expression raised to the given exponent."""
         if not isinstance(exponent, int):
             return NotImplemented
         from .constant import One
         result, step = One, self
         if exponent < 0:
             exponent, step = -exponent, One / step
-        for digit in integer_to_binary_digits(exponent):
+        for digit in to_binary_digits(exponent):
             if digit:
                 result *= step
             step *= step

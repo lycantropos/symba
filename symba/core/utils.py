@@ -15,12 +15,6 @@ def digits_count(value: int) -> int:
     return len('%i' % abs(value))
 
 
-def integer_to_binary_digits(value: int) -> List[int]:
-    for _ in range(value.bit_length()):
-        yield value % 2
-        value >>= 1
-
-
 try:
     lcm = math.lcm
 except AttributeError:
@@ -63,3 +57,9 @@ except AttributeError:
 
 def square(value: Any) -> Any:
     return value * value
+
+
+def to_binary_digits(value: int) -> List[int]:
+    for _ in range(value.bit_length()):
+        yield value % 2
+        value >>= 1
