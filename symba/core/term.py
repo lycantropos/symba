@@ -75,7 +75,7 @@ class Term(Expression):
     def __abs__(self) -> 'Term':
         return Term(abs(self.scale), self.argument)
 
-    def __add__(self, other: Union[Real, Constant, 'Term']) -> 'Form':
+    def __add__(self, other: Union[Real, Expression]) -> Expression:
         from .form import Form
         return (Form.from_components(self,
                                      tail=Constant(other))
@@ -96,8 +96,7 @@ class Term(Expression):
     def __hash__(self) -> int:
         return hash((self.scale, self.argument))
 
-    def __mul__(self, other: Union[Real, Constant, 'Term']
-                ) -> Union[Constant, 'Term']:
+    def __mul__(self, other: Union[Real, Expression]) -> Expression:
         return ((Term(self.scale * other, self.argument)
                  if other
                  else Zero)
@@ -109,7 +108,7 @@ class Term(Expression):
     def __neg__(self) -> 'Term':
         return Term(-self.scale, self.argument)
 
-    def __radd__(self, other: Union[Real, Constant, 'Term']) -> 'Form':
+    def __radd__(self, other: Union[Real, Expression]) -> Expression:
         from .form import Form
         return (Form.from_components(self,
                                      tail=Constant(other))
@@ -121,15 +120,14 @@ class Term(Expression):
 
     __repr__ = generate_repr(__init__)
 
-    def __rmul__(self, other: Union[Real, Constant]
-                 ) -> Union[Constant, 'Term']:
+    def __rmul__(self, other: Union[Real, Expression]) -> Expression:
         return ((Term(self.scale * other, self.argument)
                  if other
                  else Zero)
                 if isinstance(other, (Real, Constant))
                 else NotImplemented)
 
-    def __rtruediv__(self, other: Union[Real, Constant]) -> 'Term':
+    def __rtruediv__(self, other: Union[Real, Expression]) -> Expression:
         return (Term.from_components(other / self.scale, One / self.argument)
                 if isinstance(other, (Real, Constant))
                 else NotImplemented)
@@ -142,14 +140,14 @@ class Term(Expression):
                        else '{} * '.format(self.scale)))
                 + 'sqrt({})'.format(self.argument))
 
-    def __truediv__(self, other: Union[Real, Constant, 'Term']) -> 'Term':
+    def __truediv__(self, other: Union[Real, Expression]) -> Expression:
         return (Term(self.scale / other, self.argument)
                 if isinstance(other, (Real, Constant))
                 else (self._multiply_with_term(One / other)
                       if isinstance(other, Term)
                       else NotImplemented))
 
-    def _multiply_with_term(self, other: 'Term') -> Union[Constant, 'Term']:
+    def _multiply_with_term(self, other: 'Term') -> Expression:
         scale = self.scale * other.scale
         argument, other_argument = self.argument, other.argument
         if argument == other_argument:
