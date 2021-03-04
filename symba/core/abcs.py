@@ -83,6 +83,10 @@ class Expression(ABC):
         return self
 
     @abstractmethod
+    def __radd__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns sum of the other with the expression."""
+
+    @abstractmethod
     def __rmul__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns multiplication of the other with the expression."""
 
