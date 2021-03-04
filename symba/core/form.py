@@ -2,6 +2,7 @@ from collections import defaultdict
 from numbers import (Rational,
                      Real)
 from typing import (TYPE_CHECKING,
+                    Dict,
                     Optional,
                     Union)
 
@@ -26,13 +27,14 @@ class Form(Expression):
                         *terms: Term,
                         tail: Constant = Zero
                         ) -> Union[Constant, Term, 'Form']:
-        arguments_scales = defaultdict(Constant)
+        arguments_scales = (defaultdict
+                            (Constant))  # type: Dict[Expression, Constant]
         for term in terms:
             arguments_scales[term.argument] += term.scale
-        terms = list(filter(None,
-                            [Term(scale, argument)
-                             for argument, scale in arguments_scales.items()
-                             if argument and scale]))
+        terms = tuple(filter(None,
+                             [Term(scale, argument)
+                              for argument, scale in arguments_scales.items()
+                              if argument and scale]))
         return ((cls(*terms,
                      tail=tail)
                  if tail or len(terms) > 1
