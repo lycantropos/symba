@@ -56,8 +56,8 @@ class Ratio(Expression):
         return Ratio(abs(self.numerator), self.denominator)
 
     def __mul__(self, other: Union[Real, Expression]) -> Expression:
-        return (Ratio.from_components(self.numerator * other.numerator,
-                                      self.denominator * other.denominator)
+        return ((self.numerator * other.numerator)
+                / (self.denominator * other.denominator)
                 if isinstance(other, Ratio)
                 else (Ratio.from_components(self.numerator * other,
                                             self.denominator)
