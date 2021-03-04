@@ -59,7 +59,8 @@ class Ratio(Expression):
         return Ratio(abs(self.numerator), self.denominator)
 
     def __eq__(self, other: Any) -> Any:
-        return (self.numerator == other.numerator
+        return (self.numerator * other.denominator
+                == other.numerator * self.denominator
                 if isinstance(other, Ratio)
                 else (False
                       if isinstance(other, (Real, Expression))
