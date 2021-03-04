@@ -2,6 +2,7 @@ import math
 from numbers import (Rational,
                      Real)
 from typing import (TYPE_CHECKING,
+                    Any,
                     Optional,
                     Union)
 
@@ -86,7 +87,7 @@ class Term(Expression):
                             if isinstance(other, Term)
                             else NotImplemented)))
 
-    def __eq__(self, other: 'Term') -> bool:
+    def __eq__(self, other: Any) -> Any:
         return (self.scale == other.scale and self.argument == other.argument
                 if isinstance(other, Term)
                 else NotImplemented)
