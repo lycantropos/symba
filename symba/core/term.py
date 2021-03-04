@@ -47,17 +47,17 @@ class Term(Expression):
         return self.scale > 0
 
     def lower_bound(self) -> Rational:
-        return (-(-self).upper_bound()
-                if self < Zero
-                else rational_sqrt_lower_bound(self._square().lower_bound()))
+        return (rational_sqrt_lower_bound(self._square().lower_bound())
+                if self.is_positive()
+                else -(-self).upper_bound())
 
     def perfect_scale_sqrt(self) -> Rational:
         return self.scale.perfect_scale_sqrt()
 
     def upper_bound(self) -> Rational:
-        return (-(-self).lower_bound()
-                if self < Zero
-                else rational_sqrt_upper_bound(self._square().upper_bound()))
+        return (rational_sqrt_upper_bound(self._square().upper_bound())
+                if self.is_positive()
+                else -(-self).lower_bound())
 
     def __init__(self, scale: Constant, argument: Expression) -> None:
         self.scale, self.argument = scale, argument
