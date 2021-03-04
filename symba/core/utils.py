@@ -3,6 +3,15 @@ from fractions import Fraction
 from numbers import Rational
 from typing import Any
 
+
+def ceil_half(value: int) -> int:
+    return -(-value // 2)
+
+
+def integer_digits_count(value: int) -> int:
+    return len('%i' % abs(value))
+
+
 try:
     lcm = math.lcm
 except AttributeError:

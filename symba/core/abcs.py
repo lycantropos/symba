@@ -27,6 +27,10 @@ class Expression(ABC):
         """Returns lower bound of the expression."""
 
     @abstractmethod
+    def significant_digits_count(self) -> int:
+        """Returns significant digits count of the expression."""
+
+    @abstractmethod
     def upper_bound(self) -> Rational:
         """Returns upper bound of the expression."""
 

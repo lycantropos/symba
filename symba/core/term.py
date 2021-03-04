@@ -8,7 +8,8 @@ from typing import (TYPE_CHECKING,
 
 from reprit.base import generate_repr
 
-from symba.core.utils import (rational_sqrt_lower_bound,
+from symba.core.utils import (ceil_half,
+                              rational_sqrt_lower_bound,
                               rational_sqrt_upper_bound,
                               square)
 from .abcs import Expression
@@ -53,6 +54,9 @@ class Term(Expression):
 
     def perfect_scale_sqrt(self) -> Rational:
         return self.scale.perfect_scale_sqrt()
+
+    def significant_digits_count(self) -> int:
+        return ceil_half(self._square().significant_digits_count())
 
     def upper_bound(self) -> Rational:
         return (rational_sqrt_upper_bound(self._square().upper_bound())

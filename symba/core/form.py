@@ -72,9 +72,6 @@ class Form(Expression):
                 if self.tail
                 else reduce(math.gcd, terms_scales_denominators))
 
-    def significant_digits_count(self) -> int:
-        return len(self.terms) + bool(self.tail)
-
     def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
         return sum([term.evaluate(square_rooter) for term in self.terms],
                    self.tail.evaluate(square_rooter))
@@ -115,6 +112,10 @@ class Form(Expression):
     def perfect_scale_sqrt(self) -> Rational:
         return (Constant(self.common_numerator())
                 / self.common_denominator()).perfect_scale_sqrt()
+
+    def significant_digits_count(self) -> int:
+        return max(max(term.significant_digits_count() for term in self.terms),
+                   self.tail.significant_digits_count())
 
     def upper_bound(self) -> Rational:
         common_scale = self._common_scale()

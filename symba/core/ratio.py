@@ -10,7 +10,6 @@ from .abcs import Expression
 from .constant import Zero
 from .form import Form
 from .hints import SquareRooter
-from .utils import lcm
 
 
 class Ratio(Expression):
@@ -43,6 +42,10 @@ class Ratio(Expression):
     def perfect_scale_sqrt(self) -> Rational:
         return (self.numerator.perfect_scale_sqrt()
                 / self.denominator.perfect_scale_sqrt())
+
+    def significant_digits_count(self) -> int:
+        return (self.numerator.significant_digits_count()
+                - self.denominator.significant_digits_count())
 
     def upper_bound(self) -> Rational:
         if not self.is_positive():
@@ -120,13 +123,5 @@ class Ratio(Expression):
                       else NotImplemented))
 
     def _common_scale(self) -> int:
-        common_denominator = self.denominator.common_denominator()
-        significant_digits_count = self.denominator.significant_digits_count()
-        if isinstance(self.numerator, Form):
-            significant_digits_count += (self.numerator
-                                         .significant_digits_count())
-            common_denominator = lcm(common_denominator,
-                                     self.numerator.common_denominator())
-        else:
-            significant_digits_count += 1
-        return common_denominator * 10 ** significant_digits_count
+        return (self.denominator.common_denominator()
+                * 10 ** self.significant_digits_count())
