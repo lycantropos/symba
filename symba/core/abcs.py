@@ -54,6 +54,10 @@ class Expression(ABC):
                 if isinstance(other, (Real, Expression))
                 else NotImplemented)
 
+    @abstractmethod
+    def __hash__(self) -> int:
+        """Returns hash value of the expression."""
+
     def __le__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is lower than or equal to the other."""
         return (not (self - other).is_positive()
