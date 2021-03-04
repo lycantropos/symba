@@ -9,7 +9,6 @@ from reprit.base import generate_repr
 
 from .abcs import Expression
 from .constant import (Constant,
-                       One,
                        Zero)
 from .hints import SquareRooter
 from .term import Term
@@ -41,13 +40,54 @@ class Form(Expression):
                 if terms
                 else tail)
 
+    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
+        return sum([term.evaluate(square_rooter) for term in self.terms],
+                   self.tail.evaluate(square_rooter))
+
+    def is_positive(self) -> bool:
+        components = (*self.terms, self.tail) if self.tail else self.terms
+        positive, negative = [], []
+        for component in components:
+            if component > Zero:
+                positive.append(component)
+            else:
+                negative.append(component)
+        if not (positive and negative):
+            return not negative
+        positive_count, negative_count = len(positive), len(negative)
+        positive_squares_sum, negative_squares_sum = (
+            sum(map(square, positive)), sum(map(square, negative)))
+        if not (positive_count * positive_squares_sum
+                - negative_squares_sum).is_positive():
+            return False
+        elif (positive_squares_sum
+              - negative_count * negative_squares_sum).is_positive():
+            return True
+        elif not (negative_count * negative_squares_sum
+                  - positive_squares_sum).is_positive():
+            return True
+        elif (negative_squares_sum
+              - positive_count * positive_squares_sum).is_positive():
+            return False
+        return self.upper_bound() > 0 and self.lower_bound() >= 0
+
+    def lower_bound(self) -> Rational:
+        term_scale = 10 ** (len(self.terms) + bool(self.tail))
+        return sum([(term_scale * term).lower_bound() / term_scale
+                    for term in self.terms], self.tail.lower_bound())
+
+    def upper_bound(self) -> Rational:
+        term_scale = 10 ** (len(self.terms) + bool(self.tail))
+        return sum([(term_scale * term).upper_bound() / term_scale
+                    for term in self.terms], self.tail.upper_bound())
+
     def __init__(self, *terms: Term, tail: Constant = Zero) -> None:
         assert all(isinstance(term, Term) for term in terms)
         assert isinstance(tail, Constant)
         self.terms, self.tail = terms, tail
 
     def __abs__(self) -> 'Form':
-        return self if is_form_positive(self) else -self
+        return self if self.is_positive() else -self
 
     def __add__(self, other: Union[Real, Constant, Term, 'Form']
                 ) -> Union[Constant, 'Form']:
@@ -72,28 +112,8 @@ class Form(Expression):
                       if isinstance(other, (Real, Constant, Term))
                       else NotImplemented))
 
-    def __ge__(self, other: Union[Real, 'Expression']) -> bool:
-        return (not _is_positive(other - self)
-                if isinstance(other, (Real, Constant, Term, Form))
-                else NotImplemented)
-
-    def __gt__(self, other: Union[Real, Constant, Term, 'Form']) -> bool:
-        return (_is_positive(self - other)
-                if isinstance(other, (Real, Constant, Term, Form))
-                else NotImplemented)
-
     def __hash__(self) -> int:
         return hash((self.terms, self.tail))
-
-    def __le__(self, other: Union[Real, Constant, Term, 'Form']) -> bool:
-        return (not _is_positive(self - other)
-                if isinstance(other, (Real, Constant, Term, Form))
-                else NotImplemented)
-
-    def __lt__(self, other: Union[Real, Constant, Term, 'Form']) -> bool:
-        return (_is_positive(other - self)
-                if isinstance(other, (Real, Constant, Term, Form))
-                else NotImplemented)
 
     def __mul__(self, other: Union[Real, Constant, Term, 'Form']
                 ) -> Union[Constant, 'Form']:
@@ -166,20 +186,6 @@ class Form(Expression):
                             if isinstance(other, Form)
                             else NotImplemented)))
 
-    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
-        return sum([term.evaluate(square_rooter) for term in self.terms],
-                   self.tail.evaluate(square_rooter))
-
-    def lower_bound(self) -> Rational:
-        term_scale = 10 ** (len(self.terms) + bool(self.tail))
-        return sum([(term_scale * term).lower_bound() / term_scale
-                    for term in self.terms], self.tail.lower_bound())
-
-    def upper_bound(self) -> Rational:
-        term_scale = 10 ** (len(self.terms) + bool(self.tail))
-        return sum([(term_scale * term).upper_bound() / term_scale
-                    for term in self.terms], self.tail.upper_bound())
-
     def _divide_by_form(self, other: 'Form') -> Union[Constant, 'Ratio']:
         has_tail = bool(self.tail)
         if (has_tail is bool(other.tail)
@@ -208,40 +214,6 @@ class Form(Expression):
                       else [])
                    + [square(term) for term in self.terms],
                    square(self.tail))
-
-
-def is_form_positive(value: Form) -> bool:
-    components = (*value.terms, value.tail) if value.tail else value.terms
-    positive, negative = [], []
-    for component in components:
-        if component > Zero:
-            positive.append(component)
-        else:
-            negative.append(component)
-    if not (positive and negative):
-        return not negative
-    positive_count, negative_count = len(positive), len(negative)
-    positive_squares_sum, negative_squares_sum = (
-        sum(map(square, positive)), sum(map(square, negative)))
-    if not _is_positive(positive_count * positive_squares_sum
-                        - negative_squares_sum):
-        return False
-    elif _is_positive(positive_squares_sum
-                      - negative_count * negative_squares_sum):
-        return True
-    elif not _is_positive(negative_count * negative_squares_sum
-                          - positive_squares_sum):
-        return True
-    elif _is_positive(negative_squares_sum
-                      - positive_count * positive_squares_sum):
-        return False
-    return value.upper_bound() > 0 and value.lower_bound() >= 0
-
-
-def _is_positive(value: Union[Constant, Term, Form]) -> bool:
-    return (is_form_positive(value)
-            if isinstance(value, Form)
-            else value > Zero)
 
 
 def _to_signed_value(value: Union[Constant, Term]) -> str:

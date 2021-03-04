@@ -49,6 +49,25 @@ class Term(Expression):
                 argument = Constant(argument_numerator * argument_denominator)
         return cls(scale, argument)
 
+    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
+        return (self.scale.evaluate(square_rooter)
+                * (math.sqrt
+                   if square_rooter is None
+                   else square_rooter)(self.argument.evaluate(square_rooter)))
+
+    def is_positive(self) -> bool:
+        return self.scale > 0
+
+    def lower_bound(self) -> Rational:
+        return (-(-self).upper_bound()
+                if self < Zero
+                else rational_sqrt_lower_bound(self._square().lower_bound()))
+
+    def upper_bound(self) -> Rational:
+        return (-(-self).lower_bound()
+                if self < Zero
+                else rational_sqrt_upper_bound(self._square().upper_bound()))
+
     def __init__(self,
                  scale: Constant,
                  argument: Union[Constant, 'Term', 'Form']) -> None:
@@ -74,36 +93,8 @@ class Term(Expression):
                 if isinstance(other, Term)
                 else NotImplemented)
 
-    def __ge__(self, other: Union[Real, Constant, 'Term']) -> bool:
-        return ((other <= 0 or square(other) <= self._square()
-                 if self.scale > 0
-                 else other <= 0 and square(other) >= self._square())
-                if isinstance(other, (Real, Constant, Term))
-                else NotImplemented)
-
-    def __gt__(self, other: Union[Real, Constant, 'Term']) -> bool:
-        return ((other <= 0 or square(other) < self._square()
-                 if self.scale > 0
-                 else other <= 0 and square(other) > self._square())
-                if isinstance(other, (Real, Constant, Term))
-                else NotImplemented)
-
     def __hash__(self) -> int:
         return hash((self.scale, self.argument))
-
-    def __le__(self, other: Union[Real, Constant, 'Term']) -> bool:
-        return ((other > 0 and square(other) >= self._square()
-                 if self.scale > 0
-                 else other > 0 or square(other) <= self._square())
-                if isinstance(other, (Real, Constant, Term))
-                else NotImplemented)
-
-    def __lt__(self, other: Union[Real, Constant, 'Term']) -> bool:
-        return ((other > 0 and square(other) > self._square()
-                 if self.scale > 0
-                 else other > 0 or square(other) < self._square())
-                if isinstance(other, (Real, Constant, Term))
-                else NotImplemented)
 
     def __mul__(self, other: Union[Real, Constant, 'Term']
                 ) -> Union[Constant, 'Term']:
@@ -157,22 +148,6 @@ class Term(Expression):
                 else (self._multiply_with_term(One / other)
                       if isinstance(other, Term)
                       else NotImplemented))
-
-    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
-        return (self.scale.evaluate(square_rooter)
-                * (math.sqrt
-                   if square_rooter is None
-                   else square_rooter)(self.argument.evaluate(square_rooter)))
-
-    def lower_bound(self) -> Rational:
-        return (-(-self).upper_bound()
-                if self < Zero
-                else rational_sqrt_lower_bound(self._square().lower_bound()))
-
-    def upper_bound(self) -> Rational:
-        return (-(-self).lower_bound()
-                if self < Zero
-                else rational_sqrt_upper_bound(self._square().upper_bound()))
 
     def _multiply_with_term(self, other: 'Term') -> Union[Constant, 'Term']:
         scale = self.scale * other.scale

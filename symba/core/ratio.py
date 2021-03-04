@@ -8,8 +8,7 @@ from reprit.base import generate_repr
 from .abcs import Expression
 from .constant import (Constant,
                        Zero)
-from .form import (Form,
-                   is_form_positive)
+from .form import Form
 from .hints import SquareRooter
 from .term import Term
 
@@ -21,11 +20,24 @@ class Ratio(Expression):
     def from_components(cls,
                         numerator: Expression,
                         denominator: Form) -> Union[Constant, 'Ratio']:
-        if not is_form_positive(denominator):
+        if not denominator.is_positive():
             numerator, denominator = -numerator, -denominator
         return (cls(numerator.numerator, denominator * numerator.denominator)
                 if isinstance(numerator, Ratio)
                 else cls(numerator, denominator)) if numerator else Zero
+
+    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
+        return (self.numerator.evaluate(square_rooter)
+                / self.denominator.evaluate(square_rooter))
+
+    def is_positive(self) -> bool:
+        return self.numerator.is_positive()
+
+    def lower_bound(self) -> Rational:
+        return (self.numerator / self.denominator.upper_bound()).lower_bound()
+
+    def upper_bound(self) -> Rational:
+        return (self.numerator / self.denominator.lower_bound()).upper_bound()
 
     def __init__(self, numerator: Expression, denominator: Form) -> None:
         self.numerator, self.denominator = numerator, denominator
@@ -42,39 +54,6 @@ class Ratio(Expression):
 
     def __abs__(self) -> 'Ratio':
         return Ratio(abs(self.numerator), self.denominator)
-
-    def __ge__(self, other: Union[Real, 'Expression']) -> bool:
-        return (self.numerator * other.denominator
-                >= self.denominator * other.numerator
-                if isinstance(other, Ratio)
-                else (self.numerator >= self.denominator * other
-                      if isinstance(other, (Real, Expression))
-                      else NotImplemented))
-
-    def __gt__(self, other: Union[Real, Expression]) -> bool:
-        return (self.numerator * other.denominator
-                > self.denominator * other.numerator
-                if isinstance(other, Ratio)
-                else (self.numerator > self.denominator * other
-                      if isinstance(other, (Real, Expression))
-                      else NotImplemented))
-
-    def __le__(self, other: Union[Real, 'Expression']) -> bool:
-        return (self.numerator * other.denominator
-                <= self.denominator * other.numerator
-                if isinstance(other, Ratio)
-                else (self.numerator <= self.denominator * other
-                      if isinstance(other, (Real, Expression))
-                      else NotImplemented))
-
-    def __lt__(self, other: Union[Real, Constant, Term, Form, 'Ratio']
-               ) -> bool:
-        return (self.numerator * other.denominator
-                < self.denominator * other.numerator
-                if isinstance(other, Ratio)
-                else (self.numerator < self.denominator * other
-                      if isinstance(other, (Real, Expression))
-                      else NotImplemented))
 
     def __mul__(self, other: Union[Real, Expression]) -> Expression:
         return (Ratio.from_components(self.numerator * other.numerator,
@@ -118,13 +97,3 @@ class Ratio(Expression):
                 else (self.numerator / (self.denominator * other)
                       if isinstance(other, (Real, Expression))
                       else NotImplemented))
-
-    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
-        return (self.numerator.evaluate(square_rooter)
-                / self.denominator.evaluate(square_rooter))
-
-    def lower_bound(self) -> Rational:
-        return (self.numerator / self.denominator.upper_bound()).lower_bound()
-
-    def upper_bound(self) -> Rational:
-        return (self.numerator / self.denominator.lower_bound()).upper_bound()

@@ -25,6 +25,9 @@ class Constant(Expression):
     def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
         return self.value
 
+    def is_positive(self) -> bool:
+        return self.value > 0
+
     def lower_bound(self) -> Rational:
         return self.value
 
@@ -56,28 +59,8 @@ class Constant(Expression):
     def __floor__(self) -> int:
         return math.floor(self.value)
 
-    def __ge__(self, other: Union[Real, 'Constant']) -> bool:
-        return (self.value >= other
-                if isinstance(other, (Real, Constant))
-                else NotImplemented)
-
-    def __gt__(self, other: Union[Real, 'Constant']) -> bool:
-        return (self.value > other
-                if isinstance(other, (Real, Constant))
-                else NotImplemented)
-
     def __hash__(self) -> int:
         return hash(self.value)
-
-    def __le__(self, other: Union[Real, 'Constant']) -> bool:
-        return (self.value <= other
-                if isinstance(other, (Real, Constant))
-                else NotImplemented)
-
-    def __lt__(self, other: Union[Real, 'Constant']) -> bool:
-        return (self.value < other
-                if isinstance(other, (Real, Constant))
-                else NotImplemented)
 
     def __mul__(self, other: Union[Real, 'Constant']) -> 'Constant':
         return (Constant(self.value * other.value)

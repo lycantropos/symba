@@ -11,6 +11,10 @@ from .hints import SquareRooter
 
 class Expression(ABC):
     @abstractmethod
+    def is_positive(self) -> bool:
+        """Checks if the expression is positive."""
+
+    @abstractmethod
     def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
         """Evaluates the expression."""
 
@@ -38,21 +42,21 @@ class Expression(ABC):
         """Return the floor of the expression."""
         return math.floor(self.lower_bound())
 
-    @abstractmethod
     def __ge__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is greater than or equal to the other."""
+        return not (other - self).is_positive()
 
-    @abstractmethod
     def __gt__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is greater than the other."""
+        return (self - other).is_positive()
 
-    @abstractmethod
     def __le__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is lower than or equal to the other."""
+        return not (self - other).is_positive()
 
-    @abstractmethod
     def __lt__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is lower than the other."""
+        return (other - self).is_positive()
 
     @abstractmethod
     def __mul__(self, other: Union[Real, 'Expression']) -> 'Expression':
@@ -81,6 +85,9 @@ class Expression(ABC):
     @abstractmethod
     def __truediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns division of the expression by the other."""
+
+    def __trunc__(self) -> int:
+        return self.__floor__() if self.is_positive() else self.__ceil__()
 
     @abstractmethod
     def __rtruediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
