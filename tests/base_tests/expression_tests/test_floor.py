@@ -7,7 +7,7 @@ from . import strategies
 
 
 @given(strategies.expressions)
-def test_reflexivity(expression: Expression) -> None:
+def test_basic(expression: Expression) -> None:
     result = math.floor(expression)
 
     assert isinstance(result, int)
