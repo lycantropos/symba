@@ -35,7 +35,7 @@ def test_right_neutral_element(real_or_expression: Union[Real, Expression],
 
 @given(strategies.reals_or_expressions, strategies.expressions,
        strategies.expressions)
-def test_sum_subtrahend(real_or_expression: Union[Real, Expression],
+def test_add_subtrahend(real_or_expression: Union[Real, Expression],
                         first_expression: Expression,
                         second_expression: Expression) -> None:
     result = real_or_expression - (first_expression + second_expression)
