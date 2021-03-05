@@ -118,6 +118,11 @@ class Expression(ABC):
     def __radd__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns sum of the other with the expression."""
 
+    def __rfloordiv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns quotient of the division of the other by the expression."""
+        from .constant import Constant
+        return Constant(math.floor(other / self))
+
     def __rmod__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns remainder of the division of the other by the expression."""
         return other - self * math.floor(other / self)
