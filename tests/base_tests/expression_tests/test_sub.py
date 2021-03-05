@@ -29,7 +29,7 @@ def test_commutative_case(first_expression: Expression,
     result = first_expression - second_expression
 
     assert equivalence(result == second_expression - first_expression,
-                       first_expression == second_expression == 0)
+                       first_expression == second_expression)
 
 
 @given(strategies.expressions, strategies.zero_reals_or_expressions)

@@ -16,15 +16,6 @@ def test_basic(real_or_expression: Union[Real, Expression],
     assert isinstance(result, Expression)
 
 
-@given(strategies.reals_or_expressions, strategies.expressions)
-def test_commutative_case(real_or_expression: Union[Real, Expression],
-                          expression: Expression) -> None:
-    result = real_or_expression - expression
-
-    assert equivalence(result == expression - real_or_expression,
-                       expression == real_or_expression == 0)
-
-
 @given(strategies.reals_or_expressions, strategies.zero_expressions)
 def test_right_neutral_element(real_or_expression: Union[Real, Expression],
                                expression: Expression) -> None:
