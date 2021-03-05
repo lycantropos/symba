@@ -41,9 +41,10 @@ class Term(Expression):
 
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return (self.scale.evaluate(sqrt_evaluator)
-                * (context.sqrt_evaluator.get()
-                   if sqrt_evaluator is None
-                   else sqrt_evaluator)(self.argument.evaluate(sqrt_evaluator)))
+                * ((context.sqrt_evaluator.get()
+                    if sqrt_evaluator is None
+                    else sqrt_evaluator)
+                   (self.argument.evaluate(sqrt_evaluator))))
 
     def is_positive(self) -> bool:
         return self.scale > 0
