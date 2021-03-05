@@ -1,7 +1,7 @@
 from hypothesis import given
 
 from symba.base import Expression
-from tests.utils import equivalence
+from tests.utils import implication
 from . import strategies
 
 
@@ -22,5 +22,5 @@ def test_determinism(expression: Expression) -> None:
 @given(strategies.expressions, strategies.expressions)
 def test_connection_with_equality(left_expression: Expression,
                                   right_expression: Expression) -> None:
-    assert equivalence(left_expression == right_expression,
+    assert implication(left_expression == right_expression,
                        hash(left_expression) == hash(right_expression))
