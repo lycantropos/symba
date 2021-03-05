@@ -89,7 +89,7 @@ class Term(Expression):
                 else NotImplemented)
 
     def __hash__(self) -> int:
-        return hash((self.scale, self.argument))
+        return hash((self.is_positive(), self._square()))
 
     def __mul__(self, other: Union[Real, Expression]) -> Expression:
         return ((Term(self.scale * other, self.argument)
