@@ -113,6 +113,11 @@ class Expression(ABC):
     def __radd__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns sum of the other with the expression."""
 
+    def __rmod__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns remainder of the division of the other by the expression."""
+        from .constant import One
+        return other - self * math.floor(other / self) if self else One * other
+
     @abstractmethod
     def __rmul__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns multiplication of the other with the expression."""
