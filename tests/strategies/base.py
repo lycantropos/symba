@@ -14,6 +14,6 @@ non_positive_reals = (strategies.integers(MIN_VALUE, 0)
 reals = (strategies.integers(MIN_VALUE, MAX_VALUE)
          | strategies.fractions(MIN_VALUE, MAX_VALUE,
                                 max_denominator=MAX_VALUE))
-unary_reals = strategies.builds(int, 1) | strategies.builds(Fraction, 1)
+unary_reals = strategies.just(1) | strategies.just(Fraction(1))
 zero_reals = strategies.builds(int) | strategies.builds(Fraction)
 negative_reals = non_positive_reals.filter(bool)
