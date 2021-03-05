@@ -52,10 +52,9 @@ class Expression(ABC):
         """Return the floor of the expression."""
         return math.floor(self.lower_bound())
 
-    def __floordiv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __floordiv__(self, other: Union[Real, 'Expression']) -> int:
         """Returns quotient of the division of the expression by the other."""
-        from .constant import Constant
-        return Constant(math.floor(self / other))
+        return math.floor(self / other)
 
     def __ge__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is greater than or equal to the other."""
@@ -119,10 +118,9 @@ class Expression(ABC):
     def __radd__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns sum of the other with the expression."""
 
-    def __rfloordiv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __rfloordiv__(self, other: Union[Real, 'Expression']) -> int:
         """Returns quotient of the division of the other by the expression."""
-        from .constant import Constant
-        return Constant(math.floor(other / self))
+        return math.floor(other / self)
 
     def __rmod__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns remainder of the division of the other by the expression."""
