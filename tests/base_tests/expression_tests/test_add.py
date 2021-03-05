@@ -23,6 +23,15 @@ def test_commutativity(first_expression: Expression,
     assert result == second_expression + first_expression
 
 
+@given(strategies.zero_expressions, strategies.reals_or_expressions)
+def test_left_neutral_element(expression: Expression,
+                              real_or_expression: Union[Real, Expression]
+                              ) -> None:
+    result = expression + real_or_expression
+
+    assert result == real_or_expression
+
+
 @given(strategies.expressions, strategies.zero_reals_or_expressions)
 def test_right_neutral_element(expression: Expression,
                                real_or_expression: Union[Real, Expression]
