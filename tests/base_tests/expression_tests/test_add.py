@@ -15,12 +15,12 @@ def test_basic(expression: Expression,
     assert isinstance(result, Expression)
 
 
-@given(strategies.expressions, strategies.reals_or_expressions)
-def test_commutativity(expression: Expression,
-                       real_or_expression: Union[Real, Expression]) -> None:
-    result = expression + real_or_expression
+@given(strategies.expressions, strategies.expressions)
+def test_commutativity(first_expression: Expression,
+                       second_expression: Expression) -> None:
+    result = first_expression + second_expression
 
-    assert result == real_or_expression + expression
+    assert result == second_expression + first_expression
 
 
 @given(strategies.expressions, strategies.zero_reals_or_expressions)
@@ -32,14 +32,9 @@ def test_right_neutral_element(expression: Expression,
     assert result == expression
 
 
-@given(strategies.expressions, strategies.reals_or_expressions,
-       strategies.reals_or_expressions)
-def test_associativity(expression: Expression,
-                       first_real_or_expression: Union[Real, Expression],
-                       second_real_or_expression: Union[Real, Expression]
-                       ) -> None:
-    result = expression + first_real_or_expression
-
-    assert (result + second_real_or_expression
-            == expression + (first_real_or_expression
-                             + second_real_or_expression))
+@given(strategies.expressions, strategies.expressions, strategies.expressions)
+def test_associativity(first_expression: Expression,
+                       second_expression: Expression,
+                       third_expression: Expression) -> None:
+    assert ((first_expression + second_expression) + third_expression
+            == first_expression + (second_expression + third_expression))
