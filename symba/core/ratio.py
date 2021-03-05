@@ -9,7 +9,7 @@ from reprit.base import generate_repr
 from .abcs import Expression
 from .constant import Zero
 from .form import Form
-from .hints import SquareRooter
+from .hints import SqrtEvaluator
 from .utils import BASE
 
 
@@ -26,9 +26,9 @@ class Ratio(Expression):
                 if isinstance(numerator, Ratio)
                 else cls(numerator, denominator)) if numerator else Zero
 
-    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
-        return (self.numerator.evaluate(square_rooter)
-                / self.denominator.evaluate(square_rooter))
+    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
+        return (self.numerator.evaluate(sqrt_evaluator)
+                / self.denominator.evaluate(sqrt_evaluator))
 
     def is_positive(self) -> bool:
         return self.numerator.is_positive()

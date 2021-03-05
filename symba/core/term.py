@@ -12,11 +12,12 @@ from symba.core.utils import (ceil_half,
                               rational_sqrt_lower_bound,
                               rational_sqrt_upper_bound,
                               square)
+from . import context
 from .abcs import Expression
 from .constant import (Constant,
                        One,
                        Zero)
-from .hints import SquareRooter
+from .hints import SqrtEvaluator
 
 if TYPE_CHECKING:
     from .form import Form
@@ -38,11 +39,11 @@ class Term(Expression):
             return scale
         return cls(scale, argument)
 
-    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
-        return (self.scale.evaluate(square_rooter)
-                * (math.sqrt
-                   if square_rooter is None
-                   else square_rooter)(self.argument.evaluate(square_rooter)))
+    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
+        return (self.scale.evaluate(sqrt_evaluator)
+                * (context.sqrt_evaluator.get()
+                   if sqrt_evaluator is None
+                   else sqrt_evaluator)(self.argument.evaluate(sqrt_evaluator)))
 
     def is_positive(self) -> bool:
         return self.scale > 0

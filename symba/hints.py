@@ -1,3 +1,3 @@
-from .core.hints import SquareRooter
+from .core.hints import SqrtEvaluator
 
-SquareRooter = SquareRooter
+SqrtEvaluator = SqrtEvaluator

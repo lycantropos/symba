@@ -9,7 +9,7 @@ from typing import (Any,
 from reprit.base import generate_repr
 
 from .abcs import Expression
-from .hints import SquareRooter
+from .hints import SqrtEvaluator
 from .utils import (digits_count,
                     sqrt_floor,
                     square)
@@ -25,7 +25,7 @@ class Constant(Expression):
     def value(self) -> Rational:
         return self._value
 
-    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
+    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return self.value
 
     def is_positive(self) -> bool:

@@ -6,7 +6,7 @@ from numbers import (Rational,
 from typing import (Optional,
                     Union)
 
-from .hints import SquareRooter
+from .hints import SqrtEvaluator
 from .utils import (BASE,
                     to_binary_digits)
 
@@ -17,7 +17,7 @@ class Expression(ABC):
         """Checks if the expression is positive."""
 
     @abstractmethod
-    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
+    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         """Evaluates the expression."""
 
     @abstractmethod

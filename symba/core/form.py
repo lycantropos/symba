@@ -15,7 +15,7 @@ from reprit.base import generate_repr
 from .abcs import Expression
 from .constant import (Constant,
                        Zero)
-from .hints import SquareRooter
+from .hints import SqrtEvaluator
 from .term import Term
 from .utils import (BASE,
                     lcm,
@@ -65,9 +65,9 @@ class Form(Expression):
                 if self.tail
                 else reduce(lcm, terms_scales_denominators))
 
-    def evaluate(self, square_rooter: Optional[SquareRooter] = None) -> Real:
-        return sum([term.evaluate(square_rooter) for term in self.terms],
-                   self.tail.evaluate(square_rooter))
+    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
+        return sum([term.evaluate(sqrt_evaluator) for term in self.terms],
+                   self.tail.evaluate(sqrt_evaluator))
 
     def is_positive(self) -> bool:
         components = (*self.terms, self.tail) if self.tail else self.terms
