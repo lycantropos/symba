@@ -11,6 +11,7 @@ from tests.strategies import (non_negative_reals,
                               reals)
 
 digits_counts = strategies.none() | strategies.integers(-100, 100)
+non_zero_reals = reals.filter(bool)
 
 
 def to_nested_expressions(strategy: Strategy[Expression]
@@ -23,12 +24,13 @@ def to_nested_expressions(strategy: Strategy[Expression]
                .map(sum))
             | strategies.builds(mul, strategy, reals)
             | strategies.builds(mul, strategy, strategy)
+            | strategies.builds(truediv, strategy, non_zero_reals)
             | strategies.builds(truediv, reals, strategy.filter(bool))
-            | strategies.builds(truediv, strategy, reals.filter(bool))
             | strategies.builds(truediv, strategy, strategy.filter(bool)))
 
 
 expressions = strategies.recursive(strategies.builds(sqrt, non_negative_reals),
                                    to_nested_expressions,
                                    max_leaves=10)
-non_zero_reals_or_expressions = (reals | expressions).filter(bool)
+non_zero_expressions = expressions.filter(bool)
+non_zero_reals_or_expressions = non_zero_reals | non_zero_expressions
