@@ -11,7 +11,7 @@ def test_irreflexivity(expression: Expression) -> None:
     assert not expression > expression
 
 
-@given(strategies.expressions, strategies.expressions, )
+@given(strategies.expressions, strategies.expressions)
 def test_asymmetry(first_expression: Expression,
                    second_expression: Expression) -> None:
     assert implication(first_expression > second_expression,
