@@ -51,6 +51,11 @@ class Expression(ABC):
         """Return the floor of the expression."""
         return math.floor(self.lower_bound())
 
+    def __floordiv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns quotient of the division of the expression by the other."""
+        from .constant import Constant
+        return Constant(math.floor(self / other))
+
     def __ge__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is greater than or equal to the other."""
         return (not (other - self).is_positive()
