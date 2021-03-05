@@ -6,14 +6,18 @@ from hypothesis import strategies
 
 from symba.base import (Expression,
                         sqrt)
-from symba.core.constant import Zero
+from symba.core.constant import (One,
+                                 Zero)
 from tests.hints import Strategy
 from tests.strategies import (non_negative_reals,
                               reals,
+                              unary_reals,
                               zero_reals)
 
 digits_counts = strategies.none() | strategies.integers(-100, 100)
 zero_expressions = strategies.just(Zero)
+unary_expressions = strategies.just(One)
+unary_reals_or_expressions = unary_reals | unary_expressions
 zero_reals_or_expressions = zero_reals | zero_expressions
 non_zero_reals = reals.filter(bool)
 
