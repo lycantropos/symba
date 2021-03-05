@@ -144,7 +144,7 @@ class Form(Expression):
                       else NotImplemented))
 
     def __hash__(self) -> int:
-        return hash((self.terms, self.tail))
+        return hash((frozenset(self.terms), self.tail))
 
     def __mul__(self, other: Union[Real, Expression]) -> Expression:
         return (((self._square()
