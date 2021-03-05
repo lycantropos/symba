@@ -11,7 +11,6 @@ from tests.strategies import (non_negative_reals,
                               reals)
 
 digits_counts = strategies.none() | strategies.integers(-100, 100)
-square_roots = strategies.builds(sqrt, non_negative_reals)
 
 
 def to_nested_expressions(strategy: Strategy[Expression]
@@ -29,7 +28,8 @@ def to_nested_expressions(strategy: Strategy[Expression]
             | strategies.builds(truediv, strategy, strategy.filter(bool)))
 
 
-expressions = strategies.recursive(square_roots, to_nested_expressions,
+expressions = strategies.recursive(strategies.builds(sqrt, non_negative_reals),
+                                   to_nested_expressions,
                                    max_leaves=10)
 expressions_pairs = strategies.tuples(expressions, expressions)
 expressions_triplets = strategies.tuples(expressions, expressions, expressions)
