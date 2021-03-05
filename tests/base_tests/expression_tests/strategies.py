@@ -31,5 +31,3 @@ def to_nested_expressions(strategy: Strategy[Expression]
 expressions = strategies.recursive(strategies.builds(sqrt, non_negative_reals),
                                    to_nested_expressions,
                                    max_leaves=10)
-expressions_pairs = strategies.tuples(expressions, expressions)
-expressions_triplets = strategies.tuples(expressions, expressions, expressions)
