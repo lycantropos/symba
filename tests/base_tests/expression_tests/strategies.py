@@ -10,6 +10,7 @@ from tests.hints import Strategy
 from tests.strategies import (non_negative_reals,
                               reals)
 
+digits_counts = strategies.none() | strategies.integers(-100, 100)
 square_roots = strategies.builds(sqrt, non_negative_reals)
 
 
