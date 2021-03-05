@@ -7,7 +7,8 @@ from typing import (Optional,
                     Union)
 
 from .hints import SquareRooter
-from .utils import to_binary_digits
+from .utils import (BASE,
+                    to_binary_digits)
 
 
 class Expression(ABC):
@@ -130,6 +131,10 @@ class Expression(ABC):
     @abstractmethod
     def __rmul__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns multiplication of the other with the expression."""
+
+    def __round__(self, digits_count: Optional[int] = None) -> 'Expression':
+        scale = BASE ** (1 if digits_count is None else digits_count + 1)
+        return round(int(scale * self) / scale, digits_count)
 
     def __rsub__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns difference of the other with the expression."""
