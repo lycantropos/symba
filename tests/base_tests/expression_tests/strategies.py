@@ -31,3 +31,4 @@ def to_nested_expressions(strategy: Strategy[Expression]
 expressions = strategies.recursive(strategies.builds(sqrt, non_negative_reals),
                                    to_nested_expressions,
                                    max_leaves=10)
+non_zero_reals_or_expressions = (reals | expressions).filter(bool)
