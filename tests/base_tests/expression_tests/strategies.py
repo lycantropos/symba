@@ -13,7 +13,8 @@ from tests.strategies import (non_negative_reals,
                               zero_reals)
 
 digits_counts = strategies.none() | strategies.integers(-100, 100)
-zero_reals_or_expressions = zero_reals | strategies.just(Zero)
+zero_expressions = strategies.just(Zero)
+zero_reals_or_expressions = zero_reals | zero_expressions
 non_zero_reals = reals.filter(bool)
 
 
