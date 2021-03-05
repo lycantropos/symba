@@ -144,10 +144,12 @@ class Term(Expression):
                       else NotImplemented))
 
     def _multiply_with_term(self, other: 'Term') -> Expression:
+        from .ratio import Ratio
         scale = self.scale * other.scale
         argument, other_argument = self.argument, other.argument
-        if argument == other_argument:
-            return scale * argument
+        arguments_ratio = other_argument / argument
+        if not isinstance(arguments_ratio, Ratio):
+            return argument * Term.from_components(scale, arguments_ratio)
         elif (isinstance(argument, Constant)
               and isinstance(other_argument, Constant)):
             arguments_gcd = math.gcd(argument.value.numerator,
