@@ -9,3 +9,4 @@ non_negative_reals = strategies.floats(0, MAX_VALUE,
 reals = strategies.floats(MIN_VALUE, MAX_VALUE,
                           allow_nan=False,
                           allow_infinity=False)
+zero_reals = strategies.just(0)
