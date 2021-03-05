@@ -65,7 +65,7 @@ True
 True
 >>> fibonacci(1) == 1
 True
->>> fibonacci(100) == 354_224_848_179_261_915_075
+>>> fibonacci(100) == 354224848179261915075
 True
 
 ```
