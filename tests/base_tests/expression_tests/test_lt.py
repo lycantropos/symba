@@ -31,7 +31,7 @@ def test_equivalents(first_expression: Expression,
                      second_expression: Expression) -> None:
     result = first_expression < second_expression
 
-    assert equivalence(result, second_expression < first_expression)
+    assert equivalence(result, second_expression > first_expression)
     assert equivalence(result,
                        second_expression >= first_expression
                        != second_expression)
