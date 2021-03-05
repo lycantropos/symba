@@ -10,4 +10,4 @@ from . import strategies
 def test_basic(real: Real, expression: Expression) -> None:
     result = real // expression
 
-    assert isinstance(result, Expression)
+    assert isinstance(result, int)

@@ -13,7 +13,7 @@ def test_basic(expression: Expression,
                expression_or_real: Union[Real, Expression]) -> None:
     result = expression // expression_or_real
 
-    assert isinstance(result, Expression)
+    assert isinstance(result, int)
 
 
 @given(strategies.expressions)
