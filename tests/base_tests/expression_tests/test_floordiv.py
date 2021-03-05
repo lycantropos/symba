@@ -31,3 +31,13 @@ def test_division_by_one(expression: Expression) -> None:
     result = expression // 1
 
     assert result == math.floor(expression)
+
+
+@given(strategies.expressions, strategies.non_zero_reals_or_expressions)
+def test_connection_with_mod(expression: Expression,
+                             expression_or_real: Union[Real, Expression]
+                             ) -> None:
+    result = expression // expression_or_real
+
+    assert (result * expression_or_real + expression % expression_or_real
+            == expression)
