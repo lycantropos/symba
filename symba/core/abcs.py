@@ -81,9 +81,7 @@ class Expression(ABC):
 
     def __mod__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns remainder of the division of the expression by the other."""
-        return (self - other * math.floor(self / other)
-                if other
-                else self)
+        return self - other * math.floor(self / other) if other else self
 
     @abstractmethod
     def __mul__(self, other: Union[Real, 'Expression']) -> 'Expression':
