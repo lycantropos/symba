@@ -40,13 +40,16 @@ class Ratio(Expression):
         return ((common_scale * self.numerator).lower_bound()
                 / (common_scale * self.denominator).upper_bound())
 
-    def perfect_scale_sqrt(self) -> Rational:
-        return (self.numerator.perfect_scale_sqrt()
-                / self.denominator.perfect_scale_sqrt())
+    def perfect_sqrt(self) -> Expression:
+        return (self.numerator.perfect_sqrt()
+                / self.denominator.perfect_sqrt())
 
     def significant_digits_count(self) -> int:
         return (self.numerator.significant_digits_count()
                 - self.denominator.significant_digits_count())
+
+    def square(self) -> Expression:
+        return self.numerator.square() / self.denominator.square()
 
     def upper_bound(self) -> Rational:
         if not self.is_positive():

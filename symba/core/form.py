@@ -18,8 +18,7 @@ from .constant import (Constant,
 from .hints import SqrtEvaluator
 from .term import Term
 from .utils import (BASE,
-                    lcm,
-                    square)
+                    lcm)
 
 if TYPE_CHECKING:
     from .ratio import Ratio
@@ -73,7 +72,7 @@ class Form(Expression):
         components = (*self.terms, self.tail) if self.tail else self.terms
         positive, negative = [], []
         for component in components:
-            if component > Zero:
+            if component.is_positive():
                 positive.append(component)
             else:
                 negative.append(component)
@@ -81,7 +80,8 @@ class Form(Expression):
             return not negative
         positive_count, negative_count = len(positive), len(negative)
         positive_squares_sum, negative_squares_sum = (
-            sum(map(square, positive)), sum(map(square, negative)))
+            sum(component.square() for component in positive),
+            sum(component.square() for component in negative))
         if not (positive_count * positive_squares_sum
                 - negative_squares_sum).is_positive():
             return False
@@ -102,13 +102,23 @@ class Form(Expression):
                     for term in self.terms],
                    (common_scale * self.tail).lower_bound()) / common_scale
 
-    def perfect_scale_sqrt(self) -> Rational:
+    def perfect_sqrt(self) -> Expression:
         return (Constant(self._common_numerator())
-                / self.common_denominator()).perfect_scale_sqrt()
+                / self.common_denominator()).perfect_sqrt()
 
     def significant_digits_count(self) -> int:
         return max(max(term.significant_digits_count() for term in self.terms),
                    self.tail.significant_digits_count())
+
+    def square(self) -> Expression:
+        return sum([2 * (self.terms[step] * self.terms[index])
+                    for step in range(1, len(self.terms))
+                    for index in range(step)]
+                   + ([(2 * self.tail) * term for term in self.terms]
+                      if self.tail
+                      else [])
+                   + [term.square() for term in self.terms],
+                   self.tail.square())
 
     def upper_bound(self) -> Rational:
         common_scale = self._common_scale()
@@ -147,7 +157,7 @@ class Form(Expression):
         return hash((frozenset(self.terms), self.tail))
 
     def __mul__(self, other: Union[Real, Expression]) -> Expression:
-        return (((self._square()
+        return (((self.square()
                   if self == other
                   else sum([term * other for term in self.terms],
                            self.tail * other))
@@ -190,7 +200,7 @@ class Form(Expression):
                                          self)
         subtrahend, minuend = components[0], components[1]
         return ((other * (subtrahend - minuend))
-                / (square(subtrahend) - square(minuend)))
+                / (subtrahend.square() - minuend.square()))
 
     def __str__(self) -> str:
         return (str(self.terms[0])
@@ -242,16 +252,6 @@ class Form(Expression):
                     return first_scales_ratio
         from .ratio import Ratio
         return Ratio.from_components(self, other)
-
-    def _square(self) -> Expression:
-        return sum([2 * (self.terms[step] * self.terms[index])
-                    for step in range(1, len(self.terms))
-                    for index in range(step)]
-                   + ([(2 * self.tail) * term for term in self.terms]
-                      if self.tail
-                      else [])
-                   + [square(term) for term in self.terms],
-                   square(self.tail))
 
 
 def _to_signed_value(value: Union[Constant, Term]) -> str:

@@ -34,7 +34,7 @@ class Constant(Expression):
     def lower_bound(self) -> Rational:
         return self.value
 
-    def perfect_scale_sqrt(self) -> Rational:
+    def perfect_sqrt(self) -> Expression:
         result = Fraction(1)
         argument_value = self.value
         argument_numerator = argument_value.numerator
@@ -47,10 +47,13 @@ class Constant(Expression):
             result /= argument_denominator_sqrt_floor
         elif argument_denominator != 1:
             result /= argument_denominator
-        return result
+        return Constant(result)
 
     def significant_digits_count(self) -> int:
         return digits_count(self._value.limit_denominator(1).numerator)
+
+    def square(self) -> Expression:
+        return Constant(square(self.value))
 
     upper_bound = lower_bound
 

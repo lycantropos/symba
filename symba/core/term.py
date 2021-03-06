@@ -10,8 +10,7 @@ from reprit.base import generate_repr
 
 from symba.core.utils import (ceil_half,
                               rational_sqrt_lower_bound,
-                              rational_sqrt_upper_bound,
-                              square)
+                              rational_sqrt_upper_bound)
 from . import context
 from .abcs import Expression
 from .constant import (Constant,
@@ -29,15 +28,14 @@ class Term(Expression):
     @classmethod
     def from_components(cls,
                         scale: Constant,
-                        argument: Expression) -> Union[Constant, 'Term']:
+                        argument: Expression) -> Expression:
         if not (scale and argument):
             return Zero
-        argument_perfect_scale_sqrt = argument.perfect_scale_sqrt()
-        scale *= argument_perfect_scale_sqrt
-        argument /= square(argument_perfect_scale_sqrt)
+        argument_perfect_scale_sqrt = argument.perfect_sqrt()
+        argument /= argument_perfect_scale_sqrt.square()
         if argument == One:
-            return scale
-        return cls(scale, argument)
+            return argument_perfect_scale_sqrt * scale
+        return argument_perfect_scale_sqrt * cls(scale, argument)
 
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return (self.scale.evaluate(sqrt_evaluator)
@@ -50,18 +48,21 @@ class Term(Expression):
         return self.scale > 0
 
     def lower_bound(self) -> Rational:
-        return (rational_sqrt_lower_bound(self._square().lower_bound())
+        return (rational_sqrt_lower_bound(self.square().lower_bound())
                 if self.is_positive()
                 else -(-self).upper_bound())
 
-    def perfect_scale_sqrt(self) -> Rational:
-        return self.scale.perfect_scale_sqrt()
+    def perfect_sqrt(self) -> Expression:
+        return self.scale.perfect_sqrt()
 
     def significant_digits_count(self) -> int:
-        return ceil_half(self._square().significant_digits_count())
+        return ceil_half(self.square().significant_digits_count())
+
+    def square(self) -> Expression:
+        return self.scale.square() * self.argument
 
     def upper_bound(self) -> Rational:
-        return (rational_sqrt_upper_bound(self._square().upper_bound())
+        return (rational_sqrt_upper_bound(self.square().upper_bound())
                 if self.is_positive()
                 else -(-self).lower_bound())
 
@@ -85,12 +86,12 @@ class Term(Expression):
 
     def __eq__(self, other: Any) -> Any:
         return (self.is_positive() is other.is_positive()
-                and self._square() == other._square()
-                if isinstance(other, Term)
+                and self.square() == other.square()
+                if isinstance(other, Expression)
                 else NotImplemented)
 
     def __hash__(self) -> int:
-        return hash((self.is_positive(), self._square()))
+        return hash((self.is_positive(), self.square()))
 
     def __mul__(self, other: Union[Real, Expression]) -> Expression:
         return ((Term(self.scale * other, self.argument)
@@ -158,6 +159,3 @@ class Term(Expression):
             other_argument /= arguments_gcd
             scale *= arguments_gcd
         return Term.from_components(scale, argument * other_argument)
-
-    def _square(self) -> Expression:
-        return square(self.scale) * self.argument
