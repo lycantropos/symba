@@ -43,14 +43,13 @@ class Form(Expression):
                 ratio = other.argument / term.argument
                 ratio_sqrt = ratio.perfect_sqrt()
                 if ratio_sqrt.square() == ratio:
-                    arguments_scales[term.argument] += ratio_sqrt
+                    arguments_scales[term.argument] += other.scale * ratio_sqrt
                 else:
                     next_queue.append(other)
             queue = next_queue
-        terms = tuple(filter(None,
-                             [Term(scale, argument)
-                              for argument, scale in arguments_scales.items()
-                              if argument and scale]))
+        terms = tuple(Term(scale, argument)
+                      for argument, scale in arguments_scales.items()
+                      if scale)
         return ((cls(*terms,
                      tail=tail)
                  if tail or len(terms) > 1
