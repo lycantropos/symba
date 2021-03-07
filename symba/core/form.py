@@ -14,6 +14,7 @@ from reprit.base import generate_repr
 
 from .abcs import Expression
 from .constant import (Constant,
+                       One,
                        Zero)
 from .hints import SqrtEvaluator
 from .term import Term
@@ -115,6 +116,54 @@ class Form(Expression):
                    (common_scale * self.tail).lower_bound()) / common_scale
 
     def perfect_sqrt(self) -> Expression:
+        terms_count = len(self.terms)
+        if not (self.tail
+                and all(isinstance(term.argument, Constant)
+                        for term in self.terms)
+                and (terms_count < 7)):
+            raise ValueError('Unsupported value: {!r}. '
+                             'Should have form '
+                             '``a * sqrt(x) + b * sqrt(y) + c * sqrt(z) + d``,'
+                             'where ``a, b, c, d, x, y, z`` are rational '
+                             'and ``c != 0``.'
+                             .format(self))
+        elif terms_count == 1:
+            term = self.terms[0]
+            discriminant = self.tail.square() - term.square()
+            if discriminant > 0:
+                discriminant_sqrt = discriminant.perfect_sqrt()
+                if discriminant_sqrt.square() == discriminant:
+                    return (_positiveness_to_sign(term.is_positive())
+                            * Term.from_components(
+                                    One, (self.tail - discriminant_sqrt) / 2)
+                            + Term.from_components(
+                                    One, (self.tail + discriminant_sqrt) / 2))
+        elif terms_count == 3:
+            squared_candidates = sorted([
+                self.terms[0] * self.terms[1] / (2 * self.terms[2]),
+                self.terms[0] * self.terms[2] / (2 * self.terms[1]),
+                self.terms[1] * self.terms[2] / (2 * self.terms[0])])
+            if sum(squared_candidates) == self.tail:
+                max_modulus_term = max(self.terms,
+                                       key=abs)
+                mid_max_components_same_sign = max_modulus_term.is_positive()
+                min_modulus_term = min(self.terms,
+                                       key=abs)
+                min_mid_components_same_sign = min_modulus_term.is_positive()
+                max_component_is_positive = (
+                        mid_max_components_same_sign
+                        or not min_mid_components_same_sign
+                        or (squared_candidates[2]
+                            > squared_candidates[0] + squared_candidates[1]))
+                mid_component_is_positive = (max_component_is_positive
+                                             is mid_max_components_same_sign)
+                min_component_is_positive = (mid_component_is_positive
+                                             is min_mid_components_same_sign)
+                signs = [_positiveness_to_sign(min_component_is_positive),
+                         _positiveness_to_sign(mid_component_is_positive),
+                         _positiveness_to_sign(max_component_is_positive)]
+                return sum(Term.from_components(sign * One, squared)
+                           for sign, squared in zip(signs, squared_candidates))
         return (Constant(self._common_numerator())
                 / self.common_denominator()).perfect_sqrt()
 
@@ -264,6 +313,10 @@ class Form(Expression):
                     return first_scales_ratio
         from .ratio import Ratio
         return Ratio.from_components(self, other)
+
+
+def _positiveness_to_sign(flag: bool) -> int:
+    return 2 * flag - 1
 
 
 def _to_signed_value(value: Union[Constant, Term]) -> str:
