@@ -32,8 +32,20 @@ class Form(Expression):
                         ) -> Union[Constant, Term, 'Form']:
         arguments_scales = (defaultdict
                             (Constant))  # type: Dict[Expression, Constant]
-        for term in terms:
+        queue = sorted(terms,
+                       reverse=True)
+        while queue:
+            term = queue.pop()
             arguments_scales[term.argument] += term.scale
+            next_queue = []
+            for other in queue:
+                ratio = other.argument / term.argument
+                ratio_sqrt = ratio.perfect_sqrt()
+                if ratio_sqrt.square() == ratio:
+                    arguments_scales[term.argument] += ratio_sqrt
+                else:
+                    next_queue.append(other)
+            queue = next_queue
         terms = tuple(filter(None,
                              [Term(scale, argument)
                               for argument, scale in arguments_scales.items()
