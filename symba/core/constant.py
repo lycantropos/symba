@@ -45,8 +45,6 @@ class Constant(Expression):
         argument_denominator_sqrt_floor = sqrt_floor(argument_denominator)
         if square(argument_denominator_sqrt_floor) == argument_denominator:
             result /= argument_denominator_sqrt_floor
-        elif argument_denominator != 1:
-            result /= argument_denominator
         return Constant(result)
 
     def significant_digits_count(self) -> int:
