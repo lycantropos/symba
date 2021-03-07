@@ -125,13 +125,8 @@ class Form(Expression):
                      == components_discriminant))
         if not (all(isinstance(term.argument, Constant)
                     for term in self.terms)
-                and (terms_count < 7 or not has_perfect_square_structure)):
-            raise ValueError('Unsupported value: {!r}. '
-                             'Should have form '
-                             '``a * sqrt(x) + b * sqrt(y) + c * sqrt(z) + d``,'
-                             'where ``a, b, c, d, x, y, z`` are rational '
-                             'and ``c != 0``.'
-                             .format(self))
+                and (not has_perfect_square_structure or terms_count < 4)):
+            raise ValueError('Unsupported value: {!r}.'.format(self))
         elif not has_perfect_square_structure:
             pass
         elif terms_count == 1:
