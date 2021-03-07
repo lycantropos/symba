@@ -22,9 +22,16 @@ zero_reals_or_expressions = zero_reals | zero_expressions
 non_zero_reals = reals.filter(bool)
 
 
+def safe_sqrt(expression: Expression) -> Expression:
+    try:
+        return sqrt(expression)
+    except ValueError:
+        return expression
+
+
 def to_nested_expressions(strategy: Strategy[Expression]
                           ) -> Strategy[Expression]:
-    return (strategy.filter(lambda value: value >= 0).map(sqrt)
+    return (strategy.map(safe_sqrt)
             | strategies.builds(add, strategy, reals)
             | (strategies.lists(strategy,
                                 min_size=2,
