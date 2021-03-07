@@ -43,11 +43,13 @@ class Form(Expression):
             next_queue = []
             for other in queue:
                 ratio = other.argument / term.argument
-                ratio_sqrt = ratio.perfect_sqrt()
-                if ratio_sqrt.square() == ratio:
-                    arguments_scales[term.argument] += other.scale * ratio_sqrt
-                else:
-                    next_queue.append(other)
+                if isinstance(ratio, Constant):
+                    ratio_sqrt = ratio.perfect_sqrt()
+                    if ratio_sqrt.square() == ratio:
+                        arguments_scales[term.argument] += (other.scale
+                                                            * ratio_sqrt)
+                        continue
+                next_queue.append(other)
             queue = next_queue
         terms = tuple(Term(scale, argument)
                       for argument, scale in arguments_scales.items()
