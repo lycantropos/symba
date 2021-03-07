@@ -32,10 +32,12 @@ class Term(Expression):
                         argument: Expression) -> Expression:
         if not (scale and argument):
             return Zero
-        argument_perfect_scale_sqrt = argument.perfect_sqrt()
-        return (argument_perfect_scale_sqrt * scale
-                if argument == argument_perfect_scale_sqrt.square()
-                else argument_perfect_scale_sqrt * cls(scale, argument))
+        argument_perfect_sqrt = argument.perfect_sqrt()
+        argument_perfect_part = argument_perfect_sqrt.square()
+        return (argument_perfect_sqrt * scale
+                if argument == argument_perfect_part
+                else (argument_perfect_sqrt
+                      * cls(scale, argument / argument_perfect_part)))
 
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return (self.scale.evaluate(sqrt_evaluator)
