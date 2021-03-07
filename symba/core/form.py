@@ -19,7 +19,9 @@ from .constant import (Constant,
 from .hints import SqrtEvaluator
 from .term import Term
 from .utils import (BASE,
-                    lcm)
+                    lcm,
+                    sqrt_floor,
+                    square)
 
 if TYPE_CHECKING:
     from .ratio import Ratio
@@ -116,16 +118,22 @@ class Form(Expression):
 
     def perfect_sqrt(self) -> Expression:
         terms_count = len(self.terms)
-        if not (self.tail
-                and all(isinstance(term.argument, Constant)
-                        for term in self.terms)
-                and (terms_count < 7)):
+        components_discriminant = 1 + 8 * terms_count
+        has_perfect_square_structure = (
+                self.tail
+                and (square(sqrt_floor(components_discriminant))
+                     == components_discriminant))
+        if not (all(isinstance(term.argument, Constant)
+                    for term in self.terms)
+                and (terms_count < 7 or not has_perfect_square_structure)):
             raise ValueError('Unsupported value: {!r}. '
                              'Should have form '
                              '``a * sqrt(x) + b * sqrt(y) + c * sqrt(z) + d``,'
                              'where ``a, b, c, d, x, y, z`` are rational '
                              'and ``c != 0``.'
                              .format(self))
+        elif not has_perfect_square_structure:
+            pass
         elif terms_count == 1:
             term = self.terms[0]
             discriminant = self.tail.square() - term.square()
