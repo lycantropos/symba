@@ -33,10 +33,7 @@ def to_nested_expressions(strategy: Strategy[Expression]
                           ) -> Strategy[Expression]:
     return (strategy.map(safe_sqrt)
             | strategies.builds(add, strategy, reals)
-            | (strategies.lists(strategy,
-                                min_size=2,
-                                max_size=10)
-               .map(sum))
+            | strategies.builds(add, strategy, strategy)
             | strategies.builds(mul, strategy, reals)
             | strategies.builds(mul, strategy, strategy)
             | strategies.builds(truediv, strategy, non_zero_reals)
@@ -46,7 +43,7 @@ def to_nested_expressions(strategy: Strategy[Expression]
 
 expressions = strategies.recursive(strategies.builds(sqrt, non_negative_reals),
                                    to_nested_expressions,
-                                   max_leaves=10)
+                                   max_leaves=5)
 reals_or_expressions = reals | expressions
 non_zero_expressions = expressions.filter(bool)
 non_zero_reals_or_expressions = non_zero_reals | non_zero_expressions
