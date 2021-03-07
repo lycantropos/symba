@@ -33,8 +33,7 @@ class Term(Expression):
         if not (scale and argument):
             return Zero
         argument_perfect_scale_sqrt = argument.perfect_sqrt()
-        argument /= argument_perfect_scale_sqrt.square()
-        if argument == One:
+        if argument == argument_perfect_scale_sqrt.square():
             return argument_perfect_scale_sqrt * scale
         return argument_perfect_scale_sqrt * cls(scale, argument)
 
