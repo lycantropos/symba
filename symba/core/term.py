@@ -10,7 +10,8 @@ from reprit.base import generate_repr
 
 from symba.core.utils import (ceil_half,
                               rational_sqrt_lower_bound,
-                              rational_sqrt_upper_bound)
+                              rational_sqrt_upper_bound,
+                              square)
 from . import context
 from .abcs import Expression
 from .constant import (Constant,
@@ -90,8 +91,60 @@ class Term(Expression):
                 if isinstance(other, Expression)
                 else NotImplemented)
 
+    def __ge__(self, other: Union[Real, Expression]) -> bool:
+        return ((other <= 0 or square(other) <= self.square()
+                 if self.is_positive()
+                 else other <= 0 and square(other) >= self.square())
+                if isinstance(other, Real)
+                else ((not other.is_positive()
+                       or other.square() <= self.square()
+                       if self.is_positive()
+                       else (not other.is_positive()
+                             and other.square() >= self.square()))
+                      if isinstance(other, Expression)
+                      else NotImplemented))
+
+    def __gt__(self, other: Union[Real, Expression]) -> bool:
+        return ((other <= 0 or square(other) < self.square()
+                 if self.is_positive()
+                 else other <= 0 and square(other) > self.square())
+                if isinstance(other, Real)
+                else ((not other.is_positive()
+                       or other.square() < self.square()
+                       if self.is_positive()
+                       else (not other.is_positive()
+                             and other.square() > self.square()))
+                      if isinstance(other, Expression)
+                      else NotImplemented))
+
     def __hash__(self) -> int:
         return hash((self.is_positive(), self.square()))
+
+    def __le__(self, other: Union[Real, Expression]) -> bool:
+        return ((other > 0 and square(other) >= self.square()
+                 if self.is_positive()
+                 else other > 0 or square(other) <= self.square())
+                if isinstance(other, (Real, Constant, Term))
+                else ((other.is_positive()
+                       and other.square() >= self.square()
+                       if self.is_positive()
+                       else (other.is_positive()
+                             or other.square() <= self.square()))
+                      if isinstance(other, Expression)
+                      else NotImplemented))
+
+    def __lt__(self, other: Union[Real, Expression]) -> bool:
+        return ((other > 0 and square(other) > self.square()
+                 if self.is_positive()
+                 else other > 0 or square(other) < self.square())
+                if isinstance(other, (Real, Constant, Term))
+                else ((other.is_positive()
+                       and other.square() > self.square()
+                       if self.is_positive()
+                       else (other.is_positive()
+                             or other.square() < self.square()))
+                      if isinstance(other, Expression)
+                      else NotImplemented))
 
     def __mul__(self, other: Union[Real, Expression]) -> Expression:
         return ((Term(self.scale * other, self.argument)
