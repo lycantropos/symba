@@ -315,8 +315,7 @@ class Form(Expression):
                 if all(scales_ratio == first_scales_ratio
                        for scales_ratio in scales_ratios):
                     return first_scales_ratio
-        from .ratio import Ratio
-        return Ratio.from_components(self, other)
+        return self * (One / other)
 
 
 def _positiveness_to_sign(flag: bool) -> int:
