@@ -21,12 +21,12 @@ class Expression(ABC):
         """Evaluates the expression."""
 
     @abstractmethod
-    def perfect_sqrt(self) -> 'Expression':
-        """Returns rational square root of scale of the expression."""
-
-    @abstractmethod
     def lower_bound(self) -> Rational:
         """Returns lower bound of the expression."""
+
+    @abstractmethod
+    def perfect_sqrt(self) -> 'Expression':
+        """Returns rational square root of scale of the expression."""
 
     @abstractmethod
     def significant_digits_count(self) -> int:
