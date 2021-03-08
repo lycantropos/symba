@@ -22,17 +22,9 @@ zero_reals_or_expressions = zero_reals | zero_expressions
 non_zero_reals = reals.filter(bool)
 
 
-def safe_sqrt(expression: Expression) -> Expression:
-    try:
-        return sqrt(expression)
-    except ValueError:
-        return expression
-
-
 def to_nested_expressions(strategy: Strategy[Expression]
                           ) -> Strategy[Expression]:
-    return (strategy.map(safe_sqrt)
-            | strategies.builds(add, strategy, reals)
+    return (strategies.builds(add, strategy, reals)
             | strategies.builds(add, strategy, strategy)
             | strategies.builds(mul, strategy, reals)
             | strategies.builds(mul, strategy, strategy)
@@ -41,9 +33,20 @@ def to_nested_expressions(strategy: Strategy[Expression]
             | strategies.builds(truediv, strategy, strategy.filter(bool)))
 
 
-expressions = strategies.recursive(strategies.builds(sqrt, non_negative_reals),
-                                   to_nested_expressions,
-                                   max_leaves=5)
+sqrt_arguments = strategies.recursive(strategies.builds(sqrt,
+                                                        non_negative_reals),
+                                      to_nested_expressions,
+                                      max_leaves=5)
+
+
+def safe_sqrt(expression: Expression) -> Expression:
+    try:
+        return sqrt(expression)
+    except ValueError:
+        return expression
+
+
+expressions = sqrt_arguments.map(safe_sqrt)
 reals_or_expressions = reals | expressions
 non_zero_expressions = expressions.filter(bool)
 non_zero_reals_or_expressions = non_zero_reals | non_zero_expressions
