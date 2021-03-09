@@ -133,21 +133,50 @@ class Form(Expression):
 
     def perfect_sqrt(self) -> Expression:
         terms_count = len(self.terms)
-        components_discriminant = 1 + 8 * terms_count
+        components_discriminant = 1 + 8 * (terms_count - (not self.tail))
         has_perfect_square_structure = (
-                self.tail
-                and (square(sqrt_floor(components_discriminant))
-                     == components_discriminant))
+                square(sqrt_floor(components_discriminant))
+                == components_discriminant)
         if not (all(isinstance(term.argument, Constant)
                     for term in self.terms)
                 and (not has_perfect_square_structure or terms_count < 4)):
             raise ValueError('Unsupported value: {!r}.'.format(self))
         elif not has_perfect_square_structure:
             pass
+        elif not self.tail:
+            if terms_count == 2:
+                # checking if the form can be represented as
+                # ``(a * sqrt(b * sqrt(x)) + c * sqrt(d * sqrt(x))) ** 2``,
+                # where
+                # ``a, b, c, d, x`` are non-zero rational,
+                # ``b, d`` are non-equal
+                max_term = max(self.terms,
+                               key=abs)
+                min_term = min(self.terms,
+                               key=abs)
+                base_argument = max_term.argument
+                if all(not term.argument % base_argument
+                       for term in self.terms):
+                    discriminant = (max_term.scale.square()
+                                    - min_term.square() // base_argument)
+                    if discriminant.is_positive():
+                        discriminant_sqrt = discriminant.perfect_sqrt()
+                        if discriminant_sqrt.square() == discriminant:
+                            max_scale = (max_term.scale
+                                         + discriminant_sqrt) / 2
+                            min_scale = (max_term.scale
+                                         - discriminant_sqrt) / 2
+                            one_fourth = Term(One, base_argument)
+                            return (_positiveness_to_sign(
+                                    min_term.is_positive())
+                                    * Term.from_components(
+                                            One, min_scale * one_fourth)
+                                    + Term.from_components(
+                                            One, max_scale * one_fourth))
         elif terms_count == 1:
             term = self.terms[0]
             discriminant = self.tail.square() - term.square()
-            if discriminant > 0:
+            if discriminant.is_positive():
                 # checking if the form can be represented as
                 # ``(a * sqrt(x) + b * sqrt(y)) ** 2``,
                 # where
@@ -167,7 +196,7 @@ class Form(Expression):
                 discriminant = (term.argument
                                 * (term.scale.square() * term.argument
                                    - self.tail.square()))
-                if discriminant > 0:
+                if discriminant.is_positive():
                     discriminant_sqrt = discriminant.perfect_sqrt()
                     if discriminant_sqrt.square() == discriminant:
                         for candidate_squared in ((term.scale * term.argument
