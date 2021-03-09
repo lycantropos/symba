@@ -135,6 +135,9 @@ class Form(Expression):
             term = self.terms[0]
             discriminant = self.tail.square() - term.square()
             if discriminant > 0:
+                # checking if the form can be represented as
+                # ``(a * sqrt(x) + b * sqrt(y)) ** 2``,
+                # where ``a, b, x, y`` are rational
                 discriminant_sqrt = discriminant.perfect_sqrt()
                 if discriminant_sqrt.square() == discriminant:
                     return (_positiveness_to_sign(term.is_positive())
@@ -142,6 +145,30 @@ class Form(Expression):
                                     One, (self.tail - discriminant_sqrt) / 2)
                             + Term.from_components(
                                     One, (self.tail + discriminant_sqrt) / 2))
+            else:
+                # checking if the form can be represented as
+                # ``(a * sqrt(x * sqrt(x)) + b * sqrt(sqrt(x))) ** 2``,
+                # where ``a, b, x`` are rational
+                discriminant = (term.argument
+                                * (term.scale.square() * term.argument
+                                   - self.tail.square()))
+                if discriminant > 0:
+                    discriminant_sqrt = discriminant.perfect_sqrt()
+                    if discriminant_sqrt.square() == discriminant:
+                        for candidate_squared in ((term.scale * term.argument
+                                                   + discriminant_sqrt) / 2,
+                                                  (term.scale * term.argument
+                                                   - discriminant_sqrt) / 2):
+                            candidate = candidate_squared.perfect_sqrt()
+                            if candidate.square() == candidate_squared:
+                                three_fourth_scale = candidate / term.argument
+                                one_fourth_scale = (self.tail
+                                                    / (2 * three_fourth_scale
+                                                       * term.argument))
+                                one_fourth = Term(One, term.argument)
+                                return Form(Term(three_fourth_scale,
+                                                 term.argument * one_fourth),
+                                            Term(one_fourth_scale, one_fourth))
         elif terms_count == 3:
             squared_candidates = sorted([
                 self.terms[0] * self.terms[1] / (2 * self.terms[2]),
