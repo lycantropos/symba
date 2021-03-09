@@ -27,12 +27,14 @@ class Ratio(Expression):
                 if isinstance(numerator, Ratio)
                 else cls(numerator, denominator)) if numerator else Zero
 
-    def extract_common_denominator(self) -> Tuple[int, Expression]:
-        return self.numerator.extract_common_denominator()
-
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return (self.numerator.evaluate(sqrt_evaluator)
                 / self.denominator.evaluate(sqrt_evaluator))
+
+    def extract_common_denominator(self) -> Tuple[int, Expression]:
+        common_denominator, numerator = (self.numerator
+                                         .extract_common_denominator())
+        return common_denominator, Ratio(numerator, self.denominator)
 
     def is_positive(self) -> bool:
         return self.numerator.is_positive()
@@ -131,6 +133,5 @@ class Ratio(Expression):
                       else NotImplemented))
 
     def _normalizing_scale(self) -> int:
-        common_denominator, ratio = (self.denominator
-                                     .extract_common_denominator())
+        common_denominator, ratio = self.extract_common_denominator()
         return common_denominator * BASE ** ratio.significant_digits_count()
