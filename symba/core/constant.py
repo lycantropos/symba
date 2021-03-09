@@ -5,7 +5,9 @@ from numbers import (Rational,
 from typing import (Any,
                     Optional,
                     Tuple,
-                    Union)
+                    TypeVar,
+                    Union,
+                    overload)
 
 from reprit.base import generate_repr
 
@@ -66,11 +68,10 @@ class Constant(Expression):
         return Constant(abs(self.value))
 
     def __add__(self, other: Union[Real, 'Constant']) -> 'Constant':
-        return (Constant(self.value + other)
-                if isinstance(other, Real)
-                else (Constant(self.value + other.value)
-                      if isinstance(other, Constant)
-                      else NotImplemented))
+        other = to_constant(other)
+        return (Constant(self.value + other.value)
+                if isinstance(other, Constant)
+                else NotImplemented)
 
     def __bool__(self) -> bool:
         return bool(self.value)
@@ -94,29 +95,28 @@ class Constant(Expression):
         return hash(self.value)
 
     def __mul__(self, other: Union[Real, 'Constant']) -> 'Constant':
+        other = to_constant(other)
         return (Constant(self.value * other.value)
                 if isinstance(other, Constant)
-                else (Constant(self.value * other)
-                      if isinstance(other, Real)
-                      else NotImplemented))
+                else NotImplemented)
 
     def __neg__(self) -> 'Constant':
         return Constant(-self.value)
 
     def __radd__(self, other: Union[Real, 'Constant']) -> 'Constant':
-        return (Constant(other + self.value)
+        return (Constant(other) + self
                 if isinstance(other, Real)
                 else NotImplemented)
 
     __repr__ = generate_repr(__init__)
 
     def __rmul__(self, other: Union[Real, 'Constant']) -> 'Constant':
-        return (Constant(self.value * other)
+        return (Constant(other) * self
                 if isinstance(other, Real)
                 else NotImplemented)
 
     def __rtruediv__(self, other: Union[Real, 'Constant']) -> 'Constant':
-        return (Constant(other / self.value)
+        return (Constant(other) / self
                 if isinstance(other, Real)
                 else NotImplemented)
 
@@ -124,11 +124,26 @@ class Constant(Expression):
         return str(self.value)
 
     def __truediv__(self, other: Union[Real, 'Constant']) -> 'Constant':
-        return (Constant(self.value / other)
-                if isinstance(other, Real)
-                else (Constant(self.value / other.value)
-                      if isinstance(other, Constant)
-                      else NotImplemented))
+        other = to_constant(other)
+        return (Constant(self.value / other.value)
+                if isinstance(other, Constant)
+                else NotImplemented)
 
 
 Zero, One = Constant(0), Constant(1)
+
+_T = TypeVar('_T')
+
+
+@overload
+def to_constant(other: _T) -> _T:
+    ...
+
+
+@overload
+def to_constant(other: Real) -> Constant:
+    ...
+
+
+def to_constant(other: Union[Real, Expression]) -> Expression:
+    return Constant(other) if isinstance(other, Real) else other
