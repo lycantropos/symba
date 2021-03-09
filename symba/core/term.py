@@ -43,16 +43,16 @@ class Term(Expression):
                 else (argument_perfect_sqrt
                       * cls(scale, argument / argument_perfect_part)))
 
-    def extract_common_denominator(self) -> Tuple[int, Expression]:
-        common_denominator, scale = self.scale.extract_common_denominator()
-        return common_denominator, Term(scale, self.argument)
-
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return (self.scale.evaluate(sqrt_evaluator)
                 * ((context.sqrt_evaluator.get()
                     if sqrt_evaluator is None
                     else sqrt_evaluator)
                    (self.argument.evaluate(sqrt_evaluator))))
+
+    def extract_common_denominator(self) -> Tuple[int, Expression]:
+        common_denominator, scale = self.scale.extract_common_denominator()
+        return common_denominator, Term(scale, self.argument)
 
     def is_positive(self) -> bool:
         return self.scale > 0
