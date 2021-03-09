@@ -78,17 +78,25 @@ class Form(Expression):
         return sum([term.evaluate(sqrt_evaluator) for term in self.terms],
                    self.tail.evaluate(sqrt_evaluator))
 
-    def extract_common_denominator(self) -> Tuple[int, Expression]:
+    def extract_common_denominator(self) -> Tuple[int, 'Form']:
         terms_common_denominators, _ = _transpose(
                 [term.extract_common_denominator() for term in self.terms])
-        common_denominator = (
-            reduce(lcm, terms_common_denominators,
-                   self.tail.extract_common_denominator()[0])
-            if self.tail
-            else reduce(lcm, terms_common_denominators))
+        tail_denominator, _ = self.tail.extract_common_denominator()
+        common_denominator = reduce(lcm, terms_common_denominators,
+                                    tail_denominator)
         return common_denominator, Form(*[term * common_denominator
                                           for term in self.terms],
                                         tail=self.tail * common_denominator)
+
+    def extract_common_numerator(self) -> Tuple[int, 'Form']:
+        terms_common_numerators, _ = _transpose(
+                [term.extract_common_numerator() for term in self.terms])
+        tail_numerator, _ = self.tail.extract_common_numerator()
+        common_numerator = reduce(math.gcd, terms_common_numerators,
+                                  tail_numerator)
+        return common_numerator, Form(*[term / common_numerator
+                                        for term in self.terms],
+                                      tail=self.tail / common_numerator)
 
     def is_positive(self) -> bool:
         components = (*self.terms, self.tail) if self.tail else self.terms
@@ -346,7 +354,7 @@ class Form(Expression):
                     return first_scales_ratio
         return self * (One / other)
 
-    def _normalizing_scale(self) -> int:
+    def _normalizing_scale(self) -> Rational:
         common_denominator, form = self.extract_common_denominator()
         return common_denominator * BASE ** form.significant_digits_count()
 

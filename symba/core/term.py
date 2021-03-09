@@ -50,9 +50,13 @@ class Term(Expression):
                     else sqrt_evaluator)
                    (self.argument.evaluate(sqrt_evaluator))))
 
-    def extract_common_denominator(self) -> Tuple[int, Expression]:
+    def extract_common_denominator(self) -> Tuple[int, 'Term']:
         common_denominator, scale = self.scale.extract_common_denominator()
         return common_denominator, Term(scale, self.argument)
+
+    def extract_common_numerator(self) -> Tuple[int, 'Term']:
+        common_numerator, scale = self.scale.extract_common_numerator()
+        return common_numerator, Term(scale, self.argument)
 
     def is_positive(self) -> bool:
         return self.scale > 0

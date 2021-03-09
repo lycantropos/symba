@@ -29,8 +29,11 @@ class Constant(Expression):
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return self.value
 
-    def extract_common_denominator(self) -> Tuple[int, Expression]:
+    def extract_common_denominator(self) -> Tuple[int, 'Constant']:
         return self.value.denominator, Constant(self.value.numerator)
+
+    def extract_common_numerator(self) -> Tuple[int, 'Constant']:
+        return self.value.numerator, One / self.value.denominator
 
     def is_positive(self) -> bool:
         return self.value > 0

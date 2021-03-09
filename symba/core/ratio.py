@@ -31,10 +31,21 @@ class Ratio(Expression):
         return (self.numerator.evaluate(sqrt_evaluator)
                 / self.denominator.evaluate(sqrt_evaluator))
 
-    def extract_common_denominator(self) -> Tuple[int, Expression]:
-        common_denominator, numerator = (self.numerator
-                                         .extract_common_denominator())
-        return common_denominator, Ratio(numerator, self.denominator)
+    def extract_common_denominator(self) -> Tuple[int, 'Ratio']:
+        numerator_common_denominator, numerator = (
+            self.numerator.extract_common_denominator())
+        denominator_common_numerator, denominator = (
+            self.denominator.extract_common_numerator())
+        return (numerator_common_denominator * denominator_common_numerator,
+                Ratio(numerator, denominator))
+
+    def extract_common_numerator(self) -> Tuple[int, 'Ratio']:
+        numerator_common_numerator, numerator = (
+            self.numerator.extract_common_numerator())
+        denominator_common_denominator, denominator = (
+            self.denominator.extract_common_denominator())
+        return (numerator_common_numerator * denominator_common_denominator,
+                Ratio(numerator, denominator))
 
     def is_positive(self) -> bool:
         return self.numerator.is_positive()
@@ -60,9 +71,9 @@ class Ratio(Expression):
     def upper_bound(self) -> Rational:
         if not self.is_positive():
             return -(-self).lower_bound()
-        common_scale = self._normalizing_scale()
-        return ((common_scale * self.numerator).upper_bound()
-                / (common_scale * self.denominator).lower_bound())
+        scale = self._normalizing_scale()
+        return ((scale * self.numerator).upper_bound()
+                / (scale * self.denominator).lower_bound())
 
     def __init__(self, numerator: Expression, denominator: Form) -> None:
         self.numerator, self.denominator = numerator, denominator
@@ -132,6 +143,6 @@ class Ratio(Expression):
                       if isinstance(other, (Real, Expression))
                       else NotImplemented))
 
-    def _normalizing_scale(self) -> int:
+    def _normalizing_scale(self) -> Rational:
         common_denominator, ratio = self.extract_common_denominator()
         return common_denominator * BASE ** ratio.significant_digits_count()

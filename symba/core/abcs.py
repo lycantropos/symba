@@ -19,7 +19,17 @@ class Expression(ABC):
 
     @abstractmethod
     def extract_common_denominator(self) -> Tuple[int, 'Expression']:
-        """Returns common denominator of the expression."""
+        """
+        Returns a pair of the common denominator of the expression
+        and the rest of the expression.
+        """
+
+    @abstractmethod
+    def extract_common_numerator(self) -> Tuple[int, 'Expression']:
+        """
+        Returns a pair of the common numerator of the expression
+        and the rest of the expression.
+        """
 
     @abstractmethod
     def is_positive(self) -> bool:
