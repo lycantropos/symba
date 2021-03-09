@@ -131,5 +131,6 @@ class Ratio(Expression):
                       else NotImplemented))
 
     def _normalizing_scale(self) -> int:
-        return (self.denominator.extract_common_denominator()
-                * BASE ** self.significant_digits_count())
+        common_denominator, ratio = (self.denominator
+                                     .extract_common_denominator())
+        return common_denominator * BASE ** ratio.significant_digits_count()
