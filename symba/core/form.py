@@ -139,40 +139,35 @@ class Form(Expression):
                 == components_discriminant)
         if not (all(isinstance(term.argument, Constant)
                     for term in self.terms)
-                and (not has_perfect_square_structure or terms_count < 4)):
+                and (not has_perfect_square_structure or terms_count < 3)):
             raise ValueError('Unsupported value: {!r}.'.format(self))
         elif not has_perfect_square_structure:
             pass
         elif not self.tail:
-            if terms_count == 2:
-                # checking if the form can be represented as
-                # ``(a * sqrt(b * sqrt(x)) + c * sqrt(d * sqrt(x))) ** 2``,
-                # where
-                # ``a, b, c, d, x`` are non-zero rational,
-                # ``b, d`` are non-equal
-                max_term = max(self.terms,
-                               key=abs)
-                min_term = min(self.terms,
-                               key=abs)
-                base_argument = max_term.argument
-                if all(not term.argument % base_argument
-                       for term in self.terms):
-                    discriminant = (max_term.scale.square()
-                                    - min_term.square() // base_argument)
-                    if discriminant.is_positive():
-                        discriminant_sqrt = discriminant.perfect_sqrt()
-                        if discriminant_sqrt.square() == discriminant:
-                            max_scale = (max_term.scale
-                                         + discriminant_sqrt) / 2
-                            min_scale = (max_term.scale
-                                         - discriminant_sqrt) / 2
-                            one_fourth = Term(One, base_argument)
-                            return (_positiveness_to_sign(
-                                    min_term.is_positive())
-                                    * Term.from_components(
-                                            One, min_scale * one_fourth)
-                                    + Term.from_components(
-                                            One, max_scale * one_fourth))
+            # checking if the form can be represented as
+            # ``(a * sqrt(b * sqrt(x)) + c * sqrt(d * sqrt(x))) ** 2``,
+            # where
+            # ``a, x`` are positive rational,
+            # ``b, d`` are positive non-equal rational,
+            # ``c`` is non-zero rational
+            max_term = max(self.terms,
+                           key=abs)
+            min_term = min(self.terms,
+                           key=abs)
+            base_argument = max_term.argument
+            if not min_term.square() % base_argument:
+                discriminant = ((max_term.square() - min_term.square())
+                                / base_argument)
+                discriminant_sqrt = discriminant.perfect_sqrt()
+                if discriminant_sqrt.square() == discriminant:
+                    max_scale = (max_term.scale + discriminant_sqrt) / 2
+                    min_scale = (max_term.scale - discriminant_sqrt) / 2
+                    one_fourth = Term(One, base_argument)
+                    return (_positiveness_to_sign(min_term.is_positive())
+                            * Term.from_components(One,
+                                                   min_scale * one_fourth)
+                            + Term.from_components(One,
+                                                   max_scale * one_fourth))
         elif terms_count == 1:
             term = self.terms[0]
             discriminant = self.tail.square() - term.square()
@@ -191,59 +186,23 @@ class Form(Expression):
                                     One, (self.tail + discriminant_sqrt) / 2))
             else:
                 # checking if the form can be represented as
-                # ``(a * sqrt(x * sqrt(x)) + b * sqrt(sqrt(x))) ** 2``,
-                # where ``a, b, x`` are rational
-                discriminant = (term.argument
-                                * (term.scale.square() * term.argument
-                                   - self.tail.square()))
-                if discriminant.is_positive():
-                    discriminant_sqrt = discriminant.perfect_sqrt()
-                    if discriminant_sqrt.square() == discriminant:
-                        for candidate_squared in ((term.scale * term.argument
-                                                   + discriminant_sqrt) / 2,
-                                                  (term.scale * term.argument
-                                                   - discriminant_sqrt) / 2):
-                            candidate = candidate_squared.perfect_sqrt()
-                            if candidate.square() == candidate_squared:
-                                three_fourth_scale = candidate / term.argument
-                                one_fourth_scale = (self.tail
-                                                    / (2 * three_fourth_scale
-                                                       * term.argument))
-                                one_fourth = Term(One, term.argument)
-                                return Form(Term(three_fourth_scale,
-                                                 term.argument * one_fourth),
-                                            Term(one_fourth_scale, one_fourth))
-        elif terms_count == 3:
-            # checking if the form can be represented as
-            # ``(a * sqrt(x) + b * sqrt(y) + c * sqrt(z)) ** 2``,
-            # where
-            # ``a, b, x, y, z`` are non-zero rational,
-            # ``x, y, z`` are non-equal
-            squared_candidates = sorted([
-                self.terms[0] * self.terms[1] / (2 * self.terms[2]),
-                self.terms[0] * self.terms[2] / (2 * self.terms[1]),
-                self.terms[1] * self.terms[2] / (2 * self.terms[0])])
-            if sum(squared_candidates) == self.tail:
-                max_modulus_term = max(self.terms,
-                                       key=abs)
-                mid_max_components_same_sign = max_modulus_term.is_positive()
-                min_modulus_term = min(self.terms,
-                                       key=abs)
-                min_mid_components_same_sign = min_modulus_term.is_positive()
-                max_component_is_positive = (
-                        mid_max_components_same_sign
-                        or not min_mid_components_same_sign
-                        or (squared_candidates[2]
-                            > squared_candidates[0] + squared_candidates[1]))
-                mid_component_is_positive = (max_component_is_positive
-                                             is mid_max_components_same_sign)
-                min_component_is_positive = (mid_component_is_positive
-                                             is min_mid_components_same_sign)
-                signs = [_positiveness_to_sign(min_component_is_positive),
-                         _positiveness_to_sign(mid_component_is_positive),
-                         _positiveness_to_sign(max_component_is_positive)]
-                return sum(Term.from_components(sign * One, squared)
-                           for sign, squared in zip(signs, squared_candidates))
+                # ``(sqrt(a * sqrt(x)) + b * sqrt(c * sqrt(x))) ** 2``,
+                # where
+                # ``a, b, c, x`` are non-zero rational,
+                # ``a, c, x`` are positive,
+                # ``a, c`` are non-equal,
+                # ``a * c`` is a perfect square
+                discriminant /= -term.argument
+                discriminant_sqrt = discriminant.perfect_sqrt()
+                if discriminant_sqrt.square() == discriminant:
+                    one_fourth = Term(One, term.argument)
+                    return (_positiveness_to_sign(self.tail.is_positive())
+                            * Term(One,
+                                   (term.scale - discriminant_sqrt) / 2
+                                   * one_fourth)
+                            + Term(One,
+                                   (term.scale + discriminant_sqrt) / 2
+                                   * one_fourth))
         common_numerator, form = self.extract_common_numerator()
         common_denominator, _ = form.extract_common_denominator()
         return (Constant(common_numerator) / common_denominator).perfect_sqrt()
