@@ -208,8 +208,8 @@ class Form(Expression):
                          _positiveness_to_sign(max_component_is_positive)]
                 return sum(Term.from_components(sign * One, squared)
                            for sign, squared in zip(signs, squared_candidates))
-        common_numerator = self._common_numerator()
-        common_denominator, _ = self.extract_common_denominator()
+        common_numerator, form = self.extract_common_numerator()
+        common_denominator, _ = form.extract_common_denominator()
         return (Constant(common_numerator) / common_denominator).perfect_sqrt()
 
     def significant_digits_count(self) -> int:
@@ -327,14 +327,6 @@ class Form(Expression):
                       else (self._divide_by_form(other)
                             if isinstance(other, Form)
                             else NotImplemented)))
-
-    def _common_numerator(self) -> int:
-        terms_scales_denominators = [term.scale.value.numerator
-                                     for term in self.terms]
-        return (reduce(math.gcd, terms_scales_denominators,
-                       self.tail.value.numerator)
-                if self.tail
-                else reduce(math.gcd, terms_scales_denominators))
 
     def _divide_by_form(self, other: 'Form') -> Expression:
         has_tail = bool(self.tail)
