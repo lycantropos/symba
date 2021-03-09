@@ -115,7 +115,7 @@ class Expression(ABC):
         for digit in to_binary_digits(exponent):
             if digit:
                 result *= step
-            step *= step
+            step = step.square()
         return result
 
     @abstractmethod
