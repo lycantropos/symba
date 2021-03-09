@@ -150,7 +150,9 @@ class Form(Expression):
             if discriminant > 0:
                 # checking if the form can be represented as
                 # ``(a * sqrt(x) + b * sqrt(y)) ** 2``,
-                # where ``a, b, x, y`` are rational
+                # where
+                # ``a, b, x, y`` are rational,
+                # ``x, y`` are non-equal
                 discriminant_sqrt = discriminant.perfect_sqrt()
                 if discriminant_sqrt.square() == discriminant:
                     return (_positiveness_to_sign(term.is_positive())
@@ -183,6 +185,11 @@ class Form(Expression):
                                                  term.argument * one_fourth),
                                             Term(one_fourth_scale, one_fourth))
         elif terms_count == 3:
+            # checking if the form can be represented as
+            # ``(a * sqrt(x) + b * sqrt(y) + c * sqrt(z)) ** 2``,
+            # where
+            # ``a, b, x, y, z`` are non-zero rational,
+            # ``x, y, z`` are non-equal
             squared_candidates = sorted([
                 self.terms[0] * self.terms[1] / (2 * self.terms[2]),
                 self.terms[0] * self.terms[2] / (2 * self.terms[1]),
