@@ -4,6 +4,7 @@ from numbers import (Rational,
 from typing import (TYPE_CHECKING,
                     Any,
                     Optional,
+                    Tuple,
                     Union)
 
 from reprit.base import generate_repr
@@ -32,12 +33,19 @@ class Term(Expression):
                         argument: Expression) -> Expression:
         if not (scale and argument):
             return Zero
+        denominator, argument = argument.extract_common_denominator()
+        scale /= denominator
+        argument *= denominator
         argument_perfect_sqrt = argument.perfect_sqrt()
         argument_perfect_part = argument_perfect_sqrt.square()
         return (argument_perfect_sqrt * scale
                 if argument == argument_perfect_part
                 else (argument_perfect_sqrt
                       * cls(scale, argument / argument_perfect_part)))
+
+    def extract_common_denominator(self) -> Tuple[int, Expression]:
+        common_denominator, scale = self.scale.extract_common_denominator()
+        return common_denominator, Term(scale, self.argument)
 
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return (self.scale.evaluate(sqrt_evaluator)

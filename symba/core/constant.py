@@ -4,6 +4,7 @@ from numbers import (Rational,
                      Real)
 from typing import (Any,
                     Optional,
+                    Tuple,
                     Union)
 
 from reprit.base import generate_repr
@@ -27,6 +28,9 @@ class Constant(Expression):
 
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return self.value
+
+    def extract_common_denominator(self) -> Tuple[int, Expression]:
+        return self.value.denominator, Constant(self.value.numerator)
 
     def is_positive(self) -> bool:
         return self.value > 0

@@ -8,6 +8,8 @@ from typing import (TYPE_CHECKING,
                     Dict,
                     Optional,
                     Sequence,
+                    Tuple,
+                    TypeVar,
                     Union)
 
 from reprit.base import generate_repr
@@ -72,17 +74,21 @@ class Form(Expression):
     def terms(self) -> Sequence[Term]:
         return self._terms
 
-    def common_denominator(self) -> int:
-        terms_scales_denominators = [term.scale.value.denominator
-                                     for term in self.terms]
-        return (reduce(lcm, terms_scales_denominators,
-                       self.tail.value.denominator)
-                if self.tail
-                else reduce(lcm, terms_scales_denominators))
-
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return sum([term.evaluate(sqrt_evaluator) for term in self.terms],
                    self.tail.evaluate(sqrt_evaluator))
+
+    def extract_common_denominator(self) -> Tuple[int, Expression]:
+        terms_common_denominators, _ = _transpose(
+                [term.extract_common_denominator() for term in self.terms])
+        common_denominator = (
+            reduce(lcm, terms_common_denominators,
+                   self.tail.extract_common_denominator()[0])
+            if self.tail
+            else reduce(lcm, terms_common_denominators))
+        return common_denominator, Form(*[term * common_denominator
+                                          for term in self.terms],
+                                        tail=self.tail * common_denominator)
 
     def is_positive(self) -> bool:
         components = (*self.terms, self.tail) if self.tail else self.terms
@@ -113,10 +119,9 @@ class Form(Expression):
         return self.upper_bound() > 0 and self.lower_bound() >= 0
 
     def lower_bound(self) -> Rational:
-        common_scale = self._common_scale()
-        return sum([(common_scale * term).lower_bound()
-                    for term in self.terms],
-                   (common_scale * self.tail).lower_bound()) / common_scale
+        scale = self._normalizing_scale()
+        return sum([(scale * term).lower_bound() for term in self.terms],
+                   (scale * self.tail).lower_bound()) / scale
 
     def perfect_sqrt(self) -> Expression:
         terms_count = len(self.terms)
@@ -195,8 +200,9 @@ class Form(Expression):
                          _positiveness_to_sign(max_component_is_positive)]
                 return sum(Term.from_components(sign * One, squared)
                            for sign, squared in zip(signs, squared_candidates))
-        return (Constant(self._common_numerator())
-                / self.common_denominator()).perfect_sqrt()
+        common_numerator = self._common_numerator()
+        common_denominator, _ = self.extract_common_denominator()
+        return (Constant(common_numerator) / common_denominator).perfect_sqrt()
 
     def significant_digits_count(self) -> int:
         return max(max(term.significant_digits_count() for term in self.terms),
@@ -213,10 +219,10 @@ class Form(Expression):
                    self.tail.square())
 
     def upper_bound(self) -> Rational:
-        common_scale = self._common_scale()
-        return sum([(common_scale * term).upper_bound()
+        scale = self._normalizing_scale()
+        return sum([(scale * term).upper_bound()
                     for term in self.terms],
-                   (common_scale * self.tail).upper_bound()) / common_scale
+                   (scale * self.tail).upper_bound()) / scale
 
     __slots__ = '_tail', '_terms'
 
@@ -322,10 +328,6 @@ class Form(Expression):
                 if self.tail
                 else reduce(math.gcd, terms_scales_denominators))
 
-    def _common_scale(self) -> int:
-        return (self.common_denominator()
-                * BASE ** self.significant_digits_count())
-
     def _divide_by_form(self, other: 'Form') -> Expression:
         has_tail = bool(self.tail)
         if (has_tail is bool(other.tail)
@@ -344,6 +346,10 @@ class Form(Expression):
                     return first_scales_ratio
         return self * (One / other)
 
+    def _normalizing_scale(self) -> int:
+        common_denominator, form = self.extract_common_denominator()
+        return common_denominator * BASE ** form.significant_digits_count()
+
 
 def _positiveness_to_sign(flag: bool) -> int:
     return 2 * flag - 1
@@ -351,3 +357,12 @@ def _positiveness_to_sign(flag: bool) -> int:
 
 def _to_signed_value(value: Union[Constant, Term]) -> str:
     return '+ ' + str(value) if value.is_positive() else '- ' + str(-value)
+
+
+_T1 = TypeVar('_T1')
+_T2 = TypeVar('_T2')
+
+
+def _transpose(pairs_sequence: Sequence[Tuple[_T1, _T2]]
+               ) -> Tuple[Sequence[_T1], Sequence[_T2]]:
+    return tuple(zip(*pairs_sequence))

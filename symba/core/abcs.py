@@ -4,6 +4,7 @@ from abc import (ABC,
 from numbers import (Rational,
                      Real)
 from typing import (Optional,
+                    Tuple,
                     Union)
 
 from .hints import SqrtEvaluator
@@ -13,12 +14,16 @@ from .utils import (BASE,
 
 class Expression(ABC):
     @abstractmethod
-    def is_positive(self) -> bool:
-        """Checks if the expression is positive."""
-
-    @abstractmethod
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         """Evaluates the expression."""
+
+    @abstractmethod
+    def extract_common_denominator(self) -> Tuple[int, 'Expression']:
+        """Returns common denominator of the expression."""
+
+    @abstractmethod
+    def is_positive(self) -> bool:
+        """Checks if the expression is positive."""
 
     @abstractmethod
     def lower_bound(self) -> Rational:

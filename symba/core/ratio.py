@@ -2,6 +2,7 @@ from numbers import (Rational,
                      Real)
 from typing import (Any,
                     Optional,
+                    Tuple,
                     Union)
 
 from reprit.base import generate_repr
@@ -26,6 +27,9 @@ class Ratio(Expression):
                 if isinstance(numerator, Ratio)
                 else cls(numerator, denominator)) if numerator else Zero
 
+    def extract_common_denominator(self) -> Tuple[int, Expression]:
+        return self.numerator.extract_common_denominator()
+
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return (self.numerator.evaluate(sqrt_evaluator)
                 / self.denominator.evaluate(sqrt_evaluator))
@@ -36,9 +40,9 @@ class Ratio(Expression):
     def lower_bound(self) -> Rational:
         if not self.is_positive():
             return -(-self).upper_bound()
-        common_scale = self._common_scale()
-        return ((common_scale * self.numerator).lower_bound()
-                / (common_scale * self.denominator).upper_bound())
+        scale = self._normalizing_scale()
+        return ((scale * self.numerator).lower_bound()
+                / (scale * self.denominator).upper_bound())
 
     def perfect_sqrt(self) -> Expression:
         return (self.numerator.perfect_sqrt()
@@ -54,7 +58,7 @@ class Ratio(Expression):
     def upper_bound(self) -> Rational:
         if not self.is_positive():
             return -(-self).lower_bound()
-        common_scale = self._common_scale()
+        common_scale = self._normalizing_scale()
         return ((common_scale * self.numerator).upper_bound()
                 / (common_scale * self.denominator).lower_bound())
 
@@ -126,6 +130,6 @@ class Ratio(Expression):
                       if isinstance(other, (Real, Expression))
                       else NotImplemented))
 
-    def _common_scale(self) -> int:
-        return (self.denominator.common_denominator()
+    def _normalizing_scale(self) -> int:
+        return (self.denominator.extract_common_denominator()
                 * BASE ** self.significant_digits_count())
