@@ -3,8 +3,7 @@ from collections import defaultdict
 from functools import reduce
 from numbers import (Rational,
                      Real)
-from typing import (TYPE_CHECKING,
-                    Any,
+from typing import (Any,
                     Dict,
                     Optional,
                     Sequence,
@@ -24,9 +23,6 @@ from .utils import (BASE,
                     lcm,
                     sqrt_floor,
                     square)
-
-if TYPE_CHECKING:
-    from .ratio import Ratio
 
 
 class Form(Expression):
@@ -291,17 +287,9 @@ class Form(Expression):
                 else NotImplemented)
 
     def __rtruediv__(self, other: Union[Real, Expression]) -> Expression:
-        components = (*self.terms, self.tail) if self.tail else self.terms
-        components_count = len(components)
-        if components_count > 2:
-            from .ratio import Ratio
-            return Ratio.from_components(Constant(other)
-                                         if isinstance(other, Real)
-                                         else other,
-                                         self)
-        subtrahend, minuend = components[0], components[1]
-        return ((other * (subtrahend - minuend))
-                / (subtrahend.square() - minuend.square()))
+        return (other * self._inverse()
+                if isinstance(other, (Real, Expression))
+                else NotImplemented)
 
     def __str__(self) -> str:
         return (str(self.terms[0])
@@ -319,27 +307,39 @@ class Form(Expression):
                 else (sum([term / other for term in self.terms],
                           self.tail / other)
                       if isinstance(other, Term)
-                      else (self._divide_by_form(other)
+                      else (self * other._inverse()
                             if isinstance(other, Form)
                             else NotImplemented)))
 
-    def _divide_by_form(self, other: 'Form') -> Expression:
-        has_tail = bool(self.tail)
-        if (has_tail is bool(other.tail)
-                and len(self.terms) == len(other.terms)):
-            terms_scales = {term.argument: term.scale for term in self.terms}
-            other_terms_scales = {term.argument: term.scale
-                                  for term in other.terms}
-            if terms_scales.keys() == other_terms_scales.keys():
-                scales_ratios = (scale / other_terms_scales[term]
-                                 for term, scale in terms_scales.items())
-                first_scales_ratio = (self.tail / other.tail
-                                      if has_tail
-                                      else next(scales_ratios))
-                if all(scales_ratio == first_scales_ratio
-                       for scales_ratio in scales_ratios):
-                    return first_scales_ratio
-        return self * (One / other)
+    def _inverse(self) -> Expression:
+        denominator, numerator = self, One
+        for base_term in sorted(denominator.terms,
+                                key=abs,
+                                reverse=True):
+            non_divisible, divisible = [], []
+            for term in denominator.terms:
+                (non_divisible
+                 if term.argument % base_term.argument
+                 else divisible).append(term)
+            if not divisible:
+                continue
+            numerator *= Form(*non_divisible, *[-term for term in divisible],
+                              tail=denominator.tail)
+            denominator = (
+                    Form(*non_divisible,
+                         tail=denominator.tail).square()
+                    - base_term.argument
+                    * Form(*[Term.from_components(term.scale,
+                                                  term.argument
+                                                  / base_term.argument)
+                             for term in divisible]).square())
+            if isinstance(denominator, Constant):
+                break
+            elif isinstance(denominator, Term):
+                numerator *= Term.from_components(One, denominator.argument)
+                denominator = denominator.scale * denominator.argument
+                break
+        return numerator / denominator
 
     def _normalizing_scale(self) -> Rational:
         common_denominator, form = self.extract_common_denominator()
