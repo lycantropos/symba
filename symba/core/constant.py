@@ -37,6 +37,9 @@ class Constant(Expression):
     def extract_common_numerator(self) -> Tuple[int, 'Constant']:
         return self.value.numerator, One / self.value.denominator
 
+    def inverse(self) -> 'Constant':
+        return Constant(Fraction(self.value.denominator, self.value.numerator))
+
     def is_positive(self) -> bool:
         return self.value > 0
 
@@ -115,19 +118,8 @@ class Constant(Expression):
                 if isinstance(other, Real)
                 else NotImplemented)
 
-    def __rtruediv__(self, other: Union[Real, 'Constant']) -> 'Constant':
-        return (Constant(other) / self
-                if isinstance(other, Real)
-                else NotImplemented)
-
     def __str__(self) -> str:
         return str(self.value)
-
-    def __truediv__(self, other: Union[Real, 'Constant']) -> 'Constant':
-        other = to_constant(other)
-        return (Constant(self.value / other.value)
-                if isinstance(other, Constant)
-                else NotImplemented)
 
 
 Zero, One = Constant(0), Constant(1)

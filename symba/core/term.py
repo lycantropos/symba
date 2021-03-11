@@ -25,8 +25,6 @@ if TYPE_CHECKING:
 
 
 class Term(Expression):
-    __slots__ = 'argument', 'scale'
-
     @classmethod
     def from_components(cls,
                         scale: Constant,
@@ -43,6 +41,11 @@ class Term(Expression):
                 else (argument_perfect_sqrt
                       * cls(scale, argument / argument_perfect_part)))
 
+    __slots__ = 'argument', 'scale'
+
+    def __init__(self, scale: Constant, argument: Expression) -> None:
+        self.scale, self.argument = scale, argument
+
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return (self.scale.evaluate(sqrt_evaluator)
                 * ((context.sqrt_evaluator.get()
@@ -57,6 +60,9 @@ class Term(Expression):
     def extract_common_numerator(self) -> Tuple[int, 'Term']:
         common_numerator, scale = self.scale.extract_common_numerator()
         return common_numerator, Term(scale, self.argument)
+
+    def inverse(self) -> 'Term':
+        return Term(self.scale.inverse(), self.argument.inverse())
 
     def is_positive(self) -> bool:
         return self.scale > 0
@@ -79,9 +85,6 @@ class Term(Expression):
         return (rational_sqrt_upper_bound(self.square().upper_bound())
                 if self.is_positive()
                 else -(-self).lower_bound())
-
-    def __init__(self, scale: Constant, argument: Expression) -> None:
-        self.scale, self.argument = scale, argument
 
     def __abs__(self) -> 'Term':
         return Term(abs(self.scale), self.argument)
@@ -190,11 +193,6 @@ class Term(Expression):
                 if isinstance(other, (Real, Constant))
                 else NotImplemented)
 
-    def __rtruediv__(self, other: Union[Real, Expression]) -> Expression:
-        return (Term.from_components(other / self.scale, One / self.argument)
-                if isinstance(other, (Real, Constant))
-                else NotImplemented)
-
     def __str__(self) -> str:
         return ((''
                  if self.scale == One
@@ -202,13 +200,6 @@ class Term(Expression):
                        if self.scale == -One
                        else '{} * '.format(self.scale)))
                 + 'sqrt({})'.format(self.argument))
-
-    def __truediv__(self, other: Union[Real, Expression]) -> Expression:
-        return (Term(self.scale / other, self.argument)
-                if isinstance(other, (Real, Constant))
-                else (self._multiply_with_term(One / other)
-                      if isinstance(other, Term)
-                      else NotImplemented))
 
     def _multiply_with_term(self, other: 'Term') -> Expression:
         scale = self.scale * other.scale

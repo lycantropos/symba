@@ -32,6 +32,10 @@ class Expression(ABC):
         """
 
     @abstractmethod
+    def inverse(self) -> 'Expression':
+        """Returns the expression inverted."""
+
+    @abstractmethod
     def is_positive(self) -> bool:
         """Checks if the expression is positive."""
 
@@ -159,19 +163,24 @@ class Expression(ABC):
                 if isinstance(other, (Real, Expression))
                 else NotImplemented)
 
+    def __rtruediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+        """Returns division of the other by the expression."""
+        return (other * self.inverse()
+                if isinstance(other, (Real, Expression))
+                else NotImplemented)
+
     def __sub__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns difference of the expression with the other."""
         return (self + (-other)
                 if isinstance(other, (Real, Expression))
                 else NotImplemented)
 
-    @abstractmethod
     def __truediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns division of the expression by the other."""
+        from .constant import to_constant
+        return (self * to_constant(other).inverse()
+                if isinstance(other, (Real, Expression))
+                else NotImplemented)
 
     def __trunc__(self) -> int:
         return self.__floor__() if self.is_positive() else self.__ceil__()
-
-    @abstractmethod
-    def __rtruediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
-        """Returns division of the expression by the other."""

@@ -96,6 +96,34 @@ class Form(Expression):
                                         for term in self.terms],
                                       tail=self.tail / common_numerator)
 
+    def inverse(self) -> Expression:
+        denominator, numerator = self, One
+        for base_term in denominator.terms:
+            non_divisible, divisible = [], []
+            for term in denominator.terms:
+                (non_divisible
+                 if term.argument % base_term.argument
+                 else divisible).append(term)
+            if not divisible:
+                continue
+            numerator *= Form(*non_divisible, *[-term for term in divisible],
+                              tail=denominator.tail)
+            denominator = (
+                    Form(*non_divisible,
+                         tail=denominator.tail).square()
+                    - base_term.argument
+                    * Form(*[Term.from_components(term.scale,
+                                                  term.argument
+                                                  / base_term.argument)
+                             for term in divisible]).square())
+            if isinstance(denominator, Constant):
+                break
+            elif isinstance(denominator, Term):
+                numerator *= Term.from_components(One, denominator.argument)
+                denominator = denominator.scale * denominator.argument
+                break
+        return numerator * denominator.inverse()
+
     def is_positive(self) -> bool:
         components = (*self.terms, self.tail) if self.tail else self.terms
         positive, negative = [], []
@@ -286,11 +314,6 @@ class Form(Expression):
                 if isinstance(other, (Real, Constant, Term))
                 else NotImplemented)
 
-    def __rtruediv__(self, other: Union[Real, Expression]) -> Expression:
-        return (other * self._inverse()
-                if isinstance(other, (Real, Expression))
-                else NotImplemented)
-
     def __str__(self) -> str:
         return (str(self.terms[0])
                 + (' ' + ' '.join(map(_to_signed_value, self.terms[1:]))
@@ -299,45 +322,6 @@ class Form(Expression):
                 + (' ' + _to_signed_value(self.tail)
                    if self.tail
                    else ''))
-
-    def __truediv__(self, other: Union[Real, Expression]) -> Expression:
-        return (Form(*[term / other for term in self.terms],
-                     tail=self.tail / other)
-                if isinstance(other, (Real, Constant))
-                else (sum([term / other for term in self.terms],
-                          self.tail / other)
-                      if isinstance(other, Term)
-                      else (self * other._inverse()
-                            if isinstance(other, Form)
-                            else NotImplemented)))
-
-    def _inverse(self) -> Expression:
-        denominator, numerator = self, One
-        for base_term in denominator.terms:
-            non_divisible, divisible = [], []
-            for term in denominator.terms:
-                (non_divisible
-                 if term.argument % base_term.argument
-                 else divisible).append(term)
-            if not divisible:
-                continue
-            numerator *= Form(*non_divisible, *[-term for term in divisible],
-                              tail=denominator.tail)
-            denominator = (
-                    Form(*non_divisible,
-                         tail=denominator.tail).square()
-                    - base_term.argument
-                    * Form(*[Term.from_components(term.scale,
-                                                  term.argument
-                                                  / base_term.argument)
-                             for term in divisible]).square())
-            if isinstance(denominator, Constant):
-                break
-            elif isinstance(denominator, Term):
-                numerator *= Term.from_components(One, denominator.argument)
-                denominator = denominator.scale * denominator.argument
-                break
-        return numerator / denominator
 
     def _normalizing_scale(self) -> Rational:
         common_denominator, form = self.extract_common_denominator()
