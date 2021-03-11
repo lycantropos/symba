@@ -59,6 +59,8 @@ class Form(Expression):
                 if terms
                 else tail)
 
+    __slots__ = '_tail', '_terms'
+
     def __init__(self, *terms: Term, tail: Constant = Zero) -> None:
         self._terms, self._tail = terms, tail
 
@@ -222,8 +224,6 @@ class Form(Expression):
         return sum([(scale * term).upper_bound()
                     for term in self.terms],
                    (scale * self.tail).upper_bound()) / scale
-
-    __slots__ = '_tail', '_terms'
 
     def __abs__(self) -> 'Form':
         return self if self.is_positive() else -self
