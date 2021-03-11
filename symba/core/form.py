@@ -62,7 +62,7 @@ class Form(Expression):
     __slots__ = '_tail', '_terms'
 
     def __init__(self, *terms: Term, tail: Constant = Zero) -> None:
-        self._terms, self._tail = terms, tail
+        self._tail, self._terms = tail, terms
 
     @property
     def tail(self) -> Constant:
