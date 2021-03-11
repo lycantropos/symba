@@ -183,4 +183,5 @@ class Expression(ABC):
                 else NotImplemented)
 
     def __trunc__(self) -> int:
+        """Returns the expression truncated to a nearest to zero integer."""
         return self.__floor__() if self.is_positive() else self.__ceil__()
