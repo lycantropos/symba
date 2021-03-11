@@ -62,7 +62,8 @@ class Term(Expression):
         return common_numerator, Term(scale, self.argument)
 
     def inverse(self) -> 'Term':
-        return Term(self.scale.inverse(), self.argument.inverse())
+        return Term.from_components(self.scale.inverse(),
+                                    self.argument.inverse())
 
     def is_positive(self) -> bool:
         return self.scale > 0
