@@ -212,6 +212,8 @@ class Term(Expression):
 
     def _multiply_with_term(self, other: 'Term') -> Expression:
         scale = self.scale * other.scale
+        if self.argument == other.argument:
+            return scale * self.argument
         argument, other_argument = ((self.argument, other.argument)
                                     if self.argument < other.argument
                                     else (other.argument, self.argument))
