@@ -165,7 +165,7 @@ class Form(Expression):
                             + Term.from_components(One,
                                                    max_scale * one_fourth))
         elif terms_count == 1:
-            term = self.terms[0]
+            term, = self.terms
             discriminant = self.tail.square() - term.square()
             if discriminant.is_positive():
                 # checking if the form can be represented as
