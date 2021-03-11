@@ -3,8 +3,7 @@ from typing import Union as _Union
 
 from .core import context as _context
 from .core.abcs import Expression
-from .core.constant import (Constant as _Constant,
-                            One as _One,
+from .core.constant import (One as _One,
                             to_constant as _to_constant)
 from .core.term import Term as _Term
 from .hints import SqrtEvaluator as _SqrtEvaluator
