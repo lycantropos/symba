@@ -1,16 +1,12 @@
-from operator import (add,
-                      mul,
-                      truediv)
-
 from hypothesis import strategies
 
-from symba.base import (Expression,
-                        sqrt)
+from symba.base import sqrt
 from symba.core.constant import (One,
                                  Zero)
-from tests.hints import Strategy
 from tests.strategies import (non_negative_reals,
+                              non_zero_reals,
                               reals,
+                              to_nested_expressions,
                               unary_reals,
                               zero_reals)
 
@@ -19,20 +15,6 @@ zero_expressions = strategies.just(Zero)
 unary_expressions = strategies.just(One)
 unary_reals_or_expressions = unary_reals | unary_expressions
 zero_reals_or_expressions = zero_reals | zero_expressions
-non_zero_reals = reals.filter(bool)
-
-
-def to_nested_expressions(strategy: Strategy[Expression]
-                          ) -> Strategy[Expression]:
-    return (strategies.builds(add, strategy, reals)
-            | strategies.builds(add, strategy, strategy)
-            | strategies.builds(mul, strategy, reals)
-            | strategies.builds(mul, strategy, strategy)
-            | strategies.builds(truediv, strategy, non_zero_reals)
-            | strategies.builds(truediv, reals, strategy.filter(bool))
-            | strategies.builds(truediv, strategy, strategy.filter(bool)))
-
-
 square_roots = strategies.builds(sqrt, non_negative_reals)
 expressions = square_roots | to_nested_expressions(square_roots)
 reals_or_expressions = reals | expressions
