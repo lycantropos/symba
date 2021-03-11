@@ -234,8 +234,10 @@ class Form(Expression):
         return (Constant(common_numerator) / common_denominator).perfect_sqrt()
 
     def significant_digits_count(self) -> int:
-        return max(max(term.significant_digits_count() for term in self.terms),
-                   self.tail.significant_digits_count())
+        return (max(max(term.significant_digits_count()
+                        for term in self.terms),
+                    self.tail.significant_digits_count())
+                * (len(self.terms) + bool(self.tail)))
 
     def square(self) -> Expression:
         return sum([2 * (self.terms[step] * self.terms[index])
