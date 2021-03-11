@@ -313,9 +313,7 @@ class Form(Expression):
 
     def _inverse(self) -> Expression:
         denominator, numerator = self, One
-        for base_term in sorted(denominator.terms,
-                                key=abs,
-                                reverse=True):
+        for base_term in denominator.terms:
             non_divisible, divisible = [], []
             for term in denominator.terms:
                 (non_divisible
