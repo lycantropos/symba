@@ -20,6 +20,7 @@ from .constant import (Constant,
 from .hints import SqrtEvaluator
 from .term import Term
 from .utils import (BASE,
+                    digits_count,
                     lcm,
                     sqrt_floor,
                     square)
@@ -237,7 +238,7 @@ class Form(Expression):
         return (max(max(term.significant_digits_count()
                         for term in self.terms),
                     self.tail.significant_digits_count())
-                * (len(self.terms) + bool(self.tail)))
+                + digits_count(len(self.terms) + bool(self.tail)))
 
     def square(self) -> Expression:
         return sum([2 * (self.terms[step] * self.terms[index])
