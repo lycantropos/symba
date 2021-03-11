@@ -10,6 +10,12 @@ from tests.strategies import (non_negative_reals,
                               unary_reals,
                               zero_reals)
 
+MAX_EXPONENT = 10
+MIN_EXPONENT = -MAX_EXPONENT
+exponents = strategies.integers(MIN_EXPONENT, MAX_EXPONENT)
+negative_exponents = strategies.integers(MIN_EXPONENT, -1)
+non_negative_exponents = strategies.integers(0, MAX_EXPONENT)
+positive_exponents = strategies.integers(1, MAX_EXPONENT)
 digits_counts = strategies.none() | strategies.integers(-100, 100)
 zero_expressions = strategies.just(Zero)
 unary_expressions = strategies.just(One)
@@ -20,3 +26,6 @@ expressions = square_roots | to_nested_expressions(square_roots)
 reals_or_expressions = reals | expressions
 non_zero_expressions = expressions.filter(bool)
 non_zero_reals_or_expressions = non_zero_reals | non_zero_expressions
+expressions_with_exponents = (
+        strategies.tuples(non_zero_expressions, exponents)
+        | strategies.tuples(expressions, non_negative_exponents))
