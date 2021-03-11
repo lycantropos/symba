@@ -150,7 +150,7 @@ class Form(Expression):
         elif (negative_squares_sum
               - positive_count * positive_squares_sum).is_positive():
             return False
-        return self.upper_bound() > 0 and self.lower_bound() >= 0
+        return self.lower_bound() >= 0
 
     def lower_bound(self) -> Rational:
         scale = self._normalizing_scale()
