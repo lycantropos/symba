@@ -66,7 +66,7 @@ class Term(Expression):
                                     self.argument.inverse())
 
     def is_positive(self) -> bool:
-        return self.scale > 0
+        return self.scale.is_positive()
 
     def lower_bound(self) -> Rational:
         return (rational_sqrt_lower_bound(self.square().lower_bound())
