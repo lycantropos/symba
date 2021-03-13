@@ -4,11 +4,11 @@ from functools import reduce
 from numbers import (Rational,
                      Real)
 from typing import (Any,
+                    DefaultDict,
                     Dict,
                     Optional,
                     Sequence,
                     Tuple,
-                    TypeVar,
                     Union)
 
 from reprit.base import generate_repr
@@ -22,8 +22,10 @@ from .term import Term
 from .utils import (BASE,
                     digits_count,
                     lcm,
+                    positiveness_to_sign,
                     sqrt_floor,
-                    square)
+                    square,
+                    transpose)
 
 
 class Form(Expression):
@@ -78,7 +80,7 @@ class Form(Expression):
                    self.tail.evaluate(sqrt_evaluator))
 
     def extract_common_denominator(self) -> Tuple[int, 'Form']:
-        terms_common_denominators, _ = _transpose(
+        terms_common_denominators, _ = transpose(
                 [term.extract_common_denominator() for term in self.terms])
         tail_denominator, _ = self.tail.extract_common_denominator()
         common_denominator = reduce(lcm, terms_common_denominators,
@@ -88,7 +90,7 @@ class Form(Expression):
                                         tail=self.tail * common_denominator)
 
     def extract_common_numerator(self) -> Tuple[int, 'Form']:
-        terms_common_numerators, _ = _transpose(
+        terms_common_numerators, _ = transpose(
                 [term.extract_common_numerator() for term in self.terms])
         tail_numerator, _ = self.tail.extract_common_numerator()
         common_numerator = reduce(math.gcd, terms_common_numerators,
@@ -98,32 +100,19 @@ class Form(Expression):
                                       tail=self.tail / common_numerator)
 
     def inverse(self) -> Expression:
-        denominator, numerator = self, One
-        for base_term in denominator.terms:
-            non_divisible, divisible = [], []
-            for term in denominator.terms:
-                (non_divisible
-                 if term.argument % base_term.argument
-                 else divisible).append(term)
-            if not divisible:
-                continue
-            numerator *= Form(*non_divisible, *[-term for term in divisible],
-                              tail=denominator.tail)
-            denominator = (
-                    Form(*non_divisible,
-                         tail=denominator.tail).square()
-                    - base_term.argument
-                    * Form(*[Term.from_components(term.scale,
-                                                  term.argument
-                                                  / base_term.argument)
-                             for term in divisible]).square())
-            if isinstance(denominator, Constant):
-                break
-            elif isinstance(denominator, Term):
-                numerator *= Term.from_components(One, denominator.argument)
-                denominator = denominator.scale * denominator.argument
-                break
-        return numerator * denominator.inverse()
+        common_denominator, form = self.extract_common_denominator()
+        factorization = Factorization.from_form(form)
+        numerator = One
+        while factorization.children:
+            max_term = max(factorization.children)
+            max_term_factorization = factorization.children.pop(max_term)
+            numerator *= (factorization.express()
+                          - max_term * max_term_factorization.express())
+            factorization = (
+                    factorization.square()
+                    + (-max_term.square()) * max_term_factorization.square())
+        return (common_denominator * numerator
+                * factorization.express().inverse())
 
     def is_positive(self) -> bool:
         components = (*self.terms, self.tail) if self.tail else self.terms
@@ -190,9 +179,8 @@ class Form(Expression):
                     max_scale = (max_term.scale + discriminant_sqrt) / 2
                     min_scale = (max_term.scale - discriminant_sqrt) / 2
                     one_fourth = Term(One, base_argument)
-                    return (_positiveness_to_sign(min_term.is_positive())
-                            * Term.from_components(One,
-                                                   min_scale * one_fourth)
+                    return (positiveness_to_sign(min_term.is_positive())
+                            * Term.from_components(One, min_scale * one_fourth)
                             + Term.from_components(One,
                                                    max_scale * one_fourth))
         elif terms_count == 1:
@@ -206,7 +194,7 @@ class Form(Expression):
                 # ``x, y`` are non-equal
                 discriminant_sqrt = discriminant.perfect_sqrt()
                 if discriminant_sqrt.square() == discriminant:
-                    return (_positiveness_to_sign(term.is_positive())
+                    return (positiveness_to_sign(term.is_positive())
                             * Term.from_components(
                                     One, (self.tail - discriminant_sqrt) / 2)
                             + Term.from_components(
@@ -223,7 +211,7 @@ class Form(Expression):
                 discriminant_sqrt = discriminant.perfect_sqrt()
                 if discriminant_sqrt.square() == discriminant:
                     one_fourth = Term(One, term.argument)
-                    return (_positiveness_to_sign(self.tail.is_positive())
+                    return (positiveness_to_sign(self.tail.is_positive())
                             * Term(One,
                                    (term.scale - discriminant_sqrt) / 2
                                    * one_fourth)
@@ -331,18 +319,134 @@ class Form(Expression):
         return common_denominator * BASE ** form.significant_digits_count()
 
 
-def _positiveness_to_sign(flag: bool) -> int:
-    return 2 * flag - 1
+class Factorization:
+    @classmethod
+    def from_form(cls, form: Form) -> 'Factorization':
+        factorization = cls(tail=form.tail)
+        for term in form.terms:
+            scaleless_term = Term(One, term.argument)
+            factorization.children[scaleless_term].tail += term.scale
+        return factorization
+
+    __slots__ = 'children', 'tail'
+
+    def __init__(self,
+                 children
+                 : Optional[DefaultDict[Term, 'Factorization']] = None,
+                 tail: Constant = Zero) -> None:
+        self.children, self.tail = (defaultdict(Factorization)
+                                    if children is None
+                                    else children,
+                                    tail)
+
+    def express(self) -> Expression:
+        return sum([child * child_factorization.express()
+                    for child, child_factorization in self.children.items()],
+                   self.tail)
+
+    def square(self) -> 'Factorization':
+        return self._multiply(self)
+
+    def __add__(self, other: 'Factorization') -> 'Factorization':
+        if not (self and other):
+            return self or other
+        children = self.children.copy()
+        for child, child_factorization in other.children.items():
+            children[child] += child_factorization
+        return Factorization(children, self.tail + other.tail)
+
+    def __len__(self) -> int:
+        return bool(self.tail) + sum(map(len, self.children.values()))
+
+    def __mul__(self, other: Expression) -> 'Factorization':
+        return (self._scale(other)
+                if isinstance(other, Constant)
+                else (self._multiply_by_term(other)
+                      if isinstance(other, Term)
+                      else (self._multiply_by_form(other)
+                            if isinstance(other, Form)
+                            else NotImplemented)))
+
+    __rmul__ = __mul__
+
+    def __str__(self) -> str:
+        head = ' + '.join([
+            '{} * {}'.format(child,
+                             (str
+                              if len(child_factorization) == 1
+                              else '({})'.format)
+                             (child_factorization))
+            for child, child_factorization in self.children.items()
+            if child_factorization])
+        return ((head + (' + ' + str(self.tail) if self.tail else ''))
+                if head
+                else str(self.tail))
+
+    def _multiply(self: 'Factorization',
+                  other: 'Factorization') -> 'Factorization':
+        children, tail = self.children, self.tail
+        other_children, other_tail = other.children, other.tail
+        result = self._scale(other.tail) + other._scale(self.tail)
+        result.tail /= 2
+        for left_term, left_factorization in children.items():
+            for right_term, right_factorization in other_children.items():
+                child_factorization = left_factorization._multiply(
+                        right_factorization)
+                if left_term == right_term:
+                    squared_term = left_term.square()
+                    if isinstance(squared_term, Constant):
+                        result += child_factorization._scale(squared_term)
+                    elif isinstance(squared_term, Form):
+                        result += (child_factorization
+                                   ._multiply_by_form(squared_term))
+                    else:
+                        assert isinstance(squared_term, Term)
+                        result += (child_factorization
+                                   ._multiply_by_term(squared_term))
+                else:
+                    max_term, min_term = (max(left_term, right_term),
+                                          min(left_term, right_term))
+                    result.children[max_term] += (child_factorization
+                                                  ._multiply_by_term(min_term))
+        return result
+
+    def _multiply_by_form(self, form: Form) -> 'Factorization':
+        result = self._scale(form.tail)
+        for term in form.terms:
+            result += self._multiply_by_term(term)
+        return result
+
+    def _multiply_by_term(self, term: Term) -> 'Factorization':
+        result = Factorization(
+                defaultdict(Factorization,
+                            {term: Factorization(tail=self.tail)}))
+        for child, child_factorization in self.children.items():
+            if child == term:
+                squared_term = term.square()
+                if isinstance(squared_term, Constant):
+                    result += child_factorization._scale(squared_term)
+                elif isinstance(squared_term, Form):
+                    result += (child_factorization
+                               ._multiply_by_form(squared_term))
+                else:
+                    assert isinstance(squared_term, Term)
+                    result += (child_factorization
+                               ._multiply_by_term(squared_term))
+            else:
+                max_term, min_term = max(child, term), min(child, term)
+                result.children[max_term] += (child_factorization
+                                              ._multiply_by_term(min_term))
+        return result
+
+    def _scale(self, scale: Constant) -> 'Factorization':
+        if not scale:
+            return Factorization()
+        children = self.children.copy()
+        for child, child_factorization in children.items():
+            children[child] = child_factorization._scale(
+                    scale)
+        return Factorization(children, self.tail * scale)
 
 
 def _to_signed_value(value: Union[Constant, Term]) -> str:
     return '+ ' + str(value) if value.is_positive() else '- ' + str(-value)
-
-
-_T1 = TypeVar('_T1')
-_T2 = TypeVar('_T2')
-
-
-def _transpose(pairs_sequence: Sequence[Tuple[_T1, _T2]]
-               ) -> Tuple[Sequence[_T1], Sequence[_T2]]:
-    return tuple(zip(*pairs_sequence))

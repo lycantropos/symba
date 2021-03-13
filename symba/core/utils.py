@@ -2,7 +2,13 @@ import math
 from fractions import Fraction
 from numbers import Rational
 from typing import (Any,
-                    List)
+                    List,
+                    Sequence,
+                    Tuple,
+                    TypeVar)
+
+_T1 = TypeVar('_T1')
+_T2 = TypeVar('_T2')
 
 BASE = Fraction(10)
 
@@ -21,6 +27,10 @@ except AttributeError:
     def lcm(left: int, right: int) -> int:
         left, right = abs(left), abs(right)
         return min(left, right) * (max(left, right) // math.gcd(left, right))
+
+
+def positiveness_to_sign(flag: bool) -> int:
+    return 2 * flag - 1
 
 
 def rational_sqrt_lower_bound(value: Rational) -> Rational:
@@ -63,3 +73,8 @@ def to_binary_digits(value: int) -> List[int]:
     for _ in range(value.bit_length()):
         yield value % 2
         value >>= 1
+
+
+def transpose(pairs_sequence: Sequence[Tuple[_T1, _T2]]
+              ) -> Tuple[Sequence[_T1], Sequence[_T2]]:
+    return tuple(zip(*pairs_sequence))
