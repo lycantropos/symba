@@ -328,13 +328,17 @@ class Form(Expression):
 class Factorization:
     @classmethod
     def from_form(cls, form: Form) -> 'Factorization':
-        result = cls(tail=form.tail)
-        for term in form.terms:
-            scale, *children, base_term = _atomize_term(term)
-            base_children = result.children[base_term]
-            for child in children:
-                base_children = base_children.children[child]
-            base_children.tail += term.scale
+        return sum([cls.from_term(term) for term in form.terms],
+                   cls(tail=form.tail))
+
+    @classmethod
+    def from_term(cls, term: Term) -> 'Factorization':
+        result = cls()
+        scale, *successors, scaleless_term = _atomize_term(term)
+        last_children = result.children[scaleless_term]
+        for successor in successors:
+            last_children = last_children.children[successor]
+        last_children.tail += term.scale
         return result
 
     __slots__ = 'children', 'tail'
@@ -424,47 +428,20 @@ class Factorization:
         return result
 
     def multiply_by_form(self, form: Form) -> 'Factorization':
-        result = self.scale(form.tail)
-        for term in form.terms:
-            result += self.multiply_by_term(term)
-        return result
+        return sum([self.multiply_by_term(term) for term in form.terms],
+                   self.scale(form.tail))
 
     def multiply_by_term(self, term: Term) -> 'Factorization':
-        scaleless_term = Term(One, term.argument)
-        result = Factorization(
-                defaultdict(Factorization,
-                            {scaleless_term
-                             : Factorization(tail=term.scale * self.tail)}))
-        for child, child_factorization in self.children.items():
-            if child == term:
-                squared_term = term.square()
-                if isinstance(squared_term, Constant):
-                    result += child_factorization.scale(squared_term)
-                elif isinstance(squared_term, Form):
-                    result += (child_factorization
-                               .multiply_by_form(squared_term))
-                else:
-                    assert isinstance(squared_term, Term)
-                    result += (child_factorization
-                               .multiply_by_term(squared_term))
-            else:
-                max_term = max(child, term,
-                               key=_term_key)
-                min_term = min(child, term,
-                               key=_term_key)
-                scaleless_max_term = Term(One, max_term.argument)
-                result.children[scaleless_max_term] += (
-                    (child_factorization.multiply_by_term(min_term)
-                     .scale(max_term.scale)))
-        return result
+        return self.multiply(Factorization.from_term(term))
 
     def scale(self, scale: Constant) -> 'Factorization':
-        if not scale:
-            return Factorization()
+        return self._scale(scale) if scale else Factorization()
+
+    def _scale(self, scale: Constant) -> 'Factorization':
         result = Factorization(tail=self.tail * scale)
         children = result.children
         for child, child_factorization in self.children.items():
-            children[child] = child_factorization.scale(scale)
+            children[child] = child_factorization._scale(scale)
         return result
 
 
