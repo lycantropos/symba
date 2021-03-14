@@ -68,6 +68,10 @@ class Form(Expression):
         self._tail, self._terms = tail, terms
 
     @property
+    def degree(self) -> int:
+        return max(term.degree for term in self.terms)
+
+    @property
     def tail(self) -> Constant:
         return self._tail
 

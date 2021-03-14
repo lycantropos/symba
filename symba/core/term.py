@@ -46,6 +46,10 @@ class Term(Expression):
     def __init__(self, scale: Constant, argument: Expression) -> None:
         self.scale, self.argument = scale, argument
 
+    @property
+    def degree(self) -> int:
+        return self.argument.degree + 1
+
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return (self.scale.evaluate(sqrt_evaluator)
                 * ((context.sqrt_evaluator.get()

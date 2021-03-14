@@ -13,6 +13,11 @@ from .utils import (BASE,
 
 
 class Expression(ABC):
+    @property
+    @abstractmethod
+    def degree(self) -> int:
+        """Returns degree of the expression."""
+
     @abstractmethod
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         """Evaluates the expression."""

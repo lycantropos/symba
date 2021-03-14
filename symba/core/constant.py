@@ -25,6 +25,10 @@ class Constant(Expression):
         self._value = Fraction(value)
 
     @property
+    def degree(self) -> int:
+        return 0
+
+    @property
     def value(self) -> Rational:
         return self._value
 
