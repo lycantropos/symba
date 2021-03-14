@@ -66,7 +66,7 @@ class Constant(Expression):
     def significant_digits_count(self) -> int:
         return digits_count(self._value.limit_denominator(1).numerator)
 
-    def square(self) -> Expression:
+    def square(self) -> 'Constant':
         return Constant(square(self.value))
 
     upper_bound = lower_bound
