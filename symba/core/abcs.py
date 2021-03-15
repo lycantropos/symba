@@ -169,10 +169,10 @@ class Expression(ABC):
                 if isinstance(other, (Real, Expression))
                 else NotImplemented)
 
-    def __rtruediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __rtruediv__(self, other: Real) -> 'Expression':
         """Returns division of the other by the expression."""
-        return (other * self.inverse()
-                if isinstance(other, (Real, Expression))
+        return (self.inverse() * other
+                if isinstance(other, Real)
                 else NotImplemented)
 
     def __sub__(self, other: Union[Real, 'Expression']) -> 'Expression':
