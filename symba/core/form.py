@@ -247,9 +247,6 @@ class Form(Expression):
                     (scale * form.tail).upper_bound())
                 / (common_denominator * scale))
 
-    def __abs__(self) -> 'Form':
-        return self if self.is_positive() else -self
-
     def __add__(self, other: Union[Real, Expression]) -> Expression:
         return (self._add_constant(other)
                 if isinstance(other, (Real, Constant))

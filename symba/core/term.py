@@ -94,9 +94,6 @@ class Term(Expression):
                 if self.is_positive()
                 else -(-self).lower_bound())
 
-    def __abs__(self) -> 'Term':
-        return Term(abs(self.scale), self.argument)
-
     def __add__(self, other: Union[Real, Expression]) -> Expression:
         from .form import Form
         return (self._add_constant(other)

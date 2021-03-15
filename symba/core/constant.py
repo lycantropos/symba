@@ -73,9 +73,6 @@ class Constant(Expression):
 
     upper_bound = lower_bound
 
-    def __abs__(self) -> 'Constant':
-        return Constant(abs(self.value))
-
     def __add__(self, other: Union[Real, 'Constant']) -> 'Constant':
         other = to_constant(other)
         return (Constant(self.value + other.value)

@@ -64,9 +64,9 @@ class Expression(ABC):
     def upper_bound(self) -> Rational:
         """Returns upper bound of the expression."""
 
-    @abstractmethod
     def __abs__(self) -> 'Expression':
         """Returns an absolute value of the expression."""
+        return self if self.is_positive() else -self
 
     @abstractmethod
     def __add__(self, other: Union[Real, 'Expression']) -> 'Expression':
