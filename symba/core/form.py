@@ -328,17 +328,15 @@ class Form(Expression):
 class Factorization:
     @classmethod
     def from_form(cls, form: Form) -> 'Factorization':
-        return sum([cls.from_term(term) for term in form.terms],
-                   cls(tail=form.tail))
+        children, tail = defaultdict(Factorization), form.tail
+        for term in form.terms:
+            _populate_children(term, children)
+        return cls(children, tail)
 
     @classmethod
     def from_term(cls, term: Term) -> 'Factorization':
         result = cls()
-        scale, *successors, scaleless_term = _atomize_term(term)
-        last_children = result.children[scaleless_term]
-        for successor in successors:
-            last_children = last_children.children[successor]
-        last_children.tail += term.scale
+        _populate_children(term, result.children)
         return result
 
     __slots__ = 'children', 'tail'
@@ -446,6 +444,15 @@ class Factorization:
         for child, child_factorization in self.children.items():
             children[child] = child_factorization._scale(scale)
         return result
+
+
+def _populate_children(term: Term,
+                       children: DefaultDict[Term, Factorization]) -> None:
+    scale, *successors, scaleless_term = _atomize_term(term)
+    last_children = children[scaleless_term]
+    for successor in successors:
+        last_children = last_children.children[successor]
+    last_children.tail += term.scale
 
 
 def _atomize_term(term: Term) -> Iterable[Expression]:
