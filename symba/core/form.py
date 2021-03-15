@@ -330,10 +330,11 @@ class Form(Expression):
 class Factorization:
     @classmethod
     def from_form(cls, form: Form) -> 'Factorization':
-        children, tail = defaultdict(Factorization), form.tail
+        result = cls(tail=form.tail)
+        children = result.children
         for term in form.terms:
             _populate_children(children, term)
-        return cls(children, tail)
+        return result
 
     @classmethod
     def from_term(cls, term: Term) -> 'Factorization':
