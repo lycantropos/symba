@@ -16,7 +16,7 @@ def test_basic(expression: Expression,
     assert isinstance(result, Expression)
 
 
-@given(strategies.expressions)
+@given(strategies.non_zero_expressions)
 def test_self_inverse(expression: Expression) -> None:
     result = expression / expression
 
