@@ -135,7 +135,7 @@ class Expression(ABC):
         from .constant import One
         result, step = One, self
         if exponent < 0:
-            exponent, step = -exponent, One / step
+            exponent, step = -exponent, step.inverse()
         for digit in to_binary_digits(exponent):
             if digit:
                 result *= step
