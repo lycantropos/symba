@@ -141,9 +141,11 @@ class Form(Expression):
         return self.lower_bound() >= 0
 
     def lower_bound(self) -> Rational:
-        scale = self._normalizing_scale()
-        return sum([(scale * term).lower_bound() for term in self.terms],
-                   (scale * self.tail).lower_bound()) / scale
+        common_denominator, form = self.extract_common_denominator()
+        scale = BASE ** form.significant_digits_count()
+        return (sum([(scale * term).lower_bound() for term in form.terms],
+                    (scale * form.tail).lower_bound())
+                / (common_denominator * scale))
 
     def perfect_sqrt(self) -> Expression:
         terms_count = len(self.terms)
@@ -221,9 +223,9 @@ class Form(Expression):
         return (Constant(common_numerator) / common_denominator).perfect_sqrt()
 
     def significant_digits_count(self) -> int:
-        return (3 * max(max(term.significant_digits_count()
-                            for term in self.terms),
-                        self.tail.significant_digits_count())
+        return (max(max(term.significant_digits_count()
+                        for term in self.terms),
+                    self.tail.significant_digits_count())
                 + digits_count(len(self.terms) + bool(self.tail)))
 
     def square(self) -> Expression:
@@ -239,10 +241,11 @@ class Form(Expression):
         return Form.from_components(terms, tail)
 
     def upper_bound(self) -> Rational:
-        scale = self._normalizing_scale()
-        return sum([(scale * term).upper_bound()
-                    for term in self.terms],
-                   (scale * self.tail).upper_bound()) / scale
+        common_denominator, form = self.extract_common_denominator()
+        scale = BASE ** form.significant_digits_count()
+        return (sum([(scale * term).upper_bound() for term in form.terms],
+                    (scale * form.tail).upper_bound())
+                / (common_denominator * scale))
 
     def __abs__(self) -> 'Form':
         return self if self.is_positive() else -self
@@ -350,10 +353,6 @@ class Form(Expression):
         return Form(terms, _sift_components([term * other
                                              for term in self.terms],
                                             terms))
-
-    def _normalizing_scale(self) -> Rational:
-        common_denominator, form = self.extract_common_denominator()
-        return common_denominator * BASE ** form.significant_digits_count()
 
 
 class Factorization:
