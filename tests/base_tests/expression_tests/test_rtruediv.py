@@ -1,5 +1,4 @@
 from numbers import Real
-from typing import Union
 
 from hypothesis import given
 
@@ -7,41 +6,45 @@ from symba.base import Expression
 from . import strategies
 
 
-@given(strategies.non_zero_reals_or_expressions, strategies.expressions)
-def test_basic(real_or_expression: Union[Real, Expression],
-               expression: Expression) -> None:
-    result = real_or_expression / expression
+@given(strategies.non_zero_reals, strategies.expressions)
+def test_basic(real: Real, expression: Expression) -> None:
+    result = real / expression
 
     assert isinstance(result, Expression)
 
 
 @given(strategies.reals_or_expressions, strategies.unary_expressions)
-def test_right_neutral_element(real_or_expression: Union[Real, Expression],
-                               expression: Expression) -> None:
-    result = real_or_expression / expression
+def test_right_neutral_element(real: Real, expression: Expression) -> None:
+    result = real / expression
 
-    assert result == real_or_expression
+    assert result == real
 
 
 @given(strategies.reals_or_expressions, strategies.reals_or_expressions,
        strategies.non_zero_expressions)
-def test_add_dividend(first_real_or_expression: Union[Real, Expression],
-                      second_real_or_expression: Union[Real, Expression],
+def test_add_dividend(first_real: Real,
+                      second_real: Real,
                       expression: Expression) -> None:
-    result = ((first_real_or_expression + second_real_or_expression)
-              / expression)
+    result = (first_real + second_real) / expression
 
-    assert result == ((first_real_or_expression / expression)
-                      + (second_real_or_expression / expression))
+    assert result == (first_real / expression) + (second_real / expression)
 
 
 @given(strategies.reals_or_expressions, strategies.expressions,
        strategies.non_zero_expressions)
-def test_sub_dividend(first_real_or_expression: Union[Real, Expression],
-                      second_real_or_expression: Union[Real, Expression],
+def test_sub_dividend(first_real: Real,
+                      second_real: Real,
                       expression: Expression) -> None:
-    result = ((first_real_or_expression - second_real_or_expression)
-              / expression)
+    result = (first_real - second_real) / expression
 
-    assert result == ((first_real_or_expression / expression)
-                      - (second_real_or_expression / expression))
+    assert result == (first_real / expression) - (second_real / expression)
+
+
+@given(strategies.expressions, strategies.non_zero_reals_or_expressions,
+       strategies.non_zero_reals_or_expressions)
+def test_mul_divisor(real: Real,
+                     first_expression: Expression,
+                     second_expression: Expression) -> None:
+    result = real / (first_expression * second_expression)
+
+    assert result == (real / first_expression) / second_expression
