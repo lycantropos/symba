@@ -30,6 +30,8 @@ from .utils import (BASE,
 
 
 class Form(Expression):
+    """Represents sum of square roots."""
+
     @classmethod
     def from_components(cls,
                         *terms: Term,
