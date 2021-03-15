@@ -256,8 +256,8 @@ class Form(Expression):
         return self if self.is_positive() else -self
 
     def __add__(self, other: Union[Real, Expression]) -> Expression:
-        return (Form.from_components(*self.terms,
-                                     tail=self.tail + other)
+        return (Form(*self.terms,
+                     tail=self.tail + other)
                 if isinstance(other, (Real, Constant))
                 else (Form.from_components(*self.terms, other,
                                            tail=self.tail)
@@ -295,8 +295,8 @@ class Form(Expression):
                     tail=-self.tail)
 
     def __radd__(self, other: Union[Real, Expression]) -> Expression:
-        return (Form.from_components(*self.terms,
-                                     tail=other + self.tail)
+        return (Form(*self.terms,
+                     tail=other + self.tail)
                 if isinstance(other, (Real, Constant))
                 else (Form.from_components(other, *self.terms,
                                            tail=self.tail)
