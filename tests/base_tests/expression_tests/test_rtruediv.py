@@ -40,8 +40,8 @@ def test_sub_dividend(first_real: Real,
     assert result == (first_real / expression) - (second_real / expression)
 
 
-@given(strategies.reals, strategies.non_zero_reals_or_expressions,
-       strategies.non_zero_reals_or_expressions)
+@given(strategies.reals, strategies.non_zero_expressions,
+       strategies.non_zero_expressions)
 def test_mul_divisor(real: Real,
                      first_expression: Expression,
                      second_expression: Expression) -> None:
