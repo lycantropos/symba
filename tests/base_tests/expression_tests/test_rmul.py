@@ -16,7 +16,7 @@ def test_basic(real_or_expression: Union[Real, Expression],
 
 
 @given(strategies.reals_or_expressions, strategies.expressions)
-def test_connection_with_add(real_or_expression: Union[Real, Expression],
+def test_connection_with_mul(real_or_expression: Union[Real, Expression],
                              expression: Expression) -> None:
     result = real_or_expression * expression
 
