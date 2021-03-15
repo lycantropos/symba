@@ -13,8 +13,6 @@ base module
 ===========
 
 .. automodule:: symba.base
-    :members:
-    :special-members:
-.. autoclass:: Expression
+    :imported-members:
     :members:
     :special-members:
