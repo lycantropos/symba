@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 
 
 class Term(Expression):
+    """Represents square root of the expression."""
+
     @classmethod
     def from_components(cls,
                         scale: Constant,
