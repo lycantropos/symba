@@ -19,6 +19,8 @@ from .utils import (digits_count,
 
 
 class Constant(Expression):
+    """Represents rational number."""
+
     __slots__ = '_value',
 
     def __init__(self, value: Real = 0) -> None:
