@@ -22,7 +22,9 @@ unary_expressions = strategies.just(One)
 unary_reals_or_expressions = unary_reals | unary_expressions
 zero_reals_or_expressions = zero_reals | zero_expressions
 square_roots = strategies.builds(sqrt, non_negative_reals)
-expressions = square_roots | to_nested_expressions(square_roots)
+expressions = strategies.recursive(square_roots,
+                                   to_nested_expressions,
+                                   max_leaves=5)
 reals_or_expressions = reals | expressions
 non_zero_expressions = expressions.filter(bool)
 non_zero_reals_or_expressions = non_zero_reals | non_zero_expressions
