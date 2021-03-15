@@ -201,6 +201,7 @@ class Term(Expression):
                 + 'sqrt({})'.format(self.argument))
 
     def _add_constant(self, other: Union[Real, Constant]) -> Expression:
+        from .form import Form
         return (Form([self], to_constant(other))
                 if other
                 else self)
