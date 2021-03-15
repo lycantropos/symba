@@ -332,13 +332,13 @@ class Factorization:
     def from_form(cls, form: Form) -> 'Factorization':
         children, tail = defaultdict(Factorization), form.tail
         for term in form.terms:
-            _populate_children(term, children)
+            _populate_children(children, term)
         return cls(children, tail)
 
     @classmethod
     def from_term(cls, term: Term) -> 'Factorization':
         result = cls()
-        _populate_children(term, result.children)
+        _populate_children(result.children, term)
         return result
 
     __slots__ = 'children', 'tail'
@@ -448,15 +448,6 @@ class Factorization:
         return result
 
 
-def _populate_children(term: Term,
-                       children: DefaultDict[Term, Factorization]) -> None:
-    scale, *successors, scaleless_term = _atomize_term(term)
-    last_children = children[scaleless_term]
-    for successor in successors:
-        last_children = last_children.children[successor]
-    last_children.tail += term.scale
-
-
 def _atomize_term(term: Term) -> Iterable[Expression]:
     queue = [(0, term)]
     while queue:
@@ -472,6 +463,15 @@ def _atomize_term(term: Term) -> Iterable[Expression]:
             yield _to_graded_term(argument, degree + 1)
         else:
             yield _to_graded_term(argument, degree + 1)
+
+
+def _populate_children(children: DefaultDict[Term, Factorization],
+                       term: Term) -> None:
+    scale, *successors, scaleless_term = _atomize_term(term)
+    last_children = children[scaleless_term]
+    for successor in successors:
+        last_children = last_children.children[successor]
+    last_children.tail += term.scale
 
 
 def _term_key(term: Term) -> Tuple[int, Expression]:
