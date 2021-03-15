@@ -368,6 +368,9 @@ class Factorization:
             children[child] += child_factorization
         return Factorization(children, self.tail + other.tail)
 
+    def __bool__(self) -> bool:
+        return bool(self.tail or any(self.children.values()))
+
     def __len__(self) -> int:
         return bool(self.tail) + sum(map(len, self.children.values()))
 
