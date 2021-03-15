@@ -6,7 +6,7 @@ from symba.base import Expression
 from . import strategies
 
 
-@given(strategies.non_zero_reals, strategies.expressions)
+@given(strategies.reals, strategies.non_zero_expressions)
 def test_basic(real: Real, expression: Expression) -> None:
     result = real / expression
 
@@ -30,7 +30,7 @@ def test_add_dividend(first_real: Real,
     assert result == (first_real / expression) + (second_real / expression)
 
 
-@given(strategies.reals_or_expressions, strategies.expressions,
+@given(strategies.reals_or_expressions, strategies.reals_or_expressions,
        strategies.non_zero_expressions)
 def test_sub_dividend(first_real: Real,
                       second_real: Real,
@@ -40,7 +40,7 @@ def test_sub_dividend(first_real: Real,
     assert result == (first_real / expression) - (second_real / expression)
 
 
-@given(strategies.expressions, strategies.non_zero_reals_or_expressions,
+@given(strategies.reals, strategies.non_zero_reals_or_expressions,
        strategies.non_zero_reals_or_expressions)
 def test_mul_divisor(real: Real,
                      first_expression: Expression,
