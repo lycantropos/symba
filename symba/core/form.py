@@ -7,8 +7,8 @@ from typing import (Any,
                     DefaultDict,
                     Dict,
                     Iterable,
+                    List,
                     Optional,
-                    Sequence,
                     Tuple,
                     Union)
 
@@ -34,53 +34,47 @@ class Form(Expression):
 
     @classmethod
     def from_components(cls,
-                        *terms: Term,
-                        tail: Constant = Zero
-                        ) -> Union[Constant, Term, 'Form']:
+                        terms: List[Term],
+                        tail: Constant = Zero) -> Expression:
         arguments_scales = (defaultdict
                             (Constant))  # type: Dict[Expression, Constant]
         queue = sorted(terms,
+                       key=_term_key,
                        reverse=True)
         while queue:
-            term = queue.pop()
-            arguments_scales[term.argument] += term.scale
-            next_queue = []
-            for other in queue:
-                ratio = other.argument / term.argument
-                if isinstance(ratio, Constant):
-                    ratio_sqrt = ratio.perfect_sqrt()
-                    if ratio_sqrt.square() == ratio:
-                        arguments_scales[term.argument] += (other.scale
-                                                            * ratio_sqrt)
-                        continue
-                next_queue.append(other)
+            min_term = queue.pop()
+            min_term_argument = min_term.argument
+            arguments_scales[min_term_argument] += min_term.scale
+            next_queue, min_term_argument_type = [], type(min_term_argument)
+            for term in queue:
+                if isinstance(term.argument, min_term_argument_type):
+                    ratio = term.argument / min_term_argument
+                    if isinstance(ratio, Constant):
+                        ratio_sqrt = ratio.perfect_sqrt()
+                        if ratio_sqrt.square() == ratio:
+                            arguments_scales[min_term_argument] += (
+                                    term.scale * ratio_sqrt)
+                            continue
+                next_queue.append(term)
             queue = next_queue
-        terms = tuple(Term(scale, argument)
-                      for argument, scale in arguments_scales.items()
-                      if scale)
-        return ((cls(*terms,
+        terms = [Term(scale, argument)
+                 for argument, scale in arguments_scales.items()
+                 if scale]
+        return ((cls(terms,
                      tail=tail)
                  if tail or len(terms) > 1
                  else terms[0])
                 if terms
                 else tail)
 
-    __slots__ = '_tail', '_terms'
+    __slots__ = 'tail', 'terms'
 
-    def __init__(self, *terms: Term, tail: Constant = Zero) -> None:
-        self._tail, self._terms = tail, terms
+    def __init__(self, terms: List[Term], tail: Constant = Zero) -> None:
+        self.tail, self.terms = tail, terms
 
     @property
     def degree(self) -> int:
         return max(term.degree for term in self.terms)
-
-    @property
-    def tail(self) -> Constant:
-        return self._tail
-
-    @property
-    def terms(self) -> Sequence[Term]:
-        return self._terms
 
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         return sum([term.evaluate(sqrt_evaluator) for term in self.terms],
@@ -92,9 +86,7 @@ class Form(Expression):
         tail_denominator, _ = self.tail.extract_common_denominator()
         common_denominator = reduce(lcm, terms_common_denominators,
                                     tail_denominator)
-        return common_denominator, Form(*[term * common_denominator
-                                          for term in self.terms],
-                                        tail=self.tail * common_denominator)
+        return common_denominator, self * common_denominator
 
     def extract_common_numerator(self) -> Tuple[int, 'Form']:
         terms_common_numerators, _ = transpose(
@@ -102,9 +94,7 @@ class Form(Expression):
         tail_numerator, _ = self.tail.extract_common_numerator()
         common_numerator = reduce(math.gcd, terms_common_numerators,
                                   tail_numerator)
-        return common_numerator, Form(*[term / common_numerator
-                                        for term in self.terms],
-                                      tail=self.tail / common_numerator)
+        return common_numerator, self / common_numerator
 
     def inverse(self) -> Expression:
         common_denominator, form = self.extract_common_denominator()
@@ -237,14 +227,16 @@ class Form(Expression):
                 + digits_count(len(self.terms) + bool(self.tail)))
 
     def square(self) -> Expression:
-        return sum([2 * (self.terms[step] * self.terms[index])
-                    for step in range(1, len(self.terms))
-                    for index in range(step)]
-                   + ([(2 * self.tail) * term for term in self.terms]
-                      if self.tail
-                      else [])
-                   + [term.square() for term in self.terms],
-                   self.tail.square())
+        terms = ([(2 * self.tail) * term for term in self.terms]
+                 if self.tail
+                 else [])
+        tail = (self.tail.square()
+                + _sift_components([2 * (self.terms[step] * self.terms[index])
+                                    for step in range(1, len(self.terms))
+                                    for index in range(step)]
+                                   + [term.square() for term in self.terms],
+                                   terms))
+        return Form.from_components(terms, tail)
 
     def upper_bound(self) -> Rational:
         scale = self._normalizing_scale()
@@ -256,14 +248,12 @@ class Form(Expression):
         return self if self.is_positive() else -self
 
     def __add__(self, other: Union[Real, Expression]) -> Expression:
-        return (Form(*self.terms,
-                     tail=self.tail + other)
+        return (self._add_constant(other)
                 if isinstance(other, (Real, Constant))
-                else (Form.from_components(*self.terms, other,
-                                           tail=self.tail)
+                else (self._add_term(other)
                       if isinstance(other, Term)
-                      else (Form.from_components(*self.terms, *other.terms,
-                                                 tail=self.tail + other.tail)
+                      else (Form.from_components(self.terms + other.terms,
+                                                 self.tail + other.tail)
                             if isinstance(other, Form)
                             else NotImplemented)))
 
@@ -281,37 +271,33 @@ class Form(Expression):
         return hash((frozenset(self.terms), self.tail))
 
     def __mul__(self, other: Union[Real, Expression]) -> Expression:
-        return (((self.square()
-                  if self == other
-                  else sum([term * other for term in self.terms],
-                           self.tail * other))
-                 if other
-                 else Zero)
-                if isinstance(other, (Real, Constant, Term, Form))
-                else NotImplemented)
+        return (self._multiply_by_constant(other)
+                if isinstance(other, (Real, Constant))
+                else (self._multiply_by_term(other)
+                      if isinstance(other, Term)
+                      else (self._multiply_by_form(other)
+                            if isinstance(other, Form)
+                            else NotImplemented)))
 
     def __neg__(self) -> 'Form':
-        return Form(*[-term for term in self.terms],
+        return Form([-term for term in self.terms],
                     tail=-self.tail)
 
     def __radd__(self, other: Union[Real, Expression]) -> Expression:
-        return (Form(*self.terms,
-                     tail=other + self.tail)
+        return (self._add_constant(other)
                 if isinstance(other, (Real, Constant))
-                else (Form.from_components(other, *self.terms,
-                                           tail=self.tail)
+                else (self._add_term(other)
                       if isinstance(other, Term)
                       else NotImplemented))
 
     __repr__ = generate_repr(__init__)
 
     def __rmul__(self, other: Union[Real, Expression]) -> Expression:
-        return ((sum([term * other for term in self.terms],
-                     self.tail * other)
-                 if other
-                 else Zero)
-                if isinstance(other, (Real, Constant, Term))
-                else NotImplemented)
+        return (self._multiply_by_constant(other)
+                if isinstance(other, (Real, Constant))
+                else (self._multiply_by_term(other)
+                      if isinstance(other, Term)
+                      else NotImplemented))
 
     def __str__(self) -> str:
         return (str(self.terms[0])
@@ -321,6 +307,48 @@ class Form(Expression):
                 + (' ' + _to_signed_value(self.tail)
                    if self.tail
                    else ''))
+
+    def _add_constant(self, other: Constant) -> 'Form':
+        return Form(self.terms,
+                    tail=self.tail + other)
+
+    def _add_term(self, other: Term) -> Expression:
+        return Form.from_components(self.terms + [other], self.tail)
+
+    def _multiply_by_constant(self,
+                              other: Union[Real, Constant]) -> Expression:
+        return ((self
+                 if other == One
+                 else Form([term * other for term in self.terms],
+                           tail=self.tail * other))
+                if other
+                else Zero)
+
+    def _multiply_by_form(self, other: 'Form') -> Expression:
+        if self == other:
+            return self.square()
+        tail, other_tail = self.tail, other.tail
+        terms = (([term * other_tail for term in self.terms]
+                  if other_tail
+                  else [])
+                 + ([other_term * tail for other_term in other.terms]
+                    if tail
+                    else []))
+        tail = (tail * other_tail
+                + _sift_components([term * other_term
+                                    for term in self.terms
+                                    for other_term in other.terms],
+                                   terms))
+        return Form.from_components(terms, tail)
+
+    def _multiply_by_term(self, other: Term) -> Expression:
+        terms = ([other * self.tail]
+                 if self.tail
+                 else [])
+        return Form(terms,
+                    tail=_sift_components([term * other
+                                           for term in self.terms],
+                                          terms))
 
     def _normalizing_scale(self) -> Rational:
         common_denominator, form = self.extract_common_denominator()
@@ -447,6 +475,20 @@ class Factorization:
         for child, child_factorization in self.children.items():
             children[child] = child_factorization._scale(scale)
         return result
+
+
+def _sift_components(components: Iterable[Expression],
+                     terms: List[Term]) -> Constant:
+    tail = Zero
+    for component in components:
+        if isinstance(component, Term):
+            terms.append(component)
+        elif isinstance(component, Form):
+            tail += component.tail
+            terms.extend(component.terms)
+        else:
+            tail += component
+    return tail
 
 
 def _atomize_term(term: Term) -> Iterable[Expression]:

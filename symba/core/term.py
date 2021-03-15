@@ -98,13 +98,11 @@ class Term(Expression):
 
     def __add__(self, other: Union[Real, Expression]) -> Expression:
         from .form import Form
-        return (Form.from_components(self,
-                                     tail=Constant(other))
+        return (Form([self], Constant(other))
                 if isinstance(other, Real)
-                else (Form.from_components(self,
-                                           tail=other)
+                else (Form([self], other)
                       if isinstance(other, Constant)
-                      else (Form.from_components(self, other)
+                      else (Form.from_components([self, other])
                             if isinstance(other, Term)
                             else NotImplemented)))
 
@@ -183,11 +181,9 @@ class Term(Expression):
 
     def __radd__(self, other: Union[Real, Expression]) -> Expression:
         from .form import Form
-        return (Form.from_components(self,
-                                     tail=Constant(other))
+        return (Form([self], Constant(other))
                 if isinstance(other, Real)
-                else (Form.from_components(self,
-                                           tail=other)
+                else (Form([self], other)
                       if isinstance(other, Constant)
                       else NotImplemented))
 
