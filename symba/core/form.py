@@ -110,7 +110,7 @@ class Form(Expression):
             factorization = (
                     factorization.square()
                     + (-max_term.square()) * max_term_factorization.square())
-        return numerator.express() * factorization.express().inverse()
+        return numerator.express() * factorization.tail.inverse()
 
     def is_positive(self) -> bool:
         components = (*self.terms, self.tail) if self.tail else self.terms
