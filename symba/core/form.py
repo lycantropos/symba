@@ -309,8 +309,10 @@ class Form(Expression):
                    else ''))
 
     def _add_constant(self, other: Constant) -> 'Form':
-        return Form(self.terms,
-                    tail=self.tail + other)
+        tail = self.tail + other
+        return (Form(self.terms, tail)
+                if tail or len(self.terms) > 1
+                else self.terms[0])
 
     def _add_term(self, other: Term) -> Expression:
         return Form.from_components(self.terms + [other], self.tail)
