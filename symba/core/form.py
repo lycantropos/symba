@@ -345,10 +345,9 @@ class Form(Expression):
         terms = ([other * self.tail]
                  if self.tail
                  else [])
-        return Form(terms,
-                    tail=_sift_components([term * other
-                                           for term in self.terms],
-                                          terms))
+        return Form(terms, _sift_components([term * other
+                                             for term in self.terms],
+                                            terms))
 
     def _normalizing_scale(self) -> Rational:
         common_denominator, form = self.extract_common_denominator()
