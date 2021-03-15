@@ -17,7 +17,8 @@ from . import context
 from .abcs import Expression
 from .constant import (Constant,
                        One,
-                       Zero)
+                       Zero,
+                       to_constant)
 from .hints import SqrtEvaluator
 
 if TYPE_CHECKING:
@@ -98,13 +99,11 @@ class Term(Expression):
 
     def __add__(self, other: Union[Real, Expression]) -> Expression:
         from .form import Form
-        return (Form([self], Constant(other))
-                if isinstance(other, Real)
-                else (Form([self], other)
-                      if isinstance(other, Constant)
-                      else (Form.from_components([self, other])
-                            if isinstance(other, Term)
-                            else NotImplemented)))
+        return (self._add_constant(other)
+                if isinstance(other, (Real, Constant))
+                else (Form.from_components([self, other])
+                      if isinstance(other, Term)
+                      else NotImplemented))
 
     def __eq__(self, other: Any) -> Any:
         return (self.is_positive() is other.is_positive()
@@ -180,12 +179,9 @@ class Term(Expression):
         return Term(-self.scale, self.argument)
 
     def __radd__(self, other: Union[Real, Expression]) -> Expression:
-        from .form import Form
-        return (Form([self], Constant(other))
-                if isinstance(other, Real)
-                else (Form([self], other)
-                      if isinstance(other, Constant)
-                      else NotImplemented))
+        return (self._add_constant(other)
+                if isinstance(other, (Real, Constant))
+                else NotImplemented)
 
     __repr__ = generate_repr(__init__)
 
@@ -203,6 +199,11 @@ class Term(Expression):
                        if self.scale == -One
                        else '{} * '.format(self.scale)))
                 + 'sqrt({})'.format(self.argument))
+
+    def _add_constant(self, other: Union[Real, Constant]) -> Expression:
+        return (Form([self], to_constant(other))
+                if other
+                else self)
 
     def _multiply_with_term(self, other: 'Term') -> Expression:
         scale = self.scale * other.scale
