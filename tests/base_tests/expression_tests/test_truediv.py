@@ -29,7 +29,7 @@ def test_commutative_case(first_expression: Expression,
     result = first_expression / second_expression
 
     assert equivalence(result == second_expression / first_expression,
-                       first_expression == second_expression)
+                       abs(first_expression) == abs(second_expression))
 
 
 @given(strategies.expressions, strategies.unary_reals_or_expressions)
@@ -41,11 +41,36 @@ def test_right_neutral_element(expression: Expression,
     assert result == expression
 
 
+@given(strategies.expressions, strategies.expressions,
+       strategies.non_zero_reals_or_expressions)
+def test_add_dividend(first_expression: Expression,
+                      second_expression: Expression,
+                      real_or_expression: Expression) -> None:
+    result = (first_expression + second_expression) / real_or_expression
+
+    assert result == ((first_expression / real_or_expression)
+                      + (second_expression / real_or_expression))
+
+
+@given(strategies.expressions, strategies.expressions,
+       strategies.non_zero_reals_or_expressions)
+def test_sub_dividend(first_expression: Expression,
+                      second_expression: Expression,
+                      real_or_expression: Expression) -> None:
+    result = (first_expression - second_expression) / real_or_expression
+
+    assert result == ((first_expression / real_or_expression)
+                      - (second_expression / real_or_expression))
+
+
 @given(strategies.expressions, strategies.non_zero_reals_or_expressions,
        strategies.non_zero_reals_or_expressions)
-def test_mul_divisor(first_expression: Expression,
-                     second_expression: Expression,
-                     third_expression: Expression) -> None:
-    result = first_expression / (second_expression * third_expression)
+def test_mul_divisor(expression: Expression,
+                     first_real_or_expression: Union[Real, Expression],
+                     second_real_or_expression: Union[Real, Expression]
+                     ) -> None:
+    result = expression / (first_real_or_expression
+                           * second_real_or_expression)
 
-    assert result == first_expression / second_expression / third_expression
+    assert result == ((expression / first_real_or_expression)
+                      / second_real_or_expression)
