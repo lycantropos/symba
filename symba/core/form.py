@@ -442,7 +442,6 @@ class Factorization:
                         result += (child_factorization
                                    .multiply_by_form(squared_term))
                     else:
-                        assert isinstance(squared_term, Term)
                         result += (child_factorization
                                    .multiply_by_term(squared_term))
                 else:
