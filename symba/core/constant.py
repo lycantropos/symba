@@ -127,7 +127,8 @@ class Constant(Expression):
 
 Zero, One = Constant(0), Constant(1)
 
-_T = TypeVar('_T')
+_T = TypeVar('_T',
+             bound=Expression)
 
 
 @overload
@@ -140,5 +141,5 @@ def to_constant(other: Real) -> Constant:
     ...
 
 
-def to_constant(other: Union[Real, Expression]) -> Expression:
+def to_constant(other):
     return Constant(other) if isinstance(other, Real) else other
