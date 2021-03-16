@@ -13,6 +13,8 @@ from .utils import (BASE,
 
 
 class Expression(ABC):
+    __slots__ = ()
+
     @property
     @abstractmethod
     def degree(self) -> int:
