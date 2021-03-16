@@ -114,7 +114,7 @@ class Expression(ABC):
 
     def __mod__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns remainder of the division of the expression by the other."""
-        return self - other * math.floor(self / other)
+        return self - other * (self // other)
 
     @abstractmethod
     def __mul__(self, other: Union[Real, 'Expression']) -> 'Expression':
@@ -152,7 +152,7 @@ class Expression(ABC):
 
     def __rmod__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns remainder of the division of the other by the expression."""
-        return other - self * math.floor(other / self)
+        return other - self * (other // self)
 
     @abstractmethod
     def __rmul__(self, other: Union[Real, 'Expression']) -> 'Expression':
