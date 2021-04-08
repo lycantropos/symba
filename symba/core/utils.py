@@ -21,6 +21,10 @@ def digits_count(value: int) -> int:
     return len('%i' % abs(value))
 
 
+def identity(value: _T1) -> _T1:
+    return value
+
+
 try:
     lcm = math.lcm
 except AttributeError:

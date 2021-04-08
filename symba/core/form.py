@@ -15,8 +15,11 @@ from reprit.base import generate_repr
 
 from .abcs import Expression
 from .constant import (Constant,
+                       Finite,
+                       NaN,
                        One,
-                       Zero)
+                       Zero,
+                       to_expression)
 from .hints import SqrtEvaluator
 from .term import Term
 from .utils import (BASE,
@@ -30,13 +33,14 @@ from .utils import (BASE,
 
 class Form(Expression):
     """Represents sum of square roots."""
+    is_finite = True
 
     @classmethod
     def from_components(cls,
                         terms: List[Term],
-                        tail: Constant = Zero) -> Expression:
+                        tail: Finite = Zero) -> Expression:
         arguments_scales = (defaultdict
-                            (Constant))  # type: Dict[Expression, Constant]
+                            (Finite))  # type: Dict[Expression, Finite]
         queue = sorted(terms,
                        key=_term_key,
                        reverse=True)
@@ -48,7 +52,7 @@ class Form(Expression):
             for term in queue:
                 if isinstance(term.argument, min_term_argument_type):
                     ratio = term.argument / min_term_argument
-                    if isinstance(ratio, Constant):
+                    if isinstance(ratio, Finite):
                         ratio_sqrt = ratio.perfect_sqrt()
                         if ratio_sqrt.square() == ratio:
                             arguments_scales[min_term_argument] += (
@@ -68,7 +72,7 @@ class Form(Expression):
 
     __slots__ = 'tail', 'terms'
 
-    def __init__(self, terms: List[Term], tail: Constant = Zero) -> None:
+    def __init__(self, terms: List[Term], tail: Finite = Zero) -> None:
         self.tail, self.terms = tail, terms
 
     @property
@@ -152,8 +156,7 @@ class Form(Expression):
         has_perfect_square_structure = (
                 square(sqrt_floor(components_discriminant))
                 == components_discriminant)
-        if not (all(isinstance(term.argument, Constant)
-                    for term in self.terms)
+        if not (all(isinstance(term.argument, Finite) for term in self.terms)
                 and (not has_perfect_square_structure or terms_count < 3)):
             raise ValueError('Unsupported value: {!r}.'.format(self))
         elif not has_perfect_square_structure:
@@ -219,7 +222,7 @@ class Form(Expression):
                                    * one_fourth))
         common_numerator, form = self.extract_common_numerator()
         common_denominator, _ = form.extract_common_denominator()
-        return (Constant(common_numerator) / common_denominator).perfect_sqrt()
+        return (Finite(common_numerator) / common_denominator).perfect_sqrt()
 
     def significant_digits_count(self) -> int:
         return (max(max(term.significant_digits_count()
@@ -307,23 +310,30 @@ class Form(Expression):
                    if self.tail
                    else ''))
 
-    def _add_constant(self, other: Constant) -> 'Form':
+    def _add_constant(self, other: Union[Real, Constant]) -> 'Form':
         tail = self.tail + other
-        return (Form(self.terms, tail)
-                if tail or len(self.terms) > 1
-                else self.terms[0])
+        return ((Form(self.terms, tail)
+                 if tail or len(self.terms) > 1
+                 else self.terms[0])
+                if tail.is_finite
+                else tail)
 
     def _add_term(self, other: Term) -> Expression:
         return Form.from_components(self.terms + [other], self.tail)
 
     def _multiply_by_constant(self,
                               other: Union[Real, Constant]) -> Expression:
-        return ((self
-                 if other == One
-                 else Form([term * other for term in self.terms],
-                           tail=self.tail * other))
-                if other
-                else Zero)
+        other = to_expression(other)
+        return (((self
+                  if other == One
+                  else Form([term * other for term in self.terms],
+                            self.tail * other))
+                 if other
+                 else other)
+                if other.is_finite
+                else (other
+                      if other is NaN or self.is_positive()
+                      else -other))
 
     def _multiply_by_form(self, other: 'Form') -> Expression:
         if self == other:
@@ -371,7 +381,7 @@ class Factorization:
     def __init__(self,
                  children
                  : Optional[DefaultDict[Term, 'Factorization']] = None,
-                 tail: Constant = Zero) -> None:
+                 tail: Finite = Zero) -> None:
         self.children, self.tail = (defaultdict(Factorization)
                                     if children is None
                                     else children,
@@ -401,7 +411,7 @@ class Factorization:
 
     def __mul__(self, other: Expression) -> 'Factorization':
         return (self.scale(other)
-                if isinstance(other, Constant)
+                if isinstance(other, Finite)
                 else (self.multiply_by_term(other)
                       if isinstance(other, Term)
                       else (self.multiply_by_form(other)
@@ -435,7 +445,7 @@ class Factorization:
                                        .multiply(right_factorization))
                 if left_term == right_term:
                     squared_term = left_term.square()
-                    if isinstance(squared_term, Constant):
+                    if isinstance(squared_term, Finite):
                         result += child_factorization.scale(squared_term)
                     elif isinstance(squared_term, Form):
                         result += (child_factorization
@@ -461,10 +471,10 @@ class Factorization:
     def multiply_by_term(self, term: Term) -> 'Factorization':
         return self.multiply(Factorization.from_term(term))
 
-    def scale(self, scale: Constant) -> 'Factorization':
+    def scale(self, scale: Finite) -> 'Factorization':
         return self._scale(scale) if scale else Factorization()
 
-    def _scale(self, scale: Constant) -> 'Factorization':
+    def _scale(self, scale: Finite) -> 'Factorization':
         result = Factorization(tail=self.tail * scale)
         children = result.children
         for child, child_factorization in self.children.items():
@@ -473,7 +483,7 @@ class Factorization:
 
 
 def _sift_components(components: Iterable[Expression],
-                     terms: List[Term]) -> Constant:
+                     terms: List[Term]) -> Finite:
     tail = Zero
     for component in components:
         if isinstance(component, Term):
@@ -497,7 +507,7 @@ def _atomize_term(term: Term) -> Iterable[Expression]:
         elif isinstance(argument, Form):
             common_numerator, argument = argument.extract_common_numerator()
             if common_numerator != 1:
-                yield _to_graded_term(Constant(common_numerator), degree + 1)
+                yield _to_graded_term(Finite(common_numerator), degree + 1)
             yield _to_graded_term(argument, degree + 1)
         else:
             yield _to_graded_term(argument, degree + 1)
@@ -523,5 +533,5 @@ def _to_graded_term(argument: Expression, degree: int) -> Expression:
     return result
 
 
-def _to_signed_value(value: Union[Constant, Term]) -> str:
+def _to_signed_value(value: Union[Finite, Term]) -> str:
     return '+ ' + str(value) if value.is_positive() else '- ' + str(-value)

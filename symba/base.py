@@ -4,7 +4,7 @@ from typing import Union as _Union
 from .core import context as _context
 from .core.abcs import Expression
 from .core.constant import (One as _One,
-                            to_constant as _to_constant)
+                            to_expression as _to_expression)
 from .core.term import Term as _Term
 from .hints import SqrtEvaluator as _SqrtEvaluator
 
@@ -26,7 +26,10 @@ def sqrt(argument: _Union[_Real, Expression]) -> Expression:
     """
     if argument < 0:
         raise ValueError('Argument should be non-negative.')
-    return _Term.from_components(_One, _to_constant(argument))
+    expression = _to_expression(argument)
+    return (_Term.from_components(_One, expression)
+            if expression.is_finite
+            else expression)
 
 
 Expression = Expression

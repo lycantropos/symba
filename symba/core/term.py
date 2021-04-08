@@ -15,9 +15,11 @@ from symba.core.utils import (ceil_half,
 from . import context
 from .abcs import Expression
 from .constant import (Constant,
+                       Finite,
+                       NaN,
                        One,
                        Zero,
-                       to_constant)
+                       to_expression)
 from .hints import SqrtEvaluator
 
 if TYPE_CHECKING:
@@ -26,10 +28,11 @@ if TYPE_CHECKING:
 
 class Term(Expression):
     """Represents square root of the expression."""
+    is_finite = True
 
     @classmethod
     def from_components(cls,
-                        scale: Constant,
+                        scale: Finite,
                         argument: Expression) -> Expression:
         if not (scale and argument):
             return Zero
@@ -45,7 +48,7 @@ class Term(Expression):
 
     __slots__ = 'argument', 'scale'
 
-    def __init__(self, scale: Constant, argument: Expression) -> None:
+    def __init__(self, scale: Finite, argument: Expression) -> None:
         self.scale, self.argument = scale, argument
 
     @property
@@ -165,11 +168,9 @@ class Term(Expression):
                       else NotImplemented))
 
     def __mul__(self, other: Union[Real, Expression]) -> Expression:
-        return ((Term(self.scale * other, self.argument)
-                 if other
-                 else Zero)
+        return (self._multiply_by_constant(other)
                 if isinstance(other, (Real, Constant))
-                else (self._multiply_with_term(other)
+                else (self._multiply_by_term(other)
                       if isinstance(other, Term)
                       else NotImplemented))
 
@@ -184,9 +185,7 @@ class Term(Expression):
     __repr__ = generate_repr(__init__)
 
     def __rmul__(self, other: Union[Real, Expression]) -> Expression:
-        return ((Term(self.scale * other, self.argument)
-                 if other
-                 else Zero)
+        return (self._multiply_by_constant(other)
                 if isinstance(other, (Real, Constant))
                 else NotImplemented)
 
@@ -200,11 +199,19 @@ class Term(Expression):
 
     def _add_constant(self, other: Union[Real, Constant]) -> Expression:
         from .form import Form
-        return (Form([self], to_constant(other))
-                if other
-                else self)
+        other = to_expression(other)
+        return ((Form([self], other) if other else self)
+                if other.is_finite
+                else other)
 
-    def _multiply_with_term(self, other: 'Term') -> Expression:
+    def _multiply_by_constant(self,
+                              other: Union[Real, Constant]) -> Expression:
+        other = to_expression(other)
+        return ((Term(self.scale * other, self.argument) if other else other)
+                if other.is_finite
+                else (other if other is NaN or self.is_positive() else -other))
+
+    def _multiply_by_term(self, other: 'Term') -> Expression:
         scale = self.scale * other.scale
         if self.argument == other.argument:
             return scale * self.argument
@@ -214,8 +221,8 @@ class Term(Expression):
         if not other_argument % argument:
             return argument * Term.from_components(scale,
                                                    other_argument / argument)
-        elif (isinstance(argument, Constant)
-              and isinstance(other_argument, Constant)):
+        elif (isinstance(argument, Finite)
+              and isinstance(other_argument, Finite)):
             arguments_gcd = math.gcd(argument.value.numerator,
                                      other_argument.value.numerator)
             argument /= arguments_gcd

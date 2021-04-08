@@ -19,6 +19,11 @@ class Expression(ABC):
     def degree(self) -> int:
         """Returns degree of the expression."""
 
+    @property
+    @abstractmethod
+    def is_finite(self) -> bool:
+        """Checks if the expression is finite."""
+
     @abstractmethod
     def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
         """Evaluates the expression."""
@@ -87,14 +92,22 @@ class Expression(ABC):
 
     def __ge__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is greater than or equal to the other."""
-        return (not (other - self).is_positive()
-                if isinstance(other, (Real, Expression))
+        from .constant import to_expression
+        other = to_expression(other)
+        return ((not (other - self).is_positive()
+                 if other.is_finite
+                 else other <= self)
+                if isinstance(other, Expression)
                 else NotImplemented)
 
     def __gt__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is greater than the other."""
-        return ((self - other).is_positive()
-                if isinstance(other, (Real, Expression))
+        from .constant import to_expression
+        other = to_expression(other)
+        return (((self - other).is_positive()
+                 if other.is_finite
+                 else other < self)
+                if isinstance(other, Expression)
                 else NotImplemented)
 
     @abstractmethod
@@ -103,14 +116,22 @@ class Expression(ABC):
 
     def __le__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is lower than or equal to the other."""
-        return (not (self - other).is_positive()
-                if isinstance(other, (Real, Expression))
+        from .constant import to_expression
+        other = to_expression(other)
+        return ((not (self - other).is_positive()
+                 if other.is_finite
+                 else other >= self)
+                if isinstance(other, Expression)
                 else NotImplemented)
 
     def __lt__(self, other: Union[Real, 'Expression']) -> bool:
         """Checks if the expression is lower than the other."""
-        return ((other - self).is_positive()
-                if isinstance(other, (Real, Expression))
+        from .constant import to_expression
+        other = to_expression(other)
+        return (((other - self).is_positive()
+                 if other.is_finite
+                 else other > self)
+                if isinstance(other, Expression)
                 else NotImplemented)
 
     def __mod__(self, other: Union[Real, 'Expression']) -> 'Expression':
@@ -184,9 +205,10 @@ class Expression(ABC):
 
     def __truediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
         """Returns division of the expression by the other."""
-        from .constant import to_constant
-        return (self * to_constant(other).inverse()
-                if isinstance(other, (Real, Expression))
+        from .constant import to_expression
+        other = to_expression(other)
+        return (self * other.inverse()
+                if isinstance(other, Expression)
                 else NotImplemented)
 
     def __trunc__(self) -> int:
