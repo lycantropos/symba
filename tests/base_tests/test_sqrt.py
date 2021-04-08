@@ -1,4 +1,5 @@
 from numbers import Real
+from typing import Union
 
 import pytest
 from hypothesis import given
@@ -9,21 +10,21 @@ from . import strategies
 
 
 @given(strategies.non_negative_reals_or_expressions)
-def test_basic(value: Real) -> None:
+def test_basic(value: Union[Real, Expression]) -> None:
     result = sqrt(value)
 
     assert isinstance(result, Expression)
 
 
 @given(strategies.non_negative_reals_or_expressions)
-def test_sign(value: Real) -> None:
+def test_sign(value: Union[Real, Expression]) -> None:
     result = sqrt(value)
 
     assert result >= 0
 
 
 @given(strategies.non_negative_reals_or_expressions)
-def test_value(value: Real) -> None:
+def test_value(value: Union[Real, Expression]) -> None:
     result = sqrt(value)
 
     assert (result == value == 0
@@ -33,6 +34,6 @@ def test_value(value: Real) -> None:
 
 
 @given(strategies.negative_reals_or_expressions)
-def test_negative_argument(value: Real) -> None:
+def test_negative_argument(value: Union[Real, Expression]) -> None:
     with pytest.raises(ValueError):
         sqrt(value)
