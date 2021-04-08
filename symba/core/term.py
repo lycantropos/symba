@@ -68,8 +68,12 @@ class Term(Expression):
         return common_numerator, Term(scale, self.argument)
 
     def inverse(self) -> 'Term':
-        return Term.from_components(self.scale.inverse(),
-                                    self.argument.inverse())
+        scale = self.scale.inverse()
+        denominator, argument = (self.argument.inverse()
+                                 .extract_common_denominator())
+        scale /= denominator
+        argument *= denominator
+        return Term(scale, argument)
 
     def is_positive(self) -> bool:
         return self.scale.is_positive()
