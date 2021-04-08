@@ -1,8 +1,7 @@
 import math
 from abc import (ABC,
                  abstractmethod)
-from numbers import (Rational,
-                     Real)
+from numbers import Real
 from typing import (Optional,
                     Tuple,
                     Union)
