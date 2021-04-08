@@ -1,8 +1,7 @@
 import math
 from collections import defaultdict
 from functools import reduce
-from numbers import (Rational,
-                     Real)
+from numbers import Real
 from typing import (Any,
                     DefaultDict,
                     Dict,
@@ -140,7 +139,7 @@ class Form(Expression):
             return False
         return self.lower_bound() >= 0
 
-    def lower_bound(self) -> Rational:
+    def lower_bound(self) -> Real:
         common_denominator, form = self.extract_common_denominator()
         scale = BASE ** form.significant_digits_count()
         return (sum([(scale * term).lower_bound() for term in form.terms],
@@ -240,7 +239,7 @@ class Form(Expression):
                                    terms))
         return Form.from_components(terms, tail)
 
-    def upper_bound(self) -> Rational:
+    def upper_bound(self) -> Real:
         common_denominator, form = self.extract_common_denominator()
         scale = BASE ** form.significant_digits_count()
         return (sum([(scale * term).upper_bound() for term in form.terms],

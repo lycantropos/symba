@@ -1,6 +1,5 @@
 import math
-from numbers import (Rational,
-                     Real)
+from numbers import Real
 from typing import (TYPE_CHECKING,
                     Any,
                     Optional,
@@ -75,7 +74,7 @@ class Term(Expression):
     def is_positive(self) -> bool:
         return self.scale.is_positive()
 
-    def lower_bound(self) -> Rational:
+    def lower_bound(self) -> Real:
         return (rational_sqrt_lower_bound(self.square().lower_bound())
                 if self.is_positive()
                 else -(-self).upper_bound())
@@ -89,7 +88,7 @@ class Term(Expression):
     def square(self) -> Expression:
         return self.scale.square() * self.argument
 
-    def upper_bound(self) -> Rational:
+    def upper_bound(self) -> Real:
         return (rational_sqrt_upper_bound(self.square().upper_bound())
                 if self.is_positive()
                 else -(-self).lower_bound())

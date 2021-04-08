@@ -47,7 +47,7 @@ class Expression(ABC):
         """Checks if the expression is positive."""
 
     @abstractmethod
-    def lower_bound(self) -> Rational:
+    def lower_bound(self) -> Real:
         """Returns lower bound of the expression."""
 
     @abstractmethod
@@ -63,7 +63,7 @@ class Expression(ABC):
         """Returns the expression squared."""
 
     @abstractmethod
-    def upper_bound(self) -> Rational:
+    def upper_bound(self) -> Real:
         """Returns upper bound of the expression."""
 
     def __abs__(self) -> 'Expression':

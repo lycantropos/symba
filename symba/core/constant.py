@@ -49,7 +49,7 @@ class Constant(Expression):
     def is_positive(self) -> bool:
         return self.value > 0
 
-    def lower_bound(self) -> Rational:
+    def lower_bound(self) -> Real:
         return self.value
 
     def perfect_sqrt(self) -> Expression:
