@@ -18,6 +18,13 @@ def test_asymmetry(first_expression: Expression,
                        not second_expression > first_expression)
 
 
+@given(strategies.indefinite_expressions, strategies.expressions)
+def test_indefinite(first_expression: Expression,
+                    second_expression: Expression) -> None:
+    assert not (first_expression > second_expression
+                or second_expression > first_expression)
+
+
 @given(strategies.definite_expressions, strategies.definite_expressions,
        strategies.definite_expressions)
 def test_transitivity(first_expression: Expression,
