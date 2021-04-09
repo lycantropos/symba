@@ -2,7 +2,7 @@ import math
 from fractions import Fraction
 from numbers import Rational
 from typing import (Any,
-                    List,
+                    Iterable,
                     Sequence,
                     Tuple,
                     TypeVar)
@@ -72,7 +72,7 @@ def square(value: Any) -> Any:
     return value * value
 
 
-def to_binary_digits(value: int) -> List[int]:
+def to_binary_digits(value: int) -> Iterable[int]:
     for _ in range(value.bit_length()):
         yield value % 2
         value >>= 1
