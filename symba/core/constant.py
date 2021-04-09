@@ -14,6 +14,7 @@ from .abcs import Expression
 from .hints import SqrtEvaluator
 from .utils import (digits_count,
                     identity,
+                    positiveness_to_sign,
                     sqrt_floor,
                     square)
 
@@ -63,7 +64,7 @@ class Infinite(Constant):
 
     @property
     def value(self) -> Real:
-        return (2 * self.is_positive() - 1) * math.inf
+        return positiveness_to_sign(self.is_positive()) * math.inf
 
     __slots__ = '_is_positive',
 
