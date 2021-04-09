@@ -308,7 +308,7 @@ NaN = _NaN()
 
 def to_expression(other: Union[Real, Expression]) -> Expression:
     return ((Finite(other)
-             if math.isfinite(other)
+             if isinstance(other, Rational) or math.isfinite(other)
              else (Infinite(other > 0)
                    if math.isinf(other)
                    else NaN))
