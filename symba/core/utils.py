@@ -63,9 +63,8 @@ except AttributeError:
                 if next_candidate >= candidate:
                     return candidate
                 candidate = next_candidate
-        elif value:
-            raise ValueError('Argument must be non-negative.')
         else:
+            assert not value, 'Argument should be non-negative.'
             return 0
 
 
