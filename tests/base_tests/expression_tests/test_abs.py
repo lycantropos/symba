@@ -28,9 +28,12 @@ def test_idempotence(expression: Expression) -> None:
     assert abs(result) == result
 
 
-@given(strategies.definite_expressions, strategies.definite_expressions)
-def test_mul_operand(expression: Expression,
-                     real_or_expression: Expression) -> None:
+@given(strategies
+       .definitely_multipliable_expressions_with_reals_or_expressions)
+def test_mul_operand(expression_with_real_or_expression
+                     : Tuple[Expression, Union[Real, Expression]]) -> None:
+    expression, real_or_expression = expression_with_real_or_expression
+
     result = abs(expression * real_or_expression)
 
     assert result == abs(expression) * abs(real_or_expression)
