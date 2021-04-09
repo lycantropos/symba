@@ -1,3 +1,4 @@
+import math
 from numbers import Real
 from typing import Union
 
@@ -30,7 +31,8 @@ def test_value(value: Union[Real, Expression]) -> None:
     assert (result == value == 0
             or value < 1 and result > value
             or result == value == 1
-            or result < value)
+            or result < value
+            or result == value == math.inf)
 
 
 @given(strategies.definite_negative_reals_or_expressions)
