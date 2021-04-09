@@ -176,9 +176,6 @@ class Finite(Constant):
     def is_positive(self) -> bool:
         return self.value > 0
 
-    def lower_bound(self) -> Real:
-        return self.value
-
     def perfect_sqrt(self) -> Expression:
         result = Fraction(1)
         argument_value = self.value
@@ -197,8 +194,6 @@ class Finite(Constant):
 
     def square(self) -> 'Finite':
         return Finite(square(self.value))
-
-    upper_bound = lower_bound
 
     def __add__(self, other: Union[Real, 'Finite']) -> 'Finite':
         other = to_expression(other)
