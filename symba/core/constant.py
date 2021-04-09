@@ -55,6 +55,91 @@ class Constant(Expression):
         return str(self.value)
 
 
+class Finite(Constant):
+    """Represents rational number."""
+    is_finite = True
+
+    __slots__ = '_value',
+
+    def __init__(self, value: Real = 0) -> None:
+        self._value = Fraction(value)
+
+    @property
+    def value(self) -> Rational:
+        return self._value
+
+    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
+        return self.value
+
+    def extract_common_denominator(self) -> Tuple[int, 'Finite']:
+        return self.value.denominator, Finite(self.value.numerator)
+
+    def extract_common_numerator(self) -> Tuple[int, 'Finite']:
+        return self.value.numerator, One / self.value.denominator
+
+    def inverse(self) -> 'Finite':
+        return Finite(Fraction(self.value.denominator, self.value.numerator))
+
+    def is_positive(self) -> bool:
+        return self.value > 0
+
+    def perfect_sqrt(self) -> Expression:
+        result = Fraction(1)
+        argument_value = self.value
+        argument_numerator = argument_value.numerator
+        argument_numerator_sqrt_floor = sqrt_floor(argument_numerator)
+        if square(argument_numerator_sqrt_floor) == argument_numerator:
+            result *= argument_numerator_sqrt_floor
+        argument_denominator = argument_value.denominator
+        argument_denominator_sqrt_floor = sqrt_floor(argument_denominator)
+        if square(argument_denominator_sqrt_floor) == argument_denominator:
+            result /= argument_denominator_sqrt_floor
+        return Finite(result)
+
+    def significant_digits_count(self) -> int:
+        return digits_count(self._value.limit_denominator(1).numerator)
+
+    def square(self) -> 'Finite':
+        return Finite(square(self.value))
+
+    def __add__(self, other: Union[Real, 'Finite']) -> 'Finite':
+        other = to_expression(other)
+        return ((Finite(self.value + other.value)
+                 if isinstance(other, Finite)
+                 else other.__radd__(self))
+                if isinstance(other, Expression)
+                else NotImplemented)
+
+    def __bool__(self) -> bool:
+        return bool(self.value)
+
+    def __mul__(self, other: Union[Real, 'Finite']) -> 'Finite':
+        other = to_expression(other)
+        return ((Finite(self.value * other.value)
+                 if isinstance(other, Finite)
+                 else other.__rmul__(self))
+                if isinstance(other, Expression)
+                else NotImplemented)
+
+    def __neg__(self) -> 'Finite':
+        return Finite(-self.value)
+
+    def __radd__(self, other: Union[Real, 'Finite']) -> 'Finite':
+        return (to_expression(other) + self
+                if isinstance(other, Real)
+                else NotImplemented)
+
+    __repr__ = generate_repr(__init__)
+
+    def __rmul__(self, other: Union[Real, 'Finite']) -> 'Finite':
+        return (to_expression(other) * self
+                if isinstance(other, Real)
+                else NotImplemented)
+
+
+Zero, One = Finite(0), Finite(1)
+
+
 class Infinite(Constant):
     is_finite = False
 
@@ -147,91 +232,6 @@ class Infinite(Constant):
 
 
 Infinity = Infinite(True)
-
-
-class Finite(Constant):
-    """Represents rational number."""
-    is_finite = True
-
-    __slots__ = '_value',
-
-    def __init__(self, value: Real = 0) -> None:
-        self._value = Fraction(value)
-
-    @property
-    def value(self) -> Rational:
-        return self._value
-
-    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
-        return self.value
-
-    def extract_common_denominator(self) -> Tuple[int, 'Finite']:
-        return self.value.denominator, Finite(self.value.numerator)
-
-    def extract_common_numerator(self) -> Tuple[int, 'Finite']:
-        return self.value.numerator, One / self.value.denominator
-
-    def inverse(self) -> 'Finite':
-        return Finite(Fraction(self.value.denominator, self.value.numerator))
-
-    def is_positive(self) -> bool:
-        return self.value > 0
-
-    def perfect_sqrt(self) -> Expression:
-        result = Fraction(1)
-        argument_value = self.value
-        argument_numerator = argument_value.numerator
-        argument_numerator_sqrt_floor = sqrt_floor(argument_numerator)
-        if square(argument_numerator_sqrt_floor) == argument_numerator:
-            result *= argument_numerator_sqrt_floor
-        argument_denominator = argument_value.denominator
-        argument_denominator_sqrt_floor = sqrt_floor(argument_denominator)
-        if square(argument_denominator_sqrt_floor) == argument_denominator:
-            result /= argument_denominator_sqrt_floor
-        return Finite(result)
-
-    def significant_digits_count(self) -> int:
-        return digits_count(self._value.limit_denominator(1).numerator)
-
-    def square(self) -> 'Finite':
-        return Finite(square(self.value))
-
-    def __add__(self, other: Union[Real, 'Finite']) -> 'Finite':
-        other = to_expression(other)
-        return ((Finite(self.value + other.value)
-                 if isinstance(other, Finite)
-                 else other.__radd__(self))
-                if isinstance(other, Expression)
-                else NotImplemented)
-
-    def __bool__(self) -> bool:
-        return bool(self.value)
-
-    def __mul__(self, other: Union[Real, 'Finite']) -> 'Finite':
-        other = to_expression(other)
-        return ((Finite(self.value * other.value)
-                 if isinstance(other, Finite)
-                 else other.__rmul__(self))
-                if isinstance(other, Expression)
-                else NotImplemented)
-
-    def __neg__(self) -> 'Finite':
-        return Finite(-self.value)
-
-    def __radd__(self, other: Union[Real, 'Finite']) -> 'Finite':
-        return (to_expression(other) + self
-                if isinstance(other, Real)
-                else NotImplemented)
-
-    __repr__ = generate_repr(__init__)
-
-    def __rmul__(self, other: Union[Real, 'Finite']) -> 'Finite':
-        return (to_expression(other) * self
-                if isinstance(other, Real)
-                else NotImplemented)
-
-
-Zero, One = Finite(0), Finite(1)
 
 
 class _NaN(Constant):
