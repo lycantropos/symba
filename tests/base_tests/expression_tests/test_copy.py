@@ -6,7 +6,7 @@ from symba.base import Expression
 from . import strategies
 
 
-@given(strategies.expressions)
+@given(strategies.definite_expressions)
 def test_shallow(expression: Expression) -> None:
     result = copy.copy(expression)
 
@@ -14,7 +14,7 @@ def test_shallow(expression: Expression) -> None:
     assert result == expression
 
 
-@given(strategies.expressions)
+@given(strategies.definite_expressions)
 def test_deep(expression: Expression) -> None:
     result = copy.deepcopy(expression)
 

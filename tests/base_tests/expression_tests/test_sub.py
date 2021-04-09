@@ -1,5 +1,5 @@
 from numbers import Real
-from typing import Union
+from typing import Tuple, Union
 
 from hypothesis import given
 
@@ -16,23 +16,25 @@ def test_basic(expression: Expression,
     assert isinstance(result, Expression)
 
 
-@given(strategies.expressions)
+@given(strategies.finite_expressions)
 def test_self_inverse(expression: Expression) -> None:
     result = expression - expression
 
     assert result == 0
 
 
-@given(strategies.expressions, strategies.expressions)
-def test_commutative_case(first_expression: Expression,
-                          second_expression: Expression) -> None:
+@given(strategies.definitely_subtractable_expressions_pairs)
+def test_commutative_case(expressions_pair: Tuple[Expression, Expression]
+                          ) -> None:
+    first_expression, second_expression = expressions_pair
+
     result = first_expression - second_expression
 
     assert equivalence(result == second_expression - first_expression,
                        first_expression == second_expression)
 
 
-@given(strategies.expressions, strategies.zero_reals_or_expressions)
+@given(strategies.definite_expressions, strategies.zero_reals_or_expressions)
 def test_right_neutral_element(expression: Expression,
                                real_or_expression: Union[Real, Expression]
                                ) -> None:
@@ -41,8 +43,8 @@ def test_right_neutral_element(expression: Expression,
     assert result == expression
 
 
-@given(strategies.expressions, strategies.reals_or_expressions,
-       strategies.reals_or_expressions)
+@given(strategies.finite_expressions, strategies.finite_reals_or_expressions,
+       strategies.finite_reals_or_expressions)
 def test_add_subtrahend(first_expression: Expression,
                         second_expression: Expression,
                         third_expression: Expression) -> None:

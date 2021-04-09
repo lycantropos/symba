@@ -6,7 +6,7 @@ from symba.base import Expression
 from . import strategies
 
 
-@given(strategies.reals, strategies.non_zero_expressions)
+@given(strategies.finite_reals, strategies.finite_non_zero_expressions)
 def test_basic(real: Real, expression: Expression) -> None:
     result = real % expression
 

@@ -11,7 +11,7 @@ def test_basic(expression: Expression) -> None:
     assert isinstance(result, Expression)
 
 
-@given(strategies.expressions)
+@given(strategies.definite_expressions)
 def test_identity(expression: Expression) -> None:
     result = +expression
 

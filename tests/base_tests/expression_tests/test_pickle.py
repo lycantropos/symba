@@ -5,6 +5,6 @@ from tests.utils import pickle_round_trip
 from . import strategies
 
 
-@given(strategies.expressions)
+@given(strategies.definite_expressions)
 def test_round_trip(expression: Expression) -> None:
     assert pickle_round_trip(expression) == expression

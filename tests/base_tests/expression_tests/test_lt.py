@@ -6,19 +6,20 @@ from tests.utils import (equivalence,
 from . import strategies
 
 
-@given(strategies.expressions)
+@given(strategies.definite_expressions)
 def test_irreflexivity(expression: Expression) -> None:
     assert not expression < expression
 
 
-@given(strategies.expressions, strategies.expressions)
+@given(strategies.definite_expressions, strategies.definite_expressions)
 def test_asymmetry(first_expression: Expression,
                    second_expression: Expression) -> None:
     assert implication(first_expression < second_expression,
                        not second_expression < first_expression)
 
 
-@given(strategies.expressions, strategies.expressions, strategies.expressions)
+@given(strategies.definite_expressions, strategies.definite_expressions,
+       strategies.definite_expressions)
 def test_transitivity(first_expression: Expression,
                       second_expression: Expression,
                       third_expression: Expression) -> None:
@@ -26,7 +27,7 @@ def test_transitivity(first_expression: Expression,
                        first_expression < third_expression)
 
 
-@given(strategies.expressions, strategies.expressions)
+@given(strategies.definite_expressions, strategies.definite_expressions)
 def test_equivalents(first_expression: Expression,
                      second_expression: Expression) -> None:
     result = first_expression < second_expression

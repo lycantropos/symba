@@ -8,7 +8,8 @@ from symba.base import Expression
 from . import strategies
 
 
-@given(strategies.expressions, strategies.non_zero_reals_or_expressions)
+@given(strategies.finite_expressions,
+       strategies.finite_non_zero_reals_or_expressions)
 def test_basic(expression: Expression,
                expression_or_real: Union[Real, Expression]) -> None:
     result = expression // expression_or_real
@@ -16,7 +17,8 @@ def test_basic(expression: Expression,
     assert isinstance(result, int)
 
 
-@given(strategies.expressions, strategies.non_zero_reals_or_expressions)
+@given(strategies.finite_expressions,
+       strategies.finite_non_zero_reals_or_expressions)
 def test_value(expression: Expression,
                expression_or_real: Union[Real, Expression]) -> None:
     result = expression // expression_or_real
@@ -26,14 +28,15 @@ def test_value(expression: Expression,
             or result < expression / expression_or_real)
 
 
-@given(strategies.expressions)
+@given(strategies.finite_expressions)
 def test_division_by_one(expression: Expression) -> None:
     result = expression // 1
 
     assert result == math.floor(expression)
 
 
-@given(strategies.expressions, strategies.non_zero_reals_or_expressions)
+@given(strategies.finite_expressions,
+       strategies.finite_non_zero_reals_or_expressions)
 def test_connection_with_mod(expression: Expression,
                              expression_or_real: Union[Real, Expression]
                              ) -> None:

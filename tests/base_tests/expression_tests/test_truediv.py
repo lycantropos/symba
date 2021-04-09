@@ -16,14 +16,15 @@ def test_basic(expression: Expression,
     assert isinstance(result, Expression)
 
 
-@given(strategies.non_zero_expressions)
+@given(strategies.finite_non_zero_expressions)
 def test_self_inverse(expression: Expression) -> None:
     result = expression / expression
 
     assert result == 1
 
 
-@given(strategies.non_zero_expressions, strategies.non_zero_expressions)
+@given(strategies.finite_non_zero_expressions,
+       strategies.finite_non_zero_expressions)
 def test_commutative_case(first_expression: Expression,
                           second_expression: Expression) -> None:
     result = first_expression / second_expression
@@ -32,7 +33,7 @@ def test_commutative_case(first_expression: Expression,
                        abs(first_expression) == abs(second_expression))
 
 
-@given(strategies.expressions, strategies.unary_reals_or_expressions)
+@given(strategies.definite_expressions, strategies.unary_reals_or_expressions)
 def test_right_neutral_element(expression: Expression,
                                real_or_expression: Union[Real, Expression]
                                ) -> None:
@@ -41,8 +42,8 @@ def test_right_neutral_element(expression: Expression,
     assert result == expression
 
 
-@given(strategies.expressions, strategies.expressions,
-       strategies.non_zero_reals_or_expressions)
+@given(strategies.finite_expressions, strategies.finite_expressions,
+       strategies.definite_non_zero_reals_or_expressions)
 def test_add_dividend(first_expression: Expression,
                       second_expression: Expression,
                       real_or_expression: Expression) -> None:
@@ -52,8 +53,8 @@ def test_add_dividend(first_expression: Expression,
                       + (second_expression / real_or_expression))
 
 
-@given(strategies.expressions, strategies.expressions,
-       strategies.non_zero_reals_or_expressions)
+@given(strategies.finite_expressions, strategies.finite_expressions,
+       strategies.definite_non_zero_reals_or_expressions)
 def test_sub_dividend(first_expression: Expression,
                       second_expression: Expression,
                       real_or_expression: Expression) -> None:
@@ -63,8 +64,9 @@ def test_sub_dividend(first_expression: Expression,
                       - (second_expression / real_or_expression))
 
 
-@given(strategies.expressions, strategies.non_zero_reals_or_expressions,
-       strategies.non_zero_reals_or_expressions)
+@given(strategies.finite_expressions,
+       strategies.definite_non_zero_reals_or_expressions,
+       strategies.definite_non_zero_reals_or_expressions)
 def test_mul_divisor(expression: Expression,
                      first_real_or_expression: Union[Real, Expression],
                      second_real_or_expression: Union[Real, Expression]
