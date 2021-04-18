@@ -422,11 +422,16 @@ class Factorization:
 
     def __str__(self) -> str:
         head = ' + '.join([
-            '{} * {}'.format(child,
-                             (str
-                              if len(child_factorization) == 1
-                              else '({})'.format)
-                             (child_factorization))
+            '{} * {}'.format(
+                    child,
+                    (str
+                     if len(child_factorization) == 1
+                        and (child_factorization.tail >= 0
+                             and all(grandchild_factorization.tail >= 0
+                                     for grandchild_factorization
+                                     in child_factorization.children.values()))
+                     else '({})'.format)
+                    (child_factorization))
             for child, child_factorization in self.children.items()
             if child_factorization])
         return ((head + (' + ' + str(self.tail) if self.tail else ''))
