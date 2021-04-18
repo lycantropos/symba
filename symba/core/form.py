@@ -125,23 +125,14 @@ class Form(Expression):
                 negative.append(component)
         if not (positive and negative):
             return not negative
-        positive_count, negative_count = len(positive), len(negative)
         positive_squares_sum, negative_squares_sum = (
             sum(component.square() for component in positive),
             sum(component.square() for component in negative))
-        if not (positive_count * positive_squares_sum
-                - negative_squares_sum).is_positive():
-            return False
-        elif (positive_squares_sum
-              - negative_count * negative_squares_sum).is_positive():
-            return True
-        elif not (negative_count * negative_squares_sum
-                  - positive_squares_sum).is_positive():
-            return True
-        elif (negative_squares_sum
-              - positive_count * positive_squares_sum).is_positive():
-            return False
-        return self.lower_bound() >= 0
+        return ((len(positive) * positive_squares_sum
+                 - negative_squares_sum).is_positive()
+                and ((positive_squares_sum
+                      - len(negative) * negative_squares_sum).is_positive()
+                     or self.lower_bound() >= 0))
 
     def lower_bound(self) -> Real:
         common_denominator, form = self.extract_common_denominator()
