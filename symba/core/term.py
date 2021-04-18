@@ -10,8 +10,7 @@ from reprit.base import generate_repr
 
 from symba.core.utils import (ceil_half,
                               rational_sqrt_lower_bound,
-                              rational_sqrt_upper_bound,
-                              square)
+                              rational_sqrt_upper_bound)
 from . import context
 from .abcs import Expression
 from .constant import (Constant,
