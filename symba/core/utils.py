@@ -68,6 +68,11 @@ except AttributeError:
             return 0
 
 
+def sqrt_if_perfect_square(value: int) -> int:
+    candidate = sqrt_floor(value)
+    return candidate if square(candidate) == value else 1
+
+
 def square(value: Any) -> Any:
     return value * value
 
