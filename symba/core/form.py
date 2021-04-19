@@ -1,6 +1,7 @@
 import math
 from collections import defaultdict
 from functools import reduce
+from itertools import chain
 from numbers import Real
 from typing import (Any,
                     DefaultDict,
@@ -147,8 +148,8 @@ class Form(Expression):
         has_perfect_square_structure = (
                 square(sqrt_floor(components_discriminant))
                 == components_discriminant)
-        if not (all(isinstance(term.argument, Finite) for term in self.terms)
-                and (not has_perfect_square_structure or terms_count < 6)):
+        if not (self.degree == 1
+                and (not has_perfect_square_structure or terms_count < 10)):
             raise ValueError('Unsupported value: {!r}.'.format(self))
         elif not has_perfect_square_structure:
             pass
@@ -223,9 +224,35 @@ class Form(Expression):
             if discriminant.is_positive():
                 discriminant_sqrt = discriminant.perfect_sqrt()
                 if discriminant_sqrt.square() == discriminant:
-                    first_argument = (minuend - discriminant_sqrt) / 2
-                    return ((discriminant_sqrt + first_argument).perfect_sqrt()
-                            + Term.from_components(One, first_argument))
+                    argument = (minuend - discriminant_sqrt) / 2
+                    return ((discriminant_sqrt + argument).perfect_sqrt()
+                            + (positiveness_to_sign(subtrahend.is_positive())
+                               * Term.from_components(One, argument)))
+        elif terms_count == 6:
+            indices = range(len(self.terms))
+            max_term_index, min_term_index = (
+                max(indices,
+                    key=lambda index: abs(self.terms[index])),
+                min(indices,
+                    key=lambda index: abs(self.terms[index])))
+            index, next_index = ((max_term_index, min_term_index)
+                                 if max_term_index < min_term_index
+                                 else (max_term_index, min_term_index))
+            minuend, subtrahend = (
+                self.tail + self.terms[index] + self.terms[next_index],
+                sum(self.terms[index]
+                    for index in chain(range(0, index),
+                                       range(index + 1, next_index),
+                                       range(next_index + 1,
+                                             len(self.terms)))))
+            discriminant = minuend.square() - subtrahend.square()
+            if discriminant.is_positive():
+                discriminant_sqrt = discriminant.perfect_sqrt()
+                if discriminant_sqrt.square() == discriminant:
+                    argument = (minuend - discriminant_sqrt) / 2
+                    return ((discriminant_sqrt + argument).perfect_sqrt()
+                            + (positiveness_to_sign(subtrahend.is_positive())
+                               * Term.from_components(One, argument)))
         common_numerator, form = self.extract_common_numerator()
         common_denominator, _ = form.extract_common_denominator()
         return (Finite(common_numerator) / common_denominator).perfect_sqrt()
