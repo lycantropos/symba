@@ -148,7 +148,7 @@ class Form(Expression):
                 square(sqrt_floor(components_discriminant))
                 == components_discriminant)
         if not (all(isinstance(term.argument, Finite) for term in self.terms)
-                and (not has_perfect_square_structure or terms_count < 3)):
+                and (not has_perfect_square_structure or terms_count < 6)):
             raise ValueError('Unsupported value: {!r}.'.format(self))
         elif not has_perfect_square_structure:
             pass
@@ -211,6 +211,21 @@ class Form(Expression):
                             + Term(One,
                                    (term.scale + discriminant_sqrt) / 2
                                    * one_fourth))
+        elif terms_count == 3:
+            # checking if the form can be represented as
+            # ``(a * sqrt(x) + b * sqrt(y) + c * sqrt(z)) ** 2``,
+            # where
+            # ``a, b, c, x, y, z`` are rational,
+            # ``x, y, z`` are non-equal
+            minuend, subtrahend = (self.tail + self.terms[0],
+                                   self.terms[1] + self.terms[2])
+            discriminant = minuend.square() - subtrahend.square()
+            if discriminant.is_positive():
+                discriminant_sqrt = discriminant.perfect_sqrt()
+                if discriminant_sqrt.square() == discriminant:
+                    first_argument = (minuend - discriminant_sqrt) / 2
+                    return ((discriminant_sqrt + first_argument).perfect_sqrt()
+                            + Term.from_components(One, first_argument))
         common_numerator, form = self.extract_common_numerator()
         common_denominator, _ = form.extract_common_denominator()
         return (Finite(common_numerator) / common_denominator).perfect_sqrt()
