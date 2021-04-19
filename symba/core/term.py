@@ -108,7 +108,8 @@ class Term(Expression):
                       else NotImplemented))
 
     def __eq__(self, other: Any) -> Any:
-        return (self.is_positive() is other.is_positive()
+        return (isinstance(other, Term)
+                and self.is_positive() is other.is_positive()
                 and self.square() == other.square()
                 if isinstance(other, Expression)
                 else NotImplemented)
