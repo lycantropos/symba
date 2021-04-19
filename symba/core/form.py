@@ -387,9 +387,10 @@ class Factorization:
         result = self.scale(_two * self.tail)
         result.tail /= 2
         children_items = tuple(self.children.items())
-        for index, (term, factorization) in enumerate(children_items):
+        for offset, (term, factorization) in enumerate(children_items,
+                                                       start=1):
             result += factorization.square() * term.square()
-            for next_index in range(index + 1, len(children_items)):
+            for next_index in range(offset, len(children_items)):
                 next_term, next_factorization = children_items[next_index]
                 max_term, min_term = ((next_term, term)
                                       if _term_key(term) < _term_key(next_term)
