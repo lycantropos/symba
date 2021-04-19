@@ -89,7 +89,7 @@ class Form(Expression):
         tail_denominator, _ = self.tail.extract_common_denominator()
         common_denominator = reduce(lcm, terms_common_denominators,
                                     tail_denominator)
-        return common_denominator, self * common_denominator
+        return common_denominator, self._scale(Finite(common_denominator))
 
     def extract_common_numerator(self) -> Tuple[int, 'Form']:
         terms_common_numerators, _ = transpose(
@@ -315,16 +315,9 @@ class Form(Expression):
     def _multiply_by_constant(self,
                               other: Union[Real, Constant]) -> Expression:
         other = to_expression(other)
-        return (((self
-                  if other == One
-                  else Form([term * other for term in self.terms],
-                            self.tail * other))
-                 if other
-                 else other)
+        return ((self._scale(other) if other else other)
                 if other.is_finite
-                else (other
-                      if other is NaN or self.is_positive()
-                      else -other))
+                else (other if other is NaN or self.is_positive() else -other))
 
     def _multiply_by_form(self, other: 'Form') -> Expression:
         if self == other:
@@ -344,12 +337,16 @@ class Form(Expression):
         return Form.from_components(terms, tail)
 
     def _multiply_by_term(self, other: Term) -> Expression:
-        terms = ([other * self.tail]
-                 if self.tail
-                 else [])
-        return Form(terms, _sift_components([term * other
-                                             for term in self.terms],
-                                            terms))
+        terms = [other * self.tail] if self.tail else []
+        return Form(terms,
+                    _sift_components([term * other for term in self.terms],
+                                     terms))
+
+    def _scale(self, other: Finite) -> 'Form':
+        return (self
+                if other == One
+                else Form([term * other for term in self.terms],
+                          self.tail * other))
 
 
 class Factorization:
