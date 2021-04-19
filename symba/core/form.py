@@ -389,8 +389,10 @@ class Factorization:
     def __add__(self, other: 'Factorization') -> 'Factorization':
         if not (self and other):
             return self or other
-        children = self.children.copy()
-        for child, child_factorization in other.children.items():
+        children, rest_children = ((other.children, self.children.copy())
+                                   if len(self.children) < len(other.children)
+                                   else (self.children.copy(), other.children))
+        for child, child_factorization in rest_children.items():
             children[child] += child_factorization
         return Factorization(children, self.tail + other.tail)
 
