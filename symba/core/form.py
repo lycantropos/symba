@@ -399,6 +399,20 @@ class Factorization:
     def __bool__(self) -> bool:
         return bool(self.tail or any(self.children.values()))
 
+    def __iadd__(self, other: 'Factorization') -> 'Factorization':
+        if not self:
+            self.children, self.tail = other.children.copy(), other.tail
+        elif other:
+            children, rest_children = (
+                (other.children.copy(), self.children)
+                if len(self.children) < len(other.children)
+                else (self.children, other.children))
+            for child, child_factorization in rest_children.items():
+                children[child] += child_factorization
+            self.children = children
+            self.tail += other.tail
+        return self
+
     def __len__(self) -> int:
         return bool(self.tail) + sum(map(len, self.children.values()))
 
