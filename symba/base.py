@@ -2,7 +2,7 @@ from numbers import Real as _Real
 from typing import Union as _Union
 
 from .core import context as _context
-from .core.abcs import Expression
+from .core.expression import Expression
 from .core.constant import (One as _One,
                             to_expression as _to_expression)
 from .core.term import Term as _Term

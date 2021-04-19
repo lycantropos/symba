@@ -12,13 +12,13 @@ from symba.core.utils import (ceil_half,
                               rational_sqrt_lower_bound,
                               rational_sqrt_upper_bound)
 from . import context
-from .abcs import Expression
 from .constant import (Constant,
                        Finite,
                        NaN,
                        One,
                        Zero,
                        to_expression)
+from .expression import Expression
 from .hints import SqrtEvaluator
 
 if TYPE_CHECKING:

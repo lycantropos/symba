@@ -13,13 +13,13 @@ from typing import (Any,
 
 from reprit.base import generate_repr
 
-from .abcs import Expression
 from .constant import (Constant,
                        Finite,
                        NaN,
                        One,
                        Zero,
                        to_expression)
+from .expression import Expression
 from .hints import SqrtEvaluator
 from .term import Term
 from .utils import (BASE,

@@ -10,7 +10,7 @@ from typing import (Any,
 
 from reprit.base import generate_repr
 
-from .abcs import Expression
+from .expression import Expression
 from .hints import SqrtEvaluator
 from .utils import (digits_count,
                     identity,
