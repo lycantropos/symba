@@ -383,8 +383,22 @@ class Factorization:
                     for child, child_factorization in self.children.items()],
                    self.tail)
 
-    def square(self) -> 'Factorization':
-        return self.multiply(self)
+    def square(self, _two: Finite = Finite(2)) -> 'Factorization':
+        result = self.scale(_two * self.tail)
+        result.tail /= 2
+        children_items = tuple(self.children.items())
+        for index, (term, factorization) in enumerate(children_items):
+            result += factorization.square() * term.square()
+            for next_index in range(index + 1, len(children_items)):
+                next_term, next_factorization = children_items[next_index]
+                max_term, min_term = ((next_term, term)
+                                      if _term_key(term) < _term_key(next_term)
+                                      else (term, next_term))
+                result.children[Term(One, max_term.argument)] += (
+                    (factorization.multiply(next_factorization)
+                     .multiply_by_term(min_term)
+                     ._scale(_two * max_term.scale)))
+        return result
 
     def __add__(self, other: 'Factorization') -> 'Factorization':
         if not (self and other):
