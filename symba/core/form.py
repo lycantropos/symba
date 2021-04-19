@@ -1,7 +1,6 @@
 import math
 from collections import defaultdict
 from functools import reduce
-from itertools import chain
 from numbers import Real
 from typing import (Any,
                     DefaultDict,
@@ -9,6 +8,7 @@ from typing import (Any,
                     Iterable,
                     List,
                     Optional,
+                    Sequence,
                     Tuple,
                     Union)
 
@@ -144,15 +144,8 @@ class Form(Expression):
 
     def perfect_sqrt(self) -> Expression:
         terms_count = len(self.terms)
-        components_discriminant = 1 + 8 * (terms_count - (not self.tail))
-        has_perfect_square_structure = (
-                square(sqrt_floor(components_discriminant))
-                == components_discriminant)
-        if not (self.degree == 1
-                and (not has_perfect_square_structure or terms_count < 10)):
+        if self.degree != 1 or not self.tail and terms_count > 2:
             raise ValueError('Unsupported value: {!r}.'.format(self))
-        elif not has_perfect_square_structure:
-            pass
         elif not self.tail:
             # checking if the form can be represented as
             # ``(a * sqrt(b * sqrt(x)) + c * sqrt(d * sqrt(x))) ** 2``,
@@ -228,33 +221,18 @@ class Form(Expression):
                     return ((discriminant_sqrt + argument).perfect_sqrt()
                             + (positiveness_to_sign(subtrahend.is_positive())
                                * Term.from_components(One, argument)))
-        elif terms_count == 6:
-            indices = range(len(self.terms))
-            max_term_index, min_term_index = (
-                max(indices,
-                    key=lambda index: abs(self.terms[index])),
-                min(indices,
-                    key=lambda index: abs(self.terms[index])))
-            index, next_index = ((max_term_index, min_term_index)
-                                 if max_term_index < min_term_index
-                                 else (max_term_index, min_term_index))
-            minuend, subtrahend = (
-                self.tail + self.terms[index] + self.terms[next_index],
-                sum(self.terms[index]
-                    for index in chain(range(0, index),
-                                       range(index + 1, next_index),
-                                       range(next_index + 1,
-                                             len(self.terms)))))
+        else:
+            denominator, integer_form = self.extract_common_denominator()
+            subtrahend, minuend = sorted(split_form(integer_form))
             discriminant = minuend.square() - subtrahend.square()
-            if discriminant.is_positive():
-                discriminant_sqrt = discriminant.perfect_sqrt()
-                if discriminant_sqrt.square() == discriminant:
-                    argument = (minuend - discriminant_sqrt) / 2
-                    return ((discriminant_sqrt + argument).perfect_sqrt()
-                            + (positiveness_to_sign(subtrahend.is_positive())
-                               * Term.from_components(One, argument)))
-        common_numerator, form = self.extract_common_numerator()
-        common_denominator, _ = form.extract_common_denominator()
+            discriminant_sqrt = discriminant.perfect_sqrt()
+            if discriminant_sqrt.square() == discriminant:
+                squared_denominator = minuend + discriminant_sqrt
+                return ((squared_denominator + subtrahend)
+                        / squared_denominator.perfect_sqrt()
+                        / Term(Finite(denominator), Finite(2)))
+        common_denominator, integer_form = self.extract_common_denominator()
+        common_numerator, _ = integer_form.extract_common_numerator()
         return (Finite(common_numerator) / common_denominator).perfect_sqrt()
 
     def significant_digits_count(self) -> int:
@@ -389,6 +367,40 @@ class Form(Expression):
                 if other == One
                 else Form([term * other for term in self.terms],
                           self.tail * other))
+
+
+def split_form(integer_form: Form) -> Tuple[Form, Form]:
+    terms = sorted(integer_form.terms,
+                   key=_term_key)
+    relatively_composite_indices, coprime_indices = split_integers(
+            [term.argument for term in terms])
+    return (Form([terms[index] for index in relatively_composite_indices]),
+            Form([terms[index] for index in coprime_indices],
+                 tail=integer_form.tail))
+
+
+def split_integers(arguments: Sequence[Finite]) -> Tuple[List[int], List[int]]:
+    gcd, relatively_composite_indices, coprime_indices = _split_integers(
+            argument.value.numerator for argument in arguments)
+    if not coprime_indices:
+        _, relatively_composite_indices, coprime_indices = _split_integers(
+                value // gcd for value in arguments if value != gcd)
+    return relatively_composite_indices, coprime_indices
+
+
+def _split_integers(integers: Iterable[int]
+                    ) -> Tuple[int, List[int], List[int]]:
+    iterator = iter(integers)
+    gcd, divisible_indices, relatively_prime_indices = next(iterator), [0], []
+    for index, value in enumerate(iterator,
+                                  start=1):
+        value_gcd = math.gcd(gcd, value)
+        if value_gcd == 1:
+            relatively_prime_indices.append(index)
+        else:
+            gcd = value_gcd
+            divisible_indices.append(index)
+    return gcd, divisible_indices, relatively_prime_indices
 
 
 class Factorization:
