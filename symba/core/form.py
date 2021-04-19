@@ -109,10 +109,10 @@ class Form(Expression):
                            key=_term_key)
             max_term_factorization = factorization.children.pop(max_term)
             numerator = numerator.multiply(
-                    factorization + (-max_term) * max_term_factorization)
+                    factorization + max_term_factorization * (-max_term))
             factorization = (
                     factorization.square()
-                    + (-max_term.square()) * max_term_factorization.square())
+                    + max_term_factorization.square() * (-max_term.square()))
         return numerator.express() * factorization.tail.inverse()
 
     def is_positive(self) -> bool:
