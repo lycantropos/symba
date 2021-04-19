@@ -451,12 +451,12 @@ class Factorization:
         other_children, other_tail = other.children, other.tail
         result = self.scale(other.tail) + other.scale(self.tail)
         result.tail /= 2
-        for left_term, left_factorization in children.items():
-            for right_term, right_factorization in other_children.items():
-                child_factorization = (left_factorization
-                                       .multiply(right_factorization))
-                if left_term == right_term:
-                    squared_term = left_term.square()
+        for term, factorization in children.items():
+            for other_term, other_factorization in other_children.items():
+                child_factorization = (factorization
+                                       .multiply(other_factorization))
+                if term == other_term:
+                    squared_term = term.square()
                     result += (child_factorization._scale(squared_term)
                                if isinstance(squared_term, Finite)
                                else (child_factorization
@@ -465,10 +465,10 @@ class Factorization:
                                      else (child_factorization
                                            .multiply_by_term(squared_term))))
                 else:
-                    max_term, min_term = (max(left_term, right_term,
-                                              key=_term_key),
-                                          min(left_term, right_term,
-                                              key=_term_key))
+                    max_term, min_term = (
+                        (other_term, term)
+                        if _term_key(term) < _term_key(other_term)
+                        else (term, other_term))
                     scaleless_max_term = Term(One, max_term.argument)
                     result.children[scaleless_max_term] += (
                         (child_factorization.multiply_by_term(min_term)
