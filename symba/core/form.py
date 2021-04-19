@@ -443,14 +443,13 @@ class Factorization:
                                        .multiply(right_factorization))
                 if left_term == right_term:
                     squared_term = left_term.square()
-                    if isinstance(squared_term, Finite):
-                        result += child_factorization.scale(squared_term)
-                    elif isinstance(squared_term, Form):
-                        result += (child_factorization
-                                   .multiply_by_form(squared_term))
-                    else:
-                        result += (child_factorization
-                                   .multiply_by_term(squared_term))
+                    result += (child_factorization._scale(squared_term)
+                               if isinstance(squared_term, Finite)
+                               else (child_factorization
+                                     .multiply_by_form(squared_term)
+                                     if isinstance(squared_term, Form)
+                                     else (child_factorization
+                                           .multiply_by_term(squared_term))))
                 else:
                     max_term, min_term = (max(left_term, right_term,
                                               key=_term_key),
@@ -459,7 +458,7 @@ class Factorization:
                     scaleless_max_term = Term(One, max_term.argument)
                     result.children[scaleless_max_term] += (
                         (child_factorization.multiply_by_term(min_term)
-                         .scale(max_term.scale)))
+                         ._scale(max_term.scale)))
         return result
 
     def multiply_by_form(self, form: Form) -> 'Factorization':
