@@ -547,7 +547,8 @@ def _atomize_term(term: Term) -> Iterable[Expression]:
     queue = [(0, term)]
     while queue:
         degree, step = queue.pop()
-        yield _to_graded_term(step.scale, degree)
+        if degree and step.scale != 1:
+            yield _to_graded_term(step.scale, degree)
         argument = step.argument
         if isinstance(argument, Term):
             queue.append((degree + 1, argument))
@@ -562,7 +563,7 @@ def _atomize_term(term: Term) -> Iterable[Expression]:
 
 def _populate_children(children: DefaultDict[Term, Factorization],
                        term: Term) -> None:
-    scale, *successors, scaleless_term = _atomize_term(term)
+    *successors, scaleless_term = _atomize_term(term)
     last_children = children[scaleless_term]
     for successor in successors:
         last_children = last_children.children[successor]
