@@ -454,24 +454,6 @@ class Factorization:
                     for factor, factorization in self.factors.items()],
                    self.tail)
 
-    def square(self, _two: Finite = Finite(2)) -> 'Factorization':
-        result = self.scale(_two * self.tail)
-        result.tail /= 2
-        factorizations = tuple(self.factors.items())
-        for offset, (factor, factorization) in enumerate(factorizations,
-                                                         start=1):
-            result += factorization.square() * factor.square()
-            for next_index in range(offset, len(factorizations)):
-                next_factor, next_factorization = factorizations[next_index]
-                max_factor, min_factor = ((next_factor, factor)
-                                          if factor < next_factor
-                                          else (factor, next_factor))
-                result.factors[max_factor] += (factorization
-                                               .scale_non_zero(_two)
-                                               .multiply_by_factor(min_factor)
-                                               .multiply(next_factorization))
-        return result
-
     def multiply(self: 'Factorization',
                  other: 'Factorization') -> 'Factorization':
         factors, tail = self.factors, self.tail
@@ -500,12 +482,12 @@ class Factorization:
                         result_factorization.multiply_by_factor(min_factor))
         return result
 
+    def multiply_by_factor(self, factor: Factor) -> 'Factorization':
+        return self.multiply(Factorization.from_factor(factor))
+
     def multiply_by_form(self, form: Form) -> 'Factorization':
         return sum([self.multiply_by_term(term) for term in form.terms],
                    self.scale(form.tail))
-
-    def multiply_by_factor(self, factor: Factor) -> 'Factorization':
-        return self.multiply(Factorization.from_factor(factor))
 
     def multiply_by_term(self, term: Term) -> 'Factorization':
         return self.multiply(Factorization.from_term(term))
@@ -518,6 +500,24 @@ class Factorization:
         factors = result.factors
         for factor, factorization in self.factors.items():
             factors[factor] = factorization.scale_non_zero(scale)
+        return result
+
+    def square(self, _two: Finite = Finite(2)) -> 'Factorization':
+        result = self.scale(_two * self.tail)
+        result.tail /= 2
+        factorizations = tuple(self.factors.items())
+        for offset, (factor, factorization) in enumerate(factorizations,
+                                                         start=1):
+            result += factorization.square() * factor.square()
+            for next_index in range(offset, len(factorizations)):
+                next_factor, next_factorization = factorizations[next_index]
+                max_factor, min_factor = ((next_factor, factor)
+                                          if factor < next_factor
+                                          else (factor, next_factor))
+                result.factors[max_factor] += (factorization
+                                               .scale_non_zero(_two)
+                                               .multiply_by_factor(min_factor)
+                                               .multiply(next_factorization))
         return result
 
     def __add__(self, other: 'Factorization') -> 'Factorization':
