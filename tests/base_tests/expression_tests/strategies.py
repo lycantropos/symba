@@ -31,8 +31,9 @@ unary_expressions = strategies.just(One)
 unary_reals_or_expressions = unary_reals | unary_expressions
 zero_reals_or_expressions = zero_reals | zero_expressions
 finite_square_roots = strategies.builds(sqrt, finite_non_negative_reals)
-finite_expressions = (finite_square_roots
-                      | to_nested_expressions(finite_square_roots))
+finite_expressions = strategies.recursive(finite_square_roots,
+                                          to_nested_expressions,
+                                          max_leaves=10)
 finite_reals_or_expressions = finite_reals | finite_expressions
 finite_non_zero_expressions = finite_expressions.filter(bool)
 finite_non_zero_reals_or_expressions = (finite_non_zero_reals
