@@ -387,7 +387,7 @@ def _split_integers(integers: Iterable[int]
 
 class Factor:
     def __init__(self, term: Term) -> None:
-        assert abs(term.scale) == 1
+        assert term.scale == 1
         self.term = term
 
     def express(self) -> Term:
@@ -403,10 +403,10 @@ class Factor:
         return ((self.term.degree, self.term.argument)
                 < (other.term.degree, other.term))
 
-    def __neg__(self) -> 'Factor':
-        return Factor(-self.term)
-
     __repr__ = generate_repr(__init__)
+
+    def __str__(self) -> str:
+        return str(self.express())
 
     def square(self) -> Expression:
         return self.term.argument
