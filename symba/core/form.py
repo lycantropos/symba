@@ -430,10 +430,10 @@ class Factorization:
                 max_term, min_term = ((next_term, term)
                                       if _term_key(term) < _term_key(next_term)
                                       else (term, next_term))
-                result.children[Term(One, max_term.argument)] += (
-                    (factorization.multiply(next_factorization)
-                     .multiply_by_term(min_term)
-                     ._scale(_two * max_term.scale)))
+                assert max_term.scale == 1
+                result.children[max_term] += (factorization._scale(_two)
+                                              .multiply_by_term(min_term)
+                                              .multiply(next_factorization))
         return result
 
     def __add__(self, other: 'Factorization') -> 'Factorization':
@@ -519,10 +519,9 @@ class Factorization:
                         (other_term, term)
                         if _term_key(term) < _term_key(other_term)
                         else (term, other_term))
-                    scaleless_max_term = Term(One, max_term.argument)
-                    result.children[scaleless_max_term] += (
-                        (child_factorization.multiply_by_term(min_term)
-                         ._scale(max_term.scale)))
+                    assert max_term.scale == 1
+                    result.children[max_term] += (child_factorization
+                                                  .multiply_by_term(min_term))
         return result
 
     def multiply_by_form(self, form: Form) -> 'Factorization':
