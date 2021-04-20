@@ -199,10 +199,9 @@ class Form(Expression):
                 if (addend.degree < self.degree
                         or (len(addend.terms) + bool(addend.tail)
                             < len(self.terms) + bool(self.tail))):
-                    addend_sqrt = addend.perfect_sqrt()
-                    if addend_sqrt.square() == addend:
-                        return ((addend + lesser_part) / addend_sqrt
-                                / Term(Finite(denominator), Finite(2)))
+                    return ((addend + lesser_part)
+                            / Term.from_components(Finite(denominator),
+                                                   2 * addend))
         common_denominator, integer_form = self.extract_common_denominator()
         common_numerator, _ = integer_form.extract_common_numerator()
         return (Finite(common_numerator) / common_denominator).perfect_sqrt()
@@ -353,36 +352,40 @@ def split_form(integer_form: Form) -> Tuple[Form, Form]:
     terms = sorted(integer_form.terms,
                    key=_term_key)
     relatively_composite_indices, coprime_indices = split_integers(
-            [term.argument for term in terms])
-    return (Form([terms[index] for index in relatively_composite_indices]),
-            Form([terms[index] for index in coprime_indices],
-                 tail=integer_form.tail))
+            [term.argument.value.numerator for term in terms])
+    return ((Form([terms[index] for index in relatively_composite_indices],
+                  integer_form.tail),
+             Form([terms[index] for index in coprime_indices]))
+            if len(relatively_composite_indices) == 1
+            else
+            (Form([terms[index] for index in relatively_composite_indices]),
+             Form([terms[index] for index in coprime_indices],
+                  integer_form.tail)))
 
 
-def split_integers(arguments: Sequence[Finite]) -> Tuple[List[int], List[int]]:
-    gcd, relatively_composite_indices, coprime_indices = _split_integers(
-            argument.value.numerator for argument in arguments)
+def split_integers(values: Sequence[int]) -> Tuple[List[int], List[int]]:
+    gcd, cocomposite_indices, coprime_indices = _split_integers(values)
     if not coprime_indices:
-        _, relatively_composite_indices, coprime_indices = (
-            _split_integers(value // gcd for value in arguments))
-    return relatively_composite_indices, coprime_indices
+        _, cocomposite_indices, coprime_indices = _split_integers(
+                value // gcd for value in values)
+    return cocomposite_indices, coprime_indices
 
 
 def _split_integers(integers: Iterable[int]
                     ) -> Tuple[int, List[int], List[int]]:
     iterator = iter(integers)
     gcd = next(iterator)
-    gcd, start, divisible_indices, relatively_prime_indices = (
-        (next(iterator), 2, [1], [0]) if gcd == 1 else (gcd, 1, [0], []))
+    cocomposite_indices, coprime_indices, gcd, start = (
+        ([1], [0], next(iterator), 2) if gcd == 1 else ([0], [], gcd, 1))
     for index, value in enumerate(iterator,
                                   start=start):
         value_gcd = math.gcd(gcd, value)
         if value_gcd == 1:
-            relatively_prime_indices.append(index)
+            coprime_indices.append(index)
         else:
             gcd = value_gcd
-            divisible_indices.append(index)
-    return gcd, divisible_indices, relatively_prime_indices
+            cocomposite_indices.append(index)
+    return gcd, cocomposite_indices, coprime_indices
 
 
 class Factor:
