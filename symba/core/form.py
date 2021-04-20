@@ -114,7 +114,7 @@ class Form(Expression):
             factorization = (
                     factorization.square()
                     + max_term_factorization.square() * (-max_term.square()))
-        return numerator.express() * factorization.tail.inverse()
+        return numerator.scale_non_zero(factorization.tail.inverse()).express()
 
     def is_positive(self) -> bool:
         components = (*self.terms, self.tail) if self.tail else self.terms
@@ -431,9 +431,56 @@ class Factorization:
                                       if _term_key(term) < _term_key(next_term)
                                       else (term, next_term))
                 assert max_term.scale == 1
-                result.children[max_term] += (factorization._scale(_two)
+                result.children[max_term] += (factorization
+                                              .scale_non_zero(_two)
                                               .multiply_by_term(min_term)
                                               .multiply(next_factorization))
+        return result
+
+    def multiply(self: 'Factorization',
+                 other: 'Factorization') -> 'Factorization':
+        children, tail = self.children, self.tail
+        other_children, other_tail = other.children, other.tail
+        result = self.scale(other.tail) + other.scale(self.tail)
+        result.tail /= 2
+        for term, factorization in children.items():
+            for other_term, other_factorization in other_children.items():
+                child_factorization = (factorization
+                                       .multiply(other_factorization))
+                if term == other_term:
+                    squared_term = term.square()
+                    result += (child_factorization.scale_non_zero(squared_term)
+                               if isinstance(squared_term, Finite)
+                               else (child_factorization
+                                     .multiply_by_form(squared_term)
+                                     if isinstance(squared_term, Form)
+                                     else (child_factorization
+                                           .multiply_by_term(squared_term))))
+                else:
+                    max_term, min_term = (
+                        (other_term, term)
+                        if _term_key(term) < _term_key(other_term)
+                        else (term, other_term))
+                    assert max_term.scale == 1
+                    result.children[max_term] += (child_factorization
+                                                  .multiply_by_term(min_term))
+        return result
+
+    def multiply_by_form(self, form: Form) -> 'Factorization':
+        return sum([self.multiply_by_term(term) for term in form.terms],
+                   self.scale(form.tail))
+
+    def multiply_by_term(self, term: Term) -> 'Factorization':
+        return self.multiply(Factorization.from_term(term))
+
+    def scale(self, scale: Finite) -> 'Factorization':
+        return self.scale_non_zero(scale) if scale else Factorization()
+
+    def scale_non_zero(self, scale: Finite) -> 'Factorization':
+        result = Factorization(tail=self.tail * scale)
+        children = result.children
+        for child, child_factorization in self.children.items():
+            children[child] = child_factorization.scale_non_zero(scale)
         return result
 
     def __add__(self, other: 'Factorization') -> 'Factorization':
@@ -495,66 +542,6 @@ class Factorization:
                 if head
                 else str(self.tail))
 
-    def multiply(self: 'Factorization',
-                 other: 'Factorization') -> 'Factorization':
-        children, tail = self.children, self.tail
-        other_children, other_tail = other.children, other.tail
-        result = self.scale(other.tail) + other.scale(self.tail)
-        result.tail /= 2
-        for term, factorization in children.items():
-            for other_term, other_factorization in other_children.items():
-                child_factorization = (factorization
-                                       .multiply(other_factorization))
-                if term == other_term:
-                    squared_term = term.square()
-                    result += (child_factorization._scale(squared_term)
-                               if isinstance(squared_term, Finite)
-                               else (child_factorization
-                                     .multiply_by_form(squared_term)
-                                     if isinstance(squared_term, Form)
-                                     else (child_factorization
-                                           .multiply_by_term(squared_term))))
-                else:
-                    max_term, min_term = (
-                        (other_term, term)
-                        if _term_key(term) < _term_key(other_term)
-                        else (term, other_term))
-                    assert max_term.scale == 1
-                    result.children[max_term] += (child_factorization
-                                                  .multiply_by_term(min_term))
-        return result
-
-    def multiply_by_form(self, form: Form) -> 'Factorization':
-        return sum([self.multiply_by_term(term) for term in form.terms],
-                   self.scale(form.tail))
-
-    def multiply_by_term(self, term: Term) -> 'Factorization':
-        return self.multiply(Factorization.from_term(term))
-
-    def scale(self, scale: Finite) -> 'Factorization':
-        return self._scale(scale) if scale else Factorization()
-
-    def _scale(self, scale: Finite) -> 'Factorization':
-        result = Factorization(tail=self.tail * scale)
-        children = result.children
-        for child, child_factorization in self.children.items():
-            children[child] = child_factorization._scale(scale)
-        return result
-
-
-def _sift_components(components: Iterable[Expression],
-                     terms: List[Term]) -> Finite:
-    tail = Zero
-    for component in components:
-        if isinstance(component, Term):
-            terms.append(component)
-        elif isinstance(component, Form):
-            tail += component.tail
-            terms.extend(component.terms)
-        else:
-            tail += component
-    return tail
-
 
 def _atomize_term(term: Term) -> Iterable[Expression]:
     queue = [(0, term)]
@@ -580,6 +567,20 @@ def _populate_children(children: DefaultDict[Term, Factorization],
     for successor in successors:
         last_children = last_children.children[successor]
     last_children.tail += term.scale
+
+
+def _sift_components(components: Iterable[Expression],
+                     terms: List[Term]) -> Finite:
+    tail = Zero
+    for component in components:
+        if isinstance(component, Term):
+            terms.append(component)
+        elif isinstance(component, Form):
+            tail += component.tail
+            terms.extend(component.terms)
+        else:
+            tail += component
+    return tail
 
 
 def _term_key(term: Term) -> Tuple[int, Expression]:
