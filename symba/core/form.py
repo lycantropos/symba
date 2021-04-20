@@ -386,30 +386,35 @@ def _split_integers(integers: Iterable[int]
 
 
 class Factor:
-    def __init__(self, term: Term) -> None:
-        assert term.scale == 1
-        self.term = term
+    __slots__ = 'argument', 'degree', '_term'
+
+    def __init__(self, argument: Expression, degree: int) -> None:
+        self.argument, self.degree = argument, degree
+        term = argument
+        for _ in range(degree):
+            term = Term(One, term)
+        self._term = term
 
     def express(self) -> Term:
-        return self.term
+        return self._term
+
+    def square(self) -> Expression:
+        return self._term.argument
 
     def __eq__(self, other: 'Factor') -> bool:
-        return self.term == other.term
+        return self.degree == other.degree and self.argument == other.argument
 
     def __hash__(self) -> int:
-        return hash(self.term)
+        return hash((self.argument, self.degree))
 
     def __lt__(self, other: 'Factor') -> bool:
-        return ((self.term.degree, self.term.argument)
-                < (other.term.degree, other.term))
+        return ((self.express().degree, self.express().argument)
+                < (other.express().degree, other.express().argument))
 
     __repr__ = generate_repr(__init__)
 
     def __str__(self) -> str:
         return str(self.express())
-
-    def square(self) -> Expression:
-        return self.term.argument
 
 
 class Factorization:
@@ -588,17 +593,17 @@ def _factor_term(term: Term) -> Iterable[Factor]:
     while queue:
         degree, step = queue.pop()
         if degree and step.scale != 1:
-            yield _to_factor(step.scale, degree)
+            yield Factor(step.scale, degree)
         argument = step.argument
         if isinstance(argument, Term):
             queue.append((degree + 1, argument))
         elif isinstance(argument, Form):
             common_numerator, argument = argument.extract_common_numerator()
             if common_numerator != 1:
-                yield _to_factor(Finite(common_numerator), degree + 1)
-            yield _to_factor(argument, degree + 1)
+                yield Factor(Finite(common_numerator), degree + 1)
+            yield Factor(argument, degree + 1)
         else:
-            yield _to_factor(argument, degree + 1)
+            yield Factor(argument, degree + 1)
 
 
 def _populate_factors(children: DefaultDict[Term, Factorization],
@@ -626,13 +631,6 @@ def _sift_components(components: Iterable[Expression],
 
 def _term_key(term: Term) -> Tuple[int, Expression]:
     return term.degree, term.argument
-
-
-def _to_factor(argument: Expression, degree: int) -> Factor:
-    result = argument
-    for _ in range(degree):
-        result = Term(One, result)
-    return Factor(result)
 
 
 def _to_signed_value(value: Union[Finite, Term]) -> str:
