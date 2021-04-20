@@ -598,9 +598,12 @@ def _factor_term(term: Term) -> Iterable[Factor]:
         if isinstance(argument, Term):
             queue.append((degree + 1, argument))
         elif isinstance(argument, Form):
+            common_denominator, argument = (argument
+                                            .extract_common_denominator())
             common_numerator, argument = argument.extract_common_numerator()
-            if common_numerator != 1:
-                yield Factor(Finite(common_numerator), degree + 1)
+            if not (common_numerator == 1 == common_denominator):
+                yield Factor(Finite(common_numerator) / common_denominator,
+                             degree + 1)
             yield Factor(argument, degree + 1)
         else:
             yield Factor(argument, degree + 1)
