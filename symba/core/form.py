@@ -414,17 +414,17 @@ class Factor:
 
 class Factorization:
     @classmethod
+    def from_factor(cls, factor: Factor) -> 'Factorization':
+        result = cls()
+        result.factors[factor].tail = One
+        return result
+
+    @classmethod
     def from_form(cls, form: Form) -> 'Factorization':
         result = cls(tail=form.tail)
         factors = result.factors
         for term in form.terms:
             _populate_factors(factors, term)
-        return result
-
-    @classmethod
-    def from_factor(cls, factor: Factor) -> 'Factorization':
-        result = cls()
-        _populate_factors(result.factors, factor.express())
         return result
 
     @classmethod
