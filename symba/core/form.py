@@ -379,17 +379,19 @@ def split_integers(arguments: Sequence[Finite]) -> Tuple[List[int], List[int]]:
     gcd, relatively_composite_indices, coprime_indices = _split_integers(
             argument.value.numerator for argument in arguments)
     if not coprime_indices:
-        _, relatively_composite_indices, coprime_indices = _split_integers(
-                value // gcd for value in arguments if value != gcd)
+        _, relatively_composite_indices, coprime_indices = (
+            _split_integers(value // gcd for value in arguments))
     return relatively_composite_indices, coprime_indices
 
 
 def _split_integers(integers: Iterable[int]
                     ) -> Tuple[int, List[int], List[int]]:
     iterator = iter(integers)
-    gcd, divisible_indices, relatively_prime_indices = next(iterator), [0], []
+    gcd = next(iterator)
+    gcd, start, divisible_indices, relatively_prime_indices = (
+        (next(iterator), 2, [1], [0]) if gcd == 1 else (gcd, 1, [0], []))
     for index, value in enumerate(iterator,
-                                  start=1):
+                                  start=start):
         value_gcd = math.gcd(gcd, value)
         if value_gcd == 1:
             relatively_prime_indices.append(index)
