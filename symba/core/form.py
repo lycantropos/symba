@@ -390,6 +390,9 @@ class Factor:
         assert abs(term.scale) == 1
         self.term = term
 
+    def express(self) -> Term:
+        return self.term
+
     def __eq__(self, other: 'Factor') -> bool:
         return self.term == other.term
 
@@ -421,7 +424,7 @@ class Factorization:
     @classmethod
     def from_factor(cls, factor: Factor) -> 'Factorization':
         result = cls()
-        _populate_factors(result.factors, factor.term)
+        _populate_factors(result.factors, factor.express())
         return result
 
     @classmethod
@@ -442,7 +445,7 @@ class Factorization:
                                    tail)
 
     def express(self) -> Expression:
-        return sum([factor.term * factorization.express()
+        return sum([factor.express() * factorization.express()
                     for factor, factorization in self.factors.items()],
                    self.tail)
 
