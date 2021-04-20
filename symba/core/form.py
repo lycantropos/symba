@@ -104,14 +104,14 @@ class Form(Expression):
             Factorization(tail=One * common_denominator),
             Factorization.from_form(form))
         while factorization.factors:
-            max_term = max(factorization.factors,
-                           key=_term_key)
-            max_term_factorization = factorization.factors.pop(max_term)
+            max_factor = max(factorization.factors)
+            max_factorization = factorization.factors.pop(max_factor)
             numerator = numerator.multiply(
-                    factorization + max_term_factorization * (-max_term))
+                    factorization
+                    + max_factorization.multiply_by_factor(-max_factor))
             factorization = (
                     factorization.square()
-                    + max_term_factorization.square() * (-max_term.square()))
+                    + max_factorization.square() * (-max_factor.square()))
         return numerator.scale_non_zero(factorization.tail.inverse()).express()
 
     def is_positive(self) -> bool:
@@ -385,6 +385,30 @@ def _split_integers(integers: Iterable[int]
     return gcd, divisible_indices, relatively_prime_indices
 
 
+class Factor:
+    def __init__(self, term: Term) -> None:
+        assert abs(term.scale) == 1
+        self.term = term
+
+    def __eq__(self, other: 'Factor') -> bool:
+        return self.term == other.term
+
+    def __hash__(self) -> int:
+        return hash(self.term)
+
+    def __lt__(self, other: 'Factor') -> bool:
+        return ((self.term.degree, self.term.argument)
+                < (other.term.degree, other.term))
+
+    def __neg__(self) -> 'Factor':
+        return Factor(-self.term)
+
+    __repr__ = generate_repr(__init__)
+
+    def square(self) -> Expression:
+        return self.term.argument
+
+
 class Factorization:
     @classmethod
     def from_form(cls, form: Form) -> 'Factorization':
@@ -392,6 +416,12 @@ class Factorization:
         factors = result.factors
         for term in form.terms:
             _populate_factors(factors, term)
+        return result
+
+    @classmethod
+    def from_factor(cls, factor: Factor) -> 'Factorization':
+        result = cls()
+        _populate_factors(result.factors, factor.term)
         return result
 
     @classmethod
@@ -403,7 +433,8 @@ class Factorization:
     __slots__ = 'factors', 'tail'
 
     def __init__(self,
-                 factors: Optional[DefaultDict[Term, 'Factorization']] = None,
+                 factors: Optional[DefaultDict[Factor, 'Factorization']]
+                 = None,
                  tail: Finite = Zero) -> None:
         self.factors, self.tail = (defaultdict(Factorization)
                                    if factors is None
@@ -411,7 +442,7 @@ class Factorization:
                                    tail)
 
     def express(self) -> Expression:
-        return sum([factor * factorization.express()
+        return sum([factor.term * factorization.express()
                     for factor, factorization in self.factors.items()],
                    self.tail)
 
@@ -424,14 +455,12 @@ class Factorization:
             result += factorization.square() * factor.square()
             for next_index in range(offset, len(factorizations)):
                 next_factor, next_factorization = factorizations[next_index]
-                max_factor, min_factor = (
-                    (next_factor, factor)
-                    if _term_key(factor) < _term_key(next_factor)
-                    else (factor, next_factor))
-                assert max_factor.scale == 1
+                max_factor, min_factor = ((next_factor, factor)
+                                          if factor < next_factor
+                                          else (factor, next_factor))
                 result.factors[max_factor] += (factorization
                                                .scale_non_zero(_two)
-                                               .multiply_by_term(min_factor)
+                                               .multiply_by_factor(min_factor)
                                                .multiply(next_factorization))
         return result
 
@@ -456,18 +485,19 @@ class Factorization:
                               else (result_factorization
                                     .multiply_by_term(squared_factor))))
                 else:
-                    max_factor, min_factor = (
-                        (other_factor, factor)
-                        if _term_key(factor) < _term_key(other_factor)
-                        else (factor, other_factor))
-                    assert max_factor.scale == 1
+                    max_factor, min_factor = ((other_factor, factor)
+                                              if factor < other_factor
+                                              else (factor, other_factor))
                     result.factors[max_factor] += (
-                        result_factorization.multiply_by_term(min_factor))
+                        result_factorization.multiply_by_factor(min_factor))
         return result
 
     def multiply_by_form(self, form: Form) -> 'Factorization':
         return sum([self.multiply_by_term(term) for term in form.terms],
                    self.scale(form.tail))
+
+    def multiply_by_factor(self, factor: Factor) -> 'Factorization':
+        return self.multiply(Factorization.from_factor(factor))
 
     def multiply_by_term(self, term: Term) -> 'Factorization':
         return self.multiply(Factorization.from_term(term))
@@ -540,7 +570,7 @@ class Factorization:
                 else str(self.tail))
 
 
-def _factor_term(term: Term) -> Iterable[Expression]:
+def _factor_term(term: Term) -> Iterable[Factor]:
     queue = [(0, term)]
     while queue:
         degree, step = queue.pop()
@@ -585,11 +615,11 @@ def _term_key(term: Term) -> Tuple[int, Expression]:
     return term.degree, term.argument
 
 
-def _to_factor(argument: Expression, degree: int) -> Expression:
+def _to_factor(argument: Expression, degree: int) -> Factor:
     result = argument
     for _ in range(degree):
         result = Term(One, result)
-    return result
+    return Factor(result)
 
 
 def _to_signed_value(value: Union[Finite, Term]) -> str:
