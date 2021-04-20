@@ -27,8 +27,6 @@ from .utils import (BASE,
                     digits_count,
                     lcm,
                     positiveness_to_sign,
-                    sqrt_floor,
-                    square,
                     transpose)
 
 
