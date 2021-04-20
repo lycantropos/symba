@@ -147,29 +147,25 @@ class Form(Expression):
         if self.degree != 1 or not self.tail and terms_count > 2:
             raise ValueError('Unsupported value: {!r}.'.format(self))
         elif not self.tail:
+            min_term, max_term = sorted(self.terms,
+                                        key=abs)
+            base_argument = max_term.argument
             # checking if the form can be represented as
             # ``(a * sqrt(b * sqrt(x)) + c * sqrt(d * sqrt(x))) ** 2``,
             # where
             # ``a, x`` are positive rational,
             # ``b, d`` are positive non-equal rational,
             # ``c`` is non-zero rational
-            max_term = max(self.terms,
-                           key=abs)
-            min_term = min(self.terms,
-                           key=abs)
-            base_argument = max_term.argument
-            if not min_term.square() % base_argument:
-                discriminant = ((max_term.square() - min_term.square())
-                                / base_argument)
-                discriminant_sqrt = discriminant.perfect_sqrt()
-                if discriminant_sqrt.square() == discriminant:
-                    max_scale = (max_term.scale + discriminant_sqrt) / 2
-                    min_scale = (max_term.scale - discriminant_sqrt) / 2
-                    one_fourth = Term(One, base_argument)
-                    return (positiveness_to_sign(min_term.is_positive())
-                            * Term.from_components(One, min_scale * one_fourth)
-                            + Term.from_components(One,
-                                                   max_scale * one_fourth))
+            discriminant = ((max_term.square() - min_term.square())
+                            / base_argument)
+            discriminant_sqrt = discriminant.perfect_sqrt()
+            if discriminant_sqrt.square() == discriminant:
+                max_scale = (max_term.scale + discriminant_sqrt) / 2
+                min_scale = (max_term.scale - discriminant_sqrt) / 2
+                one_fourth = Term(One, base_argument)
+                return (positiveness_to_sign(min_term.is_positive())
+                        * Term.from_components(One, min_scale * one_fourth)
+                        + Term.from_components(One, max_scale * one_fourth))
         elif terms_count == 1:
             term, = self.terms
             discriminant = self.tail.square() - term.square()
