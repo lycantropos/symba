@@ -144,28 +144,18 @@ class Form(Expression):
 
     def perfect_sqrt(self) -> Expression:
         terms_count = len(self.terms)
-        if self.degree != 1 or not self.tail and terms_count > 2:
+        if self.degree != 1:
             raise ValueError('Unsupported value: {!r}.'.format(self))
         elif not self.tail:
-            min_term, max_term = sorted(self.terms,
-                                        key=abs)
-            base_argument = max_term.argument
-            # checking if the form can be represented as
-            # ``(a * sqrt(b * sqrt(x)) + c * sqrt(d * sqrt(x))) ** 2``,
-            # where
-            # ``a, x`` are positive rational,
-            # ``b, d`` are positive non-equal rational,
-            # ``c`` is non-zero rational
-            discriminant = ((max_term.square() - min_term.square())
-                            / base_argument)
-            discriminant_sqrt = discriminant.perfect_sqrt()
-            if discriminant_sqrt.square() == discriminant:
-                max_scale = (max_term.scale + discriminant_sqrt) / 2
-                min_scale = (max_term.scale - discriminant_sqrt) / 2
-                one_fourth = Term(One, base_argument)
-                return (positiveness_to_sign(min_term.is_positive())
-                        * Term.from_components(One, min_scale * one_fourth)
-                        + Term.from_components(One, max_scale * one_fourth))
+            denominator, integer_form = self.extract_common_denominator()
+            arguments_gcd = form_arguments_gcd(integer_form)
+            if arguments_gcd != 1:
+                common_term = Term(One, Finite(arguments_gcd))
+                normalized_form = integer_form / common_term
+                normalized_sqrt = normalized_form.perfect_sqrt()
+                if normalized_sqrt.square() == normalized_form:
+                    return (Term(One / denominator, common_term)
+                            * normalized_sqrt)
         elif terms_count == 1:
             term, = self.terms
             discriminant = self.tail.square() - term.square()
@@ -201,32 +191,20 @@ class Form(Expression):
                             + Term(One,
                                    (term.scale + discriminant_sqrt) / 2
                                    * one_fourth))
-        elif terms_count == 3:
-            # checking if the form can be represented as
-            # ``(a * sqrt(x) + b * sqrt(y) + c * sqrt(z)) ** 2``,
-            # where
-            # ``a, b, c, x, y, z`` are rational,
-            # ``x, y, z`` are non-equal
-            minuend, subtrahend = (self.tail + self.terms[0],
-                                   self.terms[1] + self.terms[2])
-            discriminant = minuend.square() - subtrahend.square()
-            if discriminant.is_positive():
-                discriminant_sqrt = discriminant.perfect_sqrt()
-                if discriminant_sqrt.square() == discriminant:
-                    argument = (minuend - discriminant_sqrt) / 2
-                    return ((discriminant_sqrt + argument).perfect_sqrt()
-                            + (positiveness_to_sign(subtrahend.is_positive())
-                               * Term.from_components(One, argument)))
         else:
             denominator, integer_form = self.extract_common_denominator()
-            subtrahend, minuend = sorted(split_form(integer_form))
-            discriminant = minuend.square() - subtrahend.square()
+            lesser_part, greater_part = sorted(split_form(integer_form))
+            discriminant = greater_part.square() - lesser_part.square()
             discriminant_sqrt = discriminant.perfect_sqrt()
             if discriminant_sqrt.square() == discriminant:
-                squared_denominator = minuend + discriminant_sqrt
-                return ((squared_denominator + subtrahend)
-                        / squared_denominator.perfect_sqrt()
-                        / Term(Finite(denominator), Finite(2)))
+                addend = greater_part + discriminant_sqrt
+                if (addend.degree < self.degree
+                        or (len(addend.terms) + bool(addend.tail)
+                            < len(self.terms) + bool(self.tail))):
+                    addend_sqrt = addend.perfect_sqrt()
+                    if addend_sqrt.square() == addend:
+                        return ((addend + lesser_part) / addend_sqrt
+                                / Term(Finite(denominator), Finite(2)))
         common_denominator, integer_form = self.extract_common_denominator()
         common_numerator, _ = integer_form.extract_common_numerator()
         return (Finite(common_numerator) / common_denominator).perfect_sqrt()
@@ -363,6 +341,14 @@ class Form(Expression):
                 if other == One
                 else Form([term * other for term in self.terms],
                           self.tail * other))
+
+
+def form_arguments_gcd(integer_form: Form) -> int:
+    result, _, coprime_indices = _split_integers(
+            [term.argument.value.numerator
+             for term in sorted(integer_form.terms,
+                                key=_term_key)])
+    return 1 if coprime_indices else result
 
 
 def split_form(integer_form: Form) -> Tuple[Form, Form]:
