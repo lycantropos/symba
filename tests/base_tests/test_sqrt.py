@@ -35,11 +35,9 @@ def test_value(value: Union[Real, Expression]) -> None:
             or result == value == math.inf)
 
 
-@given(strategies.definite_non_negative_reals_or_expressions)
+@given(strategies.definite_reals_or_expressions)
 def test_round_trip(value: Union[Real, Expression]) -> None:
-    result = sqrt(value)
-
-    assert result ** 2 == value
+    assert sqrt(value ** 2) == abs(value)
 
 
 @given(strategies.definite_negative_reals_or_expressions)

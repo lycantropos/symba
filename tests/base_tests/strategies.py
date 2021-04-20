@@ -26,4 +26,6 @@ definite_non_negative_reals_or_expressions = (definite_non_negative_reals
 definite_negative_reals_or_expressions = (definite_negative_reals
                                           | (definite_expressions.filter(bool)
                                              .map(abs).map(neg)))
+definite_reals_or_expressions = (definite_negative_reals_or_expressions
+                                 | definite_non_negative_reals_or_expressions)
 sqrt_evaluators = strategies.just(math.sqrt)
