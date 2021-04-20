@@ -108,10 +108,10 @@ class Form(Expression):
             max_factorization = factorization.factors.pop(max_factor)
             numerator = numerator.multiply(
                     factorization
-                    + max_factorization.multiply_by_factor(-max_factor))
+                    - max_factorization.multiply_by_factor(max_factor))
             factorization = (
                     factorization.square()
-                    + max_factorization.square() * (-max_factor.square()))
+                    - max_factorization.square() * max_factor.square())
         return numerator.scale_non_zero(factorization.tail.inverse()).express()
 
     def is_positive(self) -> bool:
@@ -553,6 +553,13 @@ class Factorization:
                             if isinstance(other, Form)
                             else NotImplemented)))
 
+    def __neg__(self) -> 'Factorization':
+        result = Factorization(tail=-self.tail)
+        factors = result.factors
+        for factor, factorization in self.factors.items():
+            factors[factor] = -factorization
+        return result
+
     __rmul__ = __mul__
 
     def __str__(self) -> str:
@@ -571,6 +578,9 @@ class Factorization:
         return ((head + (' + ' + str(self.tail) if self.tail else ''))
                 if head
                 else str(self.tail))
+
+    def __sub__(self, other: 'Factorization') -> 'Factorization':
+        return self + (-other)
 
 
 def _factor_term(term: Term) -> Iterable[Factor]:
