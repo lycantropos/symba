@@ -199,19 +199,20 @@ class Form(Expression):
             denominator, integer_form = self.extract_common_denominator()
             lesser_part, greater_part = split_form(integer_form)
             discriminant = greater_part.square() - lesser_part.square()
-            discriminant_is_constant = not discriminant.degree
-            discriminant_sqrt = (Term.from_components(One, discriminant)
-                                 if discriminant_is_constant
-                                 else discriminant.perfect_sqrt())
-            if (discriminant_is_constant
-                    or discriminant_sqrt.square() == discriminant):
-                addend = greater_part + discriminant_sqrt
-                if (addend.degree < self.degree
-                        or (len(addend.terms) + bool(addend.tail)
-                            < len(self.terms) + bool(self.tail))):
-                    return ((addend + lesser_part)
-                            / Term.from_components(Finite(denominator),
-                                                   2 * addend))
+            if discriminant.is_positive():
+                discriminant_is_constant = not discriminant.degree
+                discriminant_sqrt = (Term.from_components(One, discriminant)
+                                     if discriminant_is_constant
+                                     else discriminant.perfect_sqrt())
+                if (discriminant_is_constant
+                        or discriminant_sqrt.square() == discriminant):
+                    addend = greater_part + discriminant_sqrt
+                    if (addend.degree < self.degree
+                            or (len(addend.terms) + bool(addend.tail)
+                                < len(self.terms) + bool(self.tail))):
+                        return ((addend + lesser_part)
+                                / Term.from_components(Finite(denominator),
+                                                       2 * addend))
         common_denominator, integer_form = self.extract_common_denominator()
         common_numerator, _ = integer_form.extract_common_numerator()
         return (Finite(common_numerator) / common_denominator).perfect_sqrt()
