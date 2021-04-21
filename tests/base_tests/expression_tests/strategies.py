@@ -5,19 +5,19 @@ from hypothesis import strategies
 from symba.base import sqrt
 from symba.core.constant import (One,
                                  Zero)
-from tests.strategies import (definite_non_zero_reals,
-                              definite_reals,
-                              finite_non_negative_reals,
-                              finite_non_zero_reals,
-                              finite_reals,
-                              indefinite_reals,
-                              infinite_reals,
-                              negative_infinite_reals,
-                              positive_infinite_reals,
-                              reals,
-                              to_nested_expressions,
-                              unary_reals,
-                              zero_reals)
+from tests.strategies.base import (definite_non_zero_reals,
+                                   definite_reals,
+                                   finite_non_negative_reals,
+                                   finite_non_zero_reals,
+                                   finite_reals,
+                                   indefinite_reals,
+                                   infinite_reals,
+                                   negative_infinite_reals,
+                                   positive_infinite_reals,
+                                   reals,
+                                   unary_reals,
+                                   zero_reals)
+from tests.strategies.factories import to_nested_expressions
 
 MAX_EXPONENT = 10
 MIN_EXPONENT = -MAX_EXPONENT

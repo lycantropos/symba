@@ -5,6 +5,8 @@ Value = TypeVar('Value')
 
 MAX_VALUE = 10 ** 15
 MIN_VALUE = -MAX_VALUE
+SQRT_MAX_VALUE = 10 ** 2
+SQRT_MIN_VALUE = -MAX_VALUE
 
 
 def equivalence(left_statement: bool, right_statement: bool) -> bool:

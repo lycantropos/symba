@@ -4,11 +4,11 @@ from operator import neg
 from hypothesis import strategies
 
 from symba.base import sqrt
-from tests.strategies import (definite_negative_reals,
-                              definite_non_negative_reals,
-                              finite_non_negative_reals,
-                              positive_infinite_reals,
-                              to_nested_expressions)
+from tests.strategies.factories import to_nested_expressions
+from tests.strategies.sqrt_base import (definite_negative_reals,
+                                        definite_non_negative_reals,
+                                        finite_non_negative_reals,
+                                        positive_infinite_reals)
 
 finite_square_roots = strategies.builds(sqrt, finite_non_negative_reals)
 definite_square_roots = strategies.builds(sqrt, definite_non_negative_reals)
