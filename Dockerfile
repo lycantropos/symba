@@ -7,14 +7,16 @@ RUN pip install --upgrade pip setuptools
 
 WORKDIR /opt/symba
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
 COPY requirements-tests.txt .
 RUN pip install -r requirements-tests.txt
+COPY requirements-setup.txt .
+COPY requirements.txt .
 
 COPY README.md .
 COPY pytest.ini .
 COPY setup.py .
-COPY symba symba
-COPY tests tests
+COPY symba symba/
+COPY src/ src/
+COPY tests/ tests/
+
+RUN pip install -e .
