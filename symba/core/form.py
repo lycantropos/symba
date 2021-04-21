@@ -360,9 +360,12 @@ def form_arguments_gcd(integer_form: Form) -> int:
 
 
 def split_form(integer_form: Form) -> Tuple[Form, Form]:
+    terms = integer_form.terms
+    if len(terms) == 3:
+        return Form(terms[1:]), Form([terms[0]], integer_form.tail)
     surds, terms = zip(*sorted(
             [(_to_square_free(term.argument.value.numerator), term)
-             for term in integer_form.terms]))
+             for term in terms]))
     cocomposite_indices, coprime_indices = split_integers(surds)
     return ((Form([terms[index] for index in cocomposite_indices]),
              Form([terms[index] for index in coprime_indices],
