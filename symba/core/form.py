@@ -27,6 +27,7 @@ from .utils import (BASE,
                     digits_count,
                     lcm,
                     positiveness_to_sign,
+                    sqrt_floor,
                     transpose)
 
 
@@ -141,11 +142,10 @@ class Form(Expression):
                 / (common_denominator * scale))
 
     def perfect_sqrt(self) -> Expression:
-        terms_count = len(self.terms)
         if self.degree != 1:
             raise ValueError('Unsupported value: {!r}.'.format(self))
-        elif not self.tail:
-            denominator, integer_form = self.extract_common_denominator()
+        denominator, integer_form = self.extract_common_denominator()
+        if not self.tail:
             arguments_gcd = form_arguments_gcd(integer_form)
             if arguments_gcd != 1:
                 common_term = Term(One, Finite(arguments_gcd))
@@ -154,9 +154,9 @@ class Form(Expression):
                 if normalized_sqrt.square() == normalized_form:
                     return (Term(One / denominator, common_term)
                             * normalized_sqrt)
-        elif terms_count == 1:
-            term, = self.terms
-            discriminant = self.tail.square() - term.square()
+        elif len(self.terms) == 1:
+            term, = integer_form.terms
+            discriminant = integer_form.tail.square() - term.square()
             if discriminant.is_positive():
                 # checking if the form can be represented as
                 # ``(a * sqrt(x) + b * sqrt(y)) ** 2``,
@@ -165,14 +165,17 @@ class Form(Expression):
                 # ``x, y`` are non-equal
                 discriminant_sqrt = discriminant.perfect_sqrt()
                 if discriminant_sqrt.square() == discriminant:
+                    scale = One / denominator
                     return (positiveness_to_sign(term.is_positive())
-                            * Term.from_components(
-                                    One, (self.tail - discriminant_sqrt) / 2)
-                            + Term.from_components(
-                                    One, (self.tail + discriminant_sqrt) / 2))
+                            * Term.from_components(scale,
+                                                   (integer_form.tail
+                                                    - discriminant_sqrt) / 2)
+                            + Term.from_components(scale,
+                                                   (integer_form.tail
+                                                    + discriminant_sqrt) / 2))
             else:
                 # checking if the form can be represented as
-                # ``(sqrt(a * sqrt(x)) + b * sqrt(c * sqrt(x))) ** 2``,
+                # ``((sqrt(a) + b * sqrt(c)) * sqrt(sqrt(x))) ** 2``,
                 # where
                 # ``a, b, c, x`` are non-zero rational,
                 # ``a, c, x`` are positive,
@@ -181,20 +184,25 @@ class Form(Expression):
                 discriminant /= -term.argument
                 discriminant_sqrt = discriminant.perfect_sqrt()
                 if discriminant_sqrt.square() == discriminant:
-                    one_fourth = Term(One, term.argument)
+                    scale = One / denominator
+                    sub_term = Term(One, term.argument)
                     return (positiveness_to_sign(self.tail.is_positive())
-                            * Term(One,
+                            * Term(scale,
                                    (term.scale - discriminant_sqrt) / 2
-                                   * one_fourth)
-                            + Term(One,
+                                   * sub_term)
+                            + Term(scale,
                                    (term.scale + discriminant_sqrt) / 2
-                                   * one_fourth))
+                                   * sub_term))
         else:
             denominator, integer_form = self.extract_common_denominator()
-            lesser_part, greater_part = sorted(split_form(integer_form))
+            lesser_part, greater_part = split_form(integer_form)
             discriminant = greater_part.square() - lesser_part.square()
-            discriminant_sqrt = discriminant.perfect_sqrt()
-            if discriminant_sqrt.square() == discriminant:
+            discriminant_is_constant = not discriminant.degree
+            discriminant_sqrt = (Term.from_components(One, discriminant)
+                                 if discriminant_is_constant
+                                 else discriminant.perfect_sqrt())
+            if (discriminant_is_constant
+                    or discriminant_sqrt.square() == discriminant):
                 addend = greater_part + discriminant_sqrt
                 if (addend.degree < self.degree
                         or (len(addend.terms) + bool(addend.tail)
