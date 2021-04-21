@@ -404,8 +404,6 @@ def _split_integers(integers: Iterable[int]
 try:
     import _symba
 except ImportError:
-    _to_square_free = _symba.to_square_free
-else:
     def _to_square_free(value: int) -> int:
         for candidate in _factors_candidates(value):
             factor_squared = candidate * candidate
@@ -413,6 +411,8 @@ else:
             if not remainder:
                 return _to_square_free(quotient)
         return value
+else:
+    _to_square_free = _symba.to_square_free
 _to_square_free = lru_cache(None)(_to_square_free)
 
 
