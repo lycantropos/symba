@@ -33,7 +33,7 @@ zero_reals_or_expressions = zero_reals | zero_expressions
 finite_square_roots = strategies.builds(sqrt, finite_non_negative_reals)
 finite_expressions = strategies.recursive(finite_square_roots,
                                           to_nested_expressions,
-                                          max_leaves=5)
+                                          max_leaves=3)
 finite_reals_or_expressions = finite_reals | finite_expressions
 finite_non_zero_expressions = finite_expressions.filter(bool)
 finite_non_zero_reals_or_expressions = (finite_non_zero_reals

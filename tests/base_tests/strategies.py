@@ -19,7 +19,7 @@ infinite_expressions = (negative_infinite_expressions
                         | positive_infinite_expressions)
 finite_expressions = strategies.recursive(finite_square_roots,
                                           to_nested_expressions,
-                                          max_leaves=5)
+                                          max_leaves=3)
 definite_expressions = finite_expressions | infinite_expressions
 definite_non_negative_reals_or_expressions = (definite_non_negative_reals
                                               | definite_expressions.map(abs))
