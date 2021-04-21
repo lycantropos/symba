@@ -15,7 +15,7 @@ from .hints import SqrtEvaluator
 from .utils import (digits_count,
                     identity,
                     positiveness_to_sign,
-                    sqrt_if_perfect_square,
+                    perfect_sqrt,
                     square)
 
 
@@ -84,8 +84,8 @@ class Finite(Constant):
         return self.value > 0
 
     def perfect_sqrt(self) -> Expression:
-        return Finite(Fraction(sqrt_if_perfect_square(self.value.numerator),
-                               sqrt_if_perfect_square(self.value.denominator)))
+        return Finite(Fraction(perfect_sqrt(self.value.numerator),
+                               perfect_sqrt(self.value.denominator)))
 
     def significant_digits_count(self) -> int:
         return digits_count(self._value.limit_denominator(1).numerator)
