@@ -219,7 +219,7 @@ class Form(Expression):
         return (max(max(term.significant_digits_count()
                         for term in self.terms),
                     self.tail.significant_digits_count())
-                + digits_count(len(self.terms) + bool(self.tail)))
+                + digits_count(len(self.terms) + bool(self.tail)) + 1)
 
     def square(self) -> Expression:
         terms = ([(2 * self.tail) * term for term in self.terms]
