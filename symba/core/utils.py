@@ -1,5 +1,6 @@
 import math
 from fractions import Fraction
+from itertools import chain
 from numbers import Rational
 from typing import (Any,
                     Iterable,
@@ -81,6 +82,24 @@ def to_binary_digits(value: int) -> Iterable[int]:
     for _ in range(value.bit_length()):
         yield value % 2
         value >>= 1
+
+
+try:
+    import _symba
+except ImportError:
+    def to_square_free(value: int) -> int:
+        for candidate in _factors_candidates(value):
+            factor_squared = candidate * candidate
+            quotient, remainder = divmod(value, factor_squared)
+            if not remainder:
+                return to_square_free(quotient)
+        return value
+
+
+    def _factors_candidates(value: int) -> Iterable[int]:
+        return chain((2,), range(3, sqrt_floor(value) + 1, 2))
+else:
+    to_square_free = _symba.to_square_free
 
 
 def transpose(pairs_sequence: Sequence[Tuple[_T1, _T2]]

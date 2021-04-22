@@ -1,8 +1,6 @@
 import math
 from collections import defaultdict
-from functools import (lru_cache,
-                       reduce)
-from itertools import chain
+from functools import reduce
 from numbers import Real
 from typing import (Any,
                     DefaultDict,
@@ -29,7 +27,7 @@ from .utils import (BASE,
                     digits_count,
                     lcm,
                     positiveness_to_sign,
-                    sqrt_floor,
+                    to_square_free,
                     transpose)
 
 
@@ -364,7 +362,7 @@ def split_form(integer_form: Form) -> Tuple[Form, Form]:
     if len(terms) == 3:
         return Form(terms[1:]), Form([terms[0]], integer_form.tail)
     surds, terms = zip(*sorted(
-            [(_to_square_free(term.argument.value.numerator), term)
+            [(to_square_free(term.argument.value.numerator), term)
              for term in terms]))
     cocomposite_indices, coprime_indices = split_integers(surds)
     return ((Form([terms[index] for index in cocomposite_indices]),
@@ -378,10 +376,6 @@ def split_integers(values: Sequence[int]) -> Tuple[List[int], List[int]]:
         _, cocomposite_indices, coprime_indices = _split_integers(
                 value // gcd for value in values)
     return cocomposite_indices, coprime_indices
-
-
-def _factors_candidates(value: int) -> Iterable[int]:
-    return chain((2,), range(3, sqrt_floor(value) + 1, 2))
 
 
 def _split_integers(integers: Iterable[int]
@@ -399,21 +393,6 @@ def _split_integers(integers: Iterable[int]
             gcd = value_gcd
             cocomposite_indices.append(index)
     return gcd, cocomposite_indices, coprime_indices
-
-
-try:
-    import _symba
-except ImportError:
-    def _to_square_free(value: int) -> int:
-        for candidate in _factors_candidates(value):
-            factor_squared = candidate * candidate
-            quotient, remainder = divmod(value, factor_squared)
-            if not remainder:
-                return _to_square_free(quotient)
-        return value
-else:
-    _to_square_free = _symba.to_square_free
-_to_square_free = lru_cache(None)(_to_square_free)
 
 
 class Factor:
