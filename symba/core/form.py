@@ -194,7 +194,6 @@ class Form(Expression):
                                    (term.scale + discriminant_sqrt) / 2
                                    * sub_term))
         else:
-            numerator, integer_form = integer_form.extract_common_numerator()
             lesser_part, greater_part = split_form(integer_form)
             discriminant = greater_part.square() - lesser_part.square()
             if discriminant.is_positive():
@@ -209,8 +208,7 @@ class Form(Expression):
                             or (len(addend.terms) + bool(addend.tail)
                                 < len(self.terms) + bool(self.tail))):
                         return ((addend + lesser_part)
-                                / Term.from_components(Finite(denominator)
-                                                       / numerator,
+                                / Term.from_components(Finite(denominator),
                                                        2 * addend))
         common_denominator, integer_form = self.extract_common_denominator()
         common_numerator, _ = integer_form.extract_common_numerator()
