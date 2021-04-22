@@ -9,7 +9,7 @@ namespace py = pybind11;
 #define VERSION_INFO "dev"
 #endif
 
-using Int = long long;
+using Int = unsigned long long;
 
 static int log2floor(Int value) {
   int result = 0;
@@ -17,13 +17,20 @@ static int log2floor(Int value) {
   return result;
 }
 
+static uint64_t _approximate_integer_sqrt(uint64_t value) {
+  uint32_t result = 1 + (value >> 62);
+  result = (result << 1) + (value >> 59) / result;
+  result = (result << 3) + (value >> 53) / result;
+  result = (result << 7) + (value >> 41) / result;
+  return (result << 15) + (value >> 17) / result;
+}
+
 static Int sqrt_floor(Int value) {
-  Int candidate = 1 << ((log2floor(value) + 2) >> 1);
-  while (true) {
-    Int next_candidate = (candidate + value / candidate) >> 1;
-    if (next_candidate >= candidate) return candidate;
-    candidate = next_candidate;
-  }
+  int result_bits_width = (log2floor(value)) / 2;
+  Int result =
+      _approximate_integer_sqrt(value << (62 - 2 * result_bits_width)) >>
+      (31 - result_bits_width);
+  return result - ((result * result - 1) >= value);
 }
 
 static Int to_square_free(Int value) {
@@ -41,14 +48,14 @@ static Int to_square_free(Int value) {
 PYBIND11_MODULE(MODULE_NAME, m) {
   m.doc() = R"pbdoc(`symba` package utilities.)pbdoc";
 
-  m.def("sqrt_floor", [](py::object value) {
-    return py::reinterpret_steal<py::object>(PyLong_FromLongLong(
-        sqrt_floor(PyLong_AsLongLong(value.ptr()))));
+  m.def("sqrt_floor", [](const py::object& value) {
+    return py::reinterpret_steal<py::object>(PyLong_FromUnsignedLongLong(
+        sqrt_floor(PyLong_AsUnsignedLongLong(value.ptr()))));
   });
 
-  m.def("to_square_free", [](py::object value) {
-    return py::reinterpret_steal<py::object>(PyLong_FromLongLong(
-        to_square_free(PyLong_AsLongLong(value.ptr()))));
+  m.def("to_square_free", [](const py::object& value) {
+    return py::reinterpret_steal<py::object>(PyLong_FromUnsignedLongLong(
+        to_square_free(PyLong_AsUnsignedLongLong(value.ptr()))));
   });
 
   m.attr("__version__") = C_STR(VERSION_INFO);
