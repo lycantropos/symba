@@ -39,34 +39,52 @@ class Form(Expression):
     def from_components(cls,
                         terms: List[Term],
                         tail: Finite = Zero) -> Expression:
-        arguments_scales = (defaultdict
-                            (Finite))  # type: Dict[Expression, Finite]
-        queue = sorted(terms,
-                       key=_term_key,
-                       reverse=True)
-        while queue:
-            min_term = queue.pop()
+        irrational_arguments_scales = (
+            defaultdict(Finite))  # type: Dict[Expression, Finite]
+        rational_arguments_terms = []  # type: List[Term]
+        for term in terms:
+            if term.argument.degree:
+                denominator, integer_argument = (term.argument
+                                                 .extract_common_denominator())
+                numerator, integer_argument = (integer_argument
+                                               .extract_common_numerator())
+                irrational_arguments_scales[integer_argument] += (
+                        term.scale.square()
+                        * (Finite(numerator
+                                  * positiveness_to_sign(term.is_positive()))
+                           / denominator))
+            else:
+                rational_arguments_terms.append(term)
+        rational_arguments_terms.sort(key=abs,
+                                      reverse=True)
+        rational_arguments_scales = (
+            defaultdict(Finite))  # type: Dict[Expression, Finite]
+        while rational_arguments_terms:
+            min_term = rational_arguments_terms.pop()
             min_term_argument = min_term.argument
-            arguments_scales[min_term_argument] += min_term.scale
-            next_queue, min_term_argument_type = [], type(min_term_argument)
-            for term in queue:
-                if isinstance(term.argument, min_term_argument_type):
-                    ratio = term.argument / min_term_argument
-                    if isinstance(ratio, Finite):
-                        ratio_sqrt = ratio.perfect_sqrt()
-                        if ratio_sqrt.square() == ratio:
-                            arguments_scales[min_term_argument] += (
-                                    term.scale * ratio_sqrt)
-                            continue
-                next_queue.append(term)
-            queue = next_queue
-        terms = [Term(scale, argument)
-                 for argument, scale in arguments_scales.items()
-                 if scale]
-        return ((cls(terms,
-                     tail=tail)
-                 if tail or len(terms) > 1
-                 else terms[0])
+            rational_arguments_scales[min_term_argument] += min_term.scale
+            next_rational_arguments_terms = []
+            for term in rational_arguments_terms:
+                arguments_ratio = term.argument / min_term_argument
+                arguments_ratio_sqrt = arguments_ratio.perfect_sqrt()
+                if arguments_ratio_sqrt.square() == arguments_ratio:
+                    rational_arguments_scales[min_term_argument] += (
+                            term.scale * arguments_ratio_sqrt)
+                else:
+                    next_rational_arguments_terms.append(term)
+            rational_arguments_terms = next_rational_arguments_terms
+        if (len(irrational_arguments_scales) + len(rational_arguments_scales)
+                != len(terms)):
+            terms = (
+                    [Term(One, scale * argument)
+                     if scale.is_positive()
+                     else Term(-One, (-scale) * argument)
+                     for argument, scale in irrational_arguments_scales.items()
+                     if scale]
+                    + [Term(scale, argument)
+                       for argument, scale in rational_arguments_scales.items()
+                       if scale])
+        return ((cls(terms, tail) if tail or len(terms) > 1 else terms[0])
                 if terms
                 else tail)
 
