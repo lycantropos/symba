@@ -35,10 +35,10 @@ static Int sqrt_floor(Int value) {
 
 static Int to_square_free(Int value) {
   while (!(value % 4)) value /= 4;
-  Int value_sqrt = sqrt_floor(value);
-  for (Int factor_candidate = 3; factor_candidate < value_sqrt;
-       factor_candidate += 2) {
-    Int factor_candidate_squared = factor_candidate * factor_candidate;
+  for (Int factor_candidate = 3, factor_candidate_squared = 9;
+       factor_candidate_squared < value;
+       factor_candidate_squared += 2 * factor_candidate + 1,
+           factor_candidate += 2) {
     while (!(value % factor_candidate_squared))
       value /= factor_candidate_squared;
   }
