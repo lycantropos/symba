@@ -1,3 +1,3 @@
 """Symbolic computations."""
 
-__version__ = '0.4.1-alpha'
+__version__ = '0.4.1'
