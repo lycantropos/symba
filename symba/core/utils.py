@@ -3,6 +3,7 @@ from fractions import Fraction
 from itertools import chain
 from numbers import Rational
 from typing import (Any,
+                    Callable,
                     Iterable,
                     Sequence,
                     Tuple,
@@ -99,7 +100,7 @@ except ImportError:
     def _factors_candidates(value: int) -> Iterable[int]:
         return chain((2,), range(3, sqrt_floor(value) + 1, 2))
 else:
-    to_square_free = _symba.to_square_free
+    to_square_free = _symba.to_square_free  # type: Callable[[int], int]
 
 
 def transpose(pairs_sequence: Sequence[Tuple[_T1, _T2]]
