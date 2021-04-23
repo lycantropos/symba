@@ -118,20 +118,18 @@ class Form(Expression):
         return common_numerator, self / common_numerator
 
     def inverse(self) -> Expression:
-        common_denominator, form = self.extract_common_denominator()
-        numerator, factorization = (
-            Factorization(tail=One * common_denominator),
-            Factorization.from_form(form))
-        while factorization.factors:
-            max_factor = max(factorization.factors)
-            max_factorization = factorization.factors.pop(max_factor)
+        common_denominator, integer_form = self.extract_common_denominator()
+        numerator, denominator = (Factorization(tail=One * common_denominator),
+                                  Factorization.from_form(integer_form))
+        while denominator.factors:
+            max_factor = max(denominator.factors)
+            max_factorization = denominator.factors.pop(max_factor)
             numerator = numerator.multiply(
-                    factorization
+                    denominator
                     - max_factorization.multiply_by_factor(max_factor))
-            factorization = (
-                    factorization.square()
-                    - max_factorization.square() * max_factor.square())
-        return numerator.scale_non_zero(factorization.tail.inverse()).express()
+            denominator = (denominator.square()
+                           - max_factorization.square() * max_factor.square())
+        return numerator.scale_non_zero(denominator.tail.inverse()).express()
 
     def is_positive(self) -> bool:
         components = (*self.terms, self.tail) if self.tail else self.terms
