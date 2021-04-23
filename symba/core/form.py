@@ -590,6 +590,8 @@ class Factorization:
             factors[factor] = -factorization
         return result
 
+    __repr__ = generate_repr(__init__)
+
     __rmul__ = __mul__
 
     def __str__(self) -> str:
