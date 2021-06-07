@@ -9,7 +9,6 @@ WORKDIR /opt/symba
 
 COPY requirements-tests.txt .
 RUN pip install -r requirements-tests.txt
-COPY requirements-setup.txt .
 COPY requirements.txt .
 
 COPY README.md .

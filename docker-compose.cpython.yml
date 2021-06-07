@@ -11,7 +11,6 @@ services:
     volumes:
       - ./pytest.ini:/opt/symba/pytest.ini
       - ./README.md:/opt/symba/README.md
-      - ./requirements-setup.txt:/opt/symba/requirements-setup.txt
       - ./requirements-tests.txt:/opt/symba/requirements-tests.txt
       - ./requirements.txt:/opt/symba/requirements.txt
       - ./setup.py:/opt/symba/setup.py
