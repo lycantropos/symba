@@ -55,8 +55,5 @@ static PyModuleDef _symba_module = {
 };
 
 PyMODINIT_FUNC PyInit__symba(void) {
-  PyObject *result;
-  result = PyModule_Create(&_symba_module);
-  if (result == NULL) return NULL;
-  return result;
+  return PyModule_Create(&_symba_module);
 }
