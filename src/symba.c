@@ -33,7 +33,7 @@ static PyObject *to_square_free(PyObject *self, PyObject *integer)
       if (PyErr_Occurred())
         return NULL;
       else if (overflow_flag) {
-        long long value = PyLong_AsUnsignedLongLong(integer);
+        long long value = PyLong_AsLongLong(integer);
         if (value == -1 && PyErr_Occurred())
           return NULL;
         return PyLong_FromLongLong(to_square_free_long_long(value));
