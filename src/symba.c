@@ -39,7 +39,7 @@ static PyObject *to_square_free(PyObject *self, PyObject *integer)
         return PyLong_FromLongLong(to_square_free_long_long(value));
       }
     }
-    return PyLong_FromUnsignedLong(to_square_free_long(value));
+    return PyLong_FromLong(to_square_free_long(value));
 }
 
 static PyMethodDef _symba_methods[] = {
