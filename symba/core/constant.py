@@ -1,6 +1,5 @@
 import math
 from abc import abstractmethod
-from fractions import Fraction
 from numbers import (Rational,
                      Real)
 from typing import (Any,
@@ -8,6 +7,7 @@ from typing import (Any,
                     Tuple,
                     Union)
 
+from cfractions import Fraction
 from reprit.base import generate_repr
 
 from .expression import Expression
