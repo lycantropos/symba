@@ -39,7 +39,7 @@ static PyObject* to_square_free(PyObject* self, PyObject* integer) {
 }
 
 static PyMethodDef _symba_methods[] = {
-    {"to_square_free", (PyCFunction)to_square_free, METH_O, NULL},
+    {"to_square_free", to_square_free, METH_O, NULL},
     {NULL, NULL} /* sentinel */
 };
 
