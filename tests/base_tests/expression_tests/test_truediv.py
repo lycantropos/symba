@@ -23,8 +23,7 @@ def test_self_inverse(expression: Expression) -> None:
 
 @given(strategies.finite_non_zero_expressions,
        strategies.finite_non_zero_expressions)
-def test_commutative_case(first: Expression,
-                          second: Expression) -> None:
+def test_commutative_case(first: Expression, second: Expression) -> None:
     assert equivalence(first / second == second / first,
                        abs(first) == abs(second))
 

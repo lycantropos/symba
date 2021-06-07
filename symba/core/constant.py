@@ -14,8 +14,8 @@ from .expression import Expression
 from .hints import SqrtEvaluator
 from .utils import (digits_count,
                     identity,
-                    positiveness_to_sign,
                     perfect_sqrt,
+                    positiveness_to_sign,
                     square)
 
 

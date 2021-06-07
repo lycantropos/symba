@@ -1,5 +1,6 @@
 from numbers import Real
-from typing import Tuple, Union
+from typing import (Tuple,
+                    Union)
 
 from hypothesis import given
 
@@ -53,6 +54,6 @@ def test_rtruediv_operand(real_or_expression_with_expression
                           : Tuple[Union[Real, Expression], Expression]
                           ) -> None:
     real_or_expression, expression = real_or_expression_with_expression
-    result = abs(real_or_expression / expression)
 
-    assert result == abs(real_or_expression) / abs(expression)
+    assert (abs(real_or_expression / expression)
+            == abs(real_or_expression) / abs(expression))
