@@ -15,9 +15,7 @@ def test_basic(real: Real, expression: Expression) -> None:
 
 @given(strategies.definite_reals_or_expressions, strategies.unary_expressions)
 def test_right_neutral_element(real: Real, expression: Expression) -> None:
-    result = real / expression
-
-    assert result == real
+    assert real / expression == real
 
 
 @given(strategies.finite_reals_or_expressions,
@@ -26,9 +24,8 @@ def test_right_neutral_element(real: Real, expression: Expression) -> None:
 def test_add_dividend(first_real: Real,
                       second_real: Real,
                       expression: Expression) -> None:
-    result = (first_real + second_real) / expression
-
-    assert result == (first_real / expression) + (second_real / expression)
+    assert ((first_real + second_real) / expression
+            == (first_real / expression) + (second_real / expression))
 
 
 @given(strategies.finite_reals_or_expressions,
@@ -37,16 +34,13 @@ def test_add_dividend(first_real: Real,
 def test_sub_dividend(first_real: Real,
                       second_real: Real,
                       expression: Expression) -> None:
-    result = (first_real - second_real) / expression
-
-    assert result == (first_real / expression) - (second_real / expression)
+    assert ((first_real - second_real) / expression
+            == (first_real / expression) - (second_real / expression))
 
 
 @given(strategies.finite_reals, strategies.definite_non_zero_expressions,
        strategies.definite_non_zero_expressions)
 def test_mul_divisor(real: Real,
-                     first_expression: Expression,
-                     second_expression: Expression) -> None:
-    result = real / (first_expression * second_expression)
-
-    assert result == (real / first_expression) / second_expression
+                     first: Expression,
+                     second: Expression) -> None:
+    assert real / (first * second) == (real / first) / second

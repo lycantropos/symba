@@ -12,39 +12,27 @@ def test_reflexivity(expression: Expression) -> None:
 
 
 @given(strategies.definite_expressions, strategies.definite_expressions)
-def test_antisymmetry(first_expression: Expression,
-                      second_expression: Expression) -> None:
-    assert equivalence(first_expression >= second_expression
-                       >= first_expression,
-                       first_expression == second_expression)
+def test_antisymmetry(first: Expression, second: Expression) -> None:
+    assert equivalence(first >= second >= first, first == second)
 
 
 @given(strategies.indefinite_expressions, strategies.expressions)
-def test_indefinite(first_expression: Expression,
-                    second_expression: Expression) -> None:
-    assert not (first_expression >= second_expression
-                or second_expression >= first_expression)
+def test_indefinite(first: Expression, second: Expression) -> None:
+    assert not (first >= second or second >= first)
 
 
 @given(strategies.definite_expressions, strategies.definite_expressions,
        strategies.definite_expressions)
-def test_transitivity(first_expression: Expression,
-                      second_expression: Expression,
-                      third_expression: Expression) -> None:
-    assert implication(first_expression >= second_expression
-                       >= third_expression,
-                       first_expression >= third_expression)
+def test_transitivity(first: Expression,
+                      second: Expression,
+                      third: Expression) -> None:
+    assert implication(first >= second >= third, first >= third)
 
 
 @given(strategies.definite_expressions, strategies.definite_expressions)
-def test_equivalents(first_expression: Expression,
-                     second_expression: Expression) -> None:
-    result = first_expression >= second_expression
+def test_equivalents(first: Expression, second: Expression) -> None:
+    result = first >= second
 
-    assert equivalence(result, second_expression <= first_expression)
-    assert equivalence(result,
-                       first_expression > second_expression
-                       or first_expression == second_expression)
-    assert equivalence(result,
-                       second_expression < first_expression
-                       or first_expression == second_expression)
+    assert equivalence(result, second <= first)
+    assert equivalence(result, first > second or first == second)
+    assert equivalence(result, second < first or first == second)

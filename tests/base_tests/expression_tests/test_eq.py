@@ -12,24 +12,19 @@ def test_reflexivity(expression: Expression) -> None:
 
 
 @given(strategies.definite_expressions, strategies.definite_expressions)
-def test_symmetry(first_expression: Expression,
-                  second_expression: Expression) -> None:
-    assert equivalence(first_expression == second_expression,
-                       second_expression == first_expression)
+def test_symmetry(first: Expression, second: Expression) -> None:
+    assert equivalence(first == second, second == first)
 
 
 @given(strategies.definite_expressions, strategies.definite_expressions,
        strategies.definite_expressions)
-def test_transitivity(first_expression: Expression,
-                      second_expression: Expression,
-                      third_expression: Expression) -> None:
-    assert implication(first_expression == second_expression
-                       and second_expression == third_expression,
-                       first_expression == third_expression)
+def test_transitivity(first: Expression,
+                      second: Expression,
+                      third: Expression) -> None:
+    assert implication(first == second and second == third, first == third)
 
 
 @given(strategies.definite_expressions, strategies.definite_expressions)
-def test_connection_with_inequality(first_expression: Expression,
-                                    second_expression: Expression) -> None:
-    assert equivalence(not first_expression == second_expression,
-                       first_expression != second_expression)
+def test_connection_with_inequality(first: Expression,
+                                    second: Expression) -> None:
+    assert equivalence(not first == second, first != second)

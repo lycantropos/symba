@@ -19,34 +19,28 @@ def test_basic(expression: Expression,
 @given(strategies.definitely_summable_expressions_pairs)
 def test_commutativity(expressions_pair: Tuple[Expression, Expression]
                        ) -> None:
-    first_expression, second_expression = expressions_pair
-    result = first_expression + second_expression
+    first, second = expressions_pair
 
-    assert result == second_expression + first_expression
+    assert first + second == second + first
 
 
 @given(strategies.zero_expressions, strategies.definite_reals_or_expressions)
 def test_left_neutral_element(expression: Expression,
                               real_or_expression: Union[Real, Expression]
                               ) -> None:
-    result = expression + real_or_expression
-
-    assert result == real_or_expression
+    assert expression + real_or_expression == real_or_expression
 
 
 @given(strategies.definite_expressions, strategies.zero_reals_or_expressions)
 def test_right_neutral_element(expression: Expression,
                                real_or_expression: Union[Real, Expression]
                                ) -> None:
-    result = expression + real_or_expression
-
-    assert result == expression
+    assert expression + real_or_expression == expression
 
 
 @given(strategies.definitely_summable_expressions_triplets)
 def test_associativity(expressions_triplet
                        : Tuple[Expression, Expression, Expression]) -> None:
-    first_expression, second_expression, third_expression = expressions_triplet
+    first, second, third = expressions_triplet
 
-    assert ((first_expression + second_expression) + third_expression
-            == first_expression + (second_expression + third_expression))
+    assert (first + second) + third == first + (second + third)

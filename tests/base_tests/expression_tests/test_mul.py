@@ -19,11 +19,9 @@ def test_basic(expression: Expression,
 @given(strategies.definitely_multipliable_expressions_pairs)
 def test_commutativity(expressions_pair: Tuple[Expression, Expression]
                        ) -> None:
-    first_expression, second_expression = expressions_pair
+    first, second = expressions_pair
 
-    result = first_expression * second_expression
-
-    assert result == second_expression * first_expression
+    assert first * second == second * first
 
 
 @given(strategies.unary_expressions, strategies.definite_reals_or_expressions)
@@ -47,7 +45,6 @@ def test_right_neutral_element(expression: Expression,
 @given(strategies.definitely_multipliable_expressions_triplets)
 def test_associativity(expressions_triplet
                        : Tuple[Expression, Expression, Expression]) -> None:
-    first_expression, second_expression, third_expression = expressions_triplet
+    first, second, third = expressions_triplet
 
-    assert ((first_expression * second_expression) * third_expression
-            == first_expression * (second_expression * third_expression))
+    assert (first * second) * third == first * (second * third)
