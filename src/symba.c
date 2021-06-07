@@ -3,10 +3,10 @@
 
 static long to_square_free_long(long value) {
   while (!(value % 4)) value /= 4;
-  for (long factor_candidate = 3, factor_candidate_squared = 9;
+  for (long factor_candidate = 1, factor_candidate_squared = 9;
        factor_candidate_squared < value;
-       factor_candidate_squared += 2 * factor_candidate + 1,
-            factor_candidate += 2) {
+       factor_candidate += 2,
+       factor_candidate_squared += 4 * factor_candidate + 4) {
     while (!(value % factor_candidate_squared))
       value /= factor_candidate_squared;
   }
@@ -15,10 +15,10 @@ static long to_square_free_long(long value) {
 
 static long long to_square_free_long_long(long long value) {
   while (!(value % 4)) value /= 4;
-  for (long long factor_candidate = 3, factor_candidate_squared = 9;
+  for (long long factor_candidate = 1, factor_candidate_squared = 9;
        factor_candidate_squared < value;
-       factor_candidate_squared += 2 * factor_candidate + 1,
-                 factor_candidate += 2) {
+       factor_candidate += 2,
+       factor_candidate_squared += 4 * factor_candidate + 4) {
     while (!(value % factor_candidate_squared))
       value /= factor_candidate_squared;
   }
