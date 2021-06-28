@@ -7,8 +7,7 @@ from typing import (Optional,
                     Union)
 
 from .hints import SqrtEvaluator
-from .utils import (BASE,
-                    to_binary_digits)
+from .utils import BASE
 
 
 class Expression(ABC):
@@ -158,10 +157,12 @@ class Expression(ABC):
         result, step = One, self
         if exponent < 0:
             exponent, step = -exponent, step.inverse()
-        for digit in to_binary_digits(exponent):
-            if digit:
+        while exponent > 1:
+            if exponent & 1:
                 result *= step
             step = step.square()
+            exponent >>= 1
+        result *= step
         return result
 
     @abstractmethod
