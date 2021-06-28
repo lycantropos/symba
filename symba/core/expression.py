@@ -154,6 +154,8 @@ class Expression(ABC):
         if not isinstance(exponent, int):
             return NotImplemented
         from .constant import One
+        if not exponent:
+            return One
         result, step = One, self
         if exponent < 0:
             exponent, step = -exponent, step.inverse()
