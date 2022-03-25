@@ -14,7 +14,7 @@ jobs:
     name: 'Test'
     strategy:
       matrix:
-        pyver: ['pypy3', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10']
+        pyver: ['pypy-3.7', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10']
         os: ['ubuntu', 'macos', 'windows']
       fail-fast: true
     runs-on: ${{ matrix.os }}-latest
