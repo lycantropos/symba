@@ -1,10 +1,7 @@
 import math
 from fractions import Fraction
-from itertools import chain
 from numbers import Rational
 from typing import (Any,
-                    Callable,
-                    Iterable,
                     Sequence,
                     Tuple,
                     TypeVar)
@@ -83,18 +80,19 @@ try:
     import _symba
 except ImportError:
     def to_square_free(value: int) -> int:
-        for candidate in _factors_candidates(value):
-            factor_squared = candidate * candidate
-            quotient, remainder = divmod(value, factor_squared)
+        while value % 4 == 0:
+            value //= 4
+        factor_candidate_squared = 1
+        for factor_candidate_base in range(1, value, 2):
+            factor_candidate_squared += 4 * factor_candidate_base + 4
+            if factor_candidate_squared > value:
+                break
+            quotient, remainder = divmod(value, factor_candidate_squared)
             if not remainder:
                 return to_square_free(quotient)
         return value
-
-
-    def _factors_candidates(value: int) -> Iterable[int]:
-        return chain((2,), range(3, sqrt_floor(value) + 1, 2))
 else:
-    to_square_free = _symba.to_square_free  # type: Callable[[int], int]
+    to_square_free = _symba.to_square_free
 
 
 def transpose(pairs_sequence: Sequence[Tuple[_T1, _T2]]
