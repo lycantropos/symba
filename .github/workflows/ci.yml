@@ -31,8 +31,13 @@ jobs:
         run: python -m pip install -U pip wheel setuptools build twine
       - name: 'Install coverage dependencies'
         run: python -m pip install --upgrade coverage codecov
-      - name: 'Install dependencies'
-        run: python -m pip install -r requirements.txt
+      - name: 'Install С++ coverage dependencies'
+        run: python -m pip install --upgrade gcovr
+        if: ${{ !startsWith(matrix.python_version, "pypy") }}
+      - name: 'Install in editable mode'
+        run: python setup.py develop
+        env:
+          CPPFLAGS: --coverage -O0
       - name: 'Run doctests'
         run: coverage run -m doctest README.md
       - name: 'Install tests dependencies'
@@ -41,8 +46,16 @@ jobs:
         run: coverage run --append -m pytest
       - name: 'Collect coverage'
         run: coverage xml
+      - name: 'Collect C++ coverage'
+        run: gcovr --filter src/ --filter include/ --xml -o coverage_cpp.xml
+        if: ${{ !startsWith(matrix.python_version, "pypy") }}
       - name: 'Upload coverage'
         uses: codecov/codecov-action@v2.1.0
+        files: ./coverage.xml
+      - name: 'Upload С++ coverage'
+        uses: codecov/codecov-action@v2.1.0
+        files: ./coverage_cpp.xml
+        if: ${{ !startsWith(matrix.python_version, "pypy") }}
 
   pre-deploy:
     name: 'Pre-deploy'
