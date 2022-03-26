@@ -93,7 +93,8 @@ jobs:
       - name: 'Install packaging tools'
         run: python -m pip install -U pip wheel setuptools build twine
       - name: 'Set cibuildwheel configurations'
-        run: cat >> pyproject.toml << EOF
+        run: |
+          cat >> pyproject.toml << EOF
           [tool.cibuildwheel]
           test-command = ""
           # don't build PyPy wheels, install from source instead
