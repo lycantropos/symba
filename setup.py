@@ -43,5 +43,6 @@ if platform.python_implementation() == 'CPython':
     parameters.update(
             ext_modules=[Extension('_' + symba.__name__,
                                    ['src/{}.c'.format(symba.__name__)])],
-            zip_safe=False)
+            zip_safe=False
+    )
 setup(**parameters)
