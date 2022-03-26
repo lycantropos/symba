@@ -100,6 +100,7 @@ jobs:
           # don't build PyPy wheels, install from source instead
           skip = "pp*"
           EOF
+        shell: bash
       - name: 'Build wheels'
         uses: pypa/cibuildwheel@v2.3.1
         env:
