@@ -1,7 +1,7 @@
 symba
 =====
 
-[![](https://dev.azure.com/lycantropos/symba/_apis/build/status/lycantropos.symba?branchName=master)](https://dev.azure.com/lycantropos/symba/_build/latest?definitionId=34&branchName=master)
+[![](https://github.com/lycantropos/symba/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/lycantropos/symba/actions/workflows/ci.yml "Github Actions")
 [![](https://readthedocs.org/projects/symba/badge/?version=latest)](https://symba.readthedocs.io/en/latest "Documentation")
 [![](https://codecov.io/gh/lycantropos/symba/branch/master/graph/badge.svg)](https://codecov.io/gh/lycantropos/symba "Codecov")
 [![](https://img.shields.io/github/license/lycantropos/symba.svg)](https://github.com/lycantropos/symba/blob/master/LICENSE "License")
