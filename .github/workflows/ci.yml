@@ -30,7 +30,7 @@ jobs:
       - name: 'Install packaging tools'
         run: python -m pip install -U pip wheel setuptools build twine
       - name: 'Install coverage dependencies'
-        run: python -m pip install --upgrade coverage codecov
+        run: python -m pip install --upgrade coverage
       - name: 'Install С++ coverage dependencies'
         run: python -m pip install --upgrade gcovr
         if: ${{ !startsWith(matrix.python_version, 'pypy') }}
@@ -46,17 +46,18 @@ jobs:
         run: coverage run --append -m pytest
       - name: 'Collect coverage'
         run: coverage xml
-      - name: 'Collect C++ coverage'
-        run: gcovr --filter src/ --filter include/ --xml -o coverage_cpp.xml
+      - name: 'Collect C coverage'
+        run: gcovr --filter src/ --filter include/ --xml -o coverage_c.xml
         if: ${{ !startsWith(matrix.python_version, 'pypy') }}
-      - name: 'Upload coverage'
+      - name: 'Upload PyPy coverage'
         uses: codecov/codecov-action@v2.1.0
         with:
           files: ./coverage.xml
-      - name: 'Upload С++ coverage'
+        if: ${{ startsWith(matrix.python_version, 'pypy') }}
+      - name: 'Upload СPython coverage'
         uses: codecov/codecov-action@v2.1.0
         with:
-          files: ./coverage_cpp.xml
+          files: ./coverage.xml,./coverage_c.xml
         if: ${{ !startsWith(matrix.python_version, 'pypy') }}
 
   pre-deploy:
