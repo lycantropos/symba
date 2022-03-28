@@ -54,11 +54,13 @@ jobs:
         with:
           files: ./coverage.xml
         if: ${{ startsWith(matrix.python_version, 'pypy') }}
+        continue-on-error: true
       - name: 'Upload СPython coverage'
         uses: codecov/codecov-action@v2.1.0
         with:
           files: ./coverage.xml,./coverage_c.xml
         if: ${{ !startsWith(matrix.python_version, 'pypy') }}
+        continue-on-error: true
 
   pre-deploy:
     name: 'Pre-deploy'
