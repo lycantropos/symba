@@ -59,7 +59,7 @@ jobs:
         run: python -m pip install -U gcovr
         if: ${{ !startsWith(matrix.python_version, 'pypy') }}
       - name: 'Install in editable mode'
-        run: python setup.py develop
+        run: python -m pip -v install -e .
         env:
           CPPFLAGS: --coverage -O0
       - name: 'Install tests dependencies'
@@ -125,7 +125,7 @@ jobs:
   build-wheels:
     name: 'Build wheels'
     runs-on: ${{ matrix.os }}-latest
-#    needs: pre-deploy
+    needs: pre-deploy
     strategy:
       matrix:
         os: ['ubuntu', 'windows', 'macos']
@@ -160,7 +160,7 @@ jobs:
     needs: ['build-sdist', 'build-wheels']
     strategy:
       matrix:
-        python_version: ['3.7', '3.8', '3.9', '3.10']
+        python_version: ['3.6', '3.7', '3.8', '3.9', '3.10']
         platform: [
           {
             os: 'macos-latest',
