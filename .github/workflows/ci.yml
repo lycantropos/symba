@@ -40,7 +40,7 @@ jobs:
             platform: { os: 'ubuntu-latest', python_architecture: 'x64' }
           - python_version: 'pypy-3.7'
             platform: { os: 'windows-latest', python_architecture: 'x64' }
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v3
