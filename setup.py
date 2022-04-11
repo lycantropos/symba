@@ -36,13 +36,15 @@ parameters = dict(
         url=project_base_url,
         download_url=project_base_url + 'archive/master.zip',
         python_requires='>=3.6',
-        install_requires=read_file('requirements.txt'))
+        install_requires=read_file('requirements.txt')
+)
 if platform.python_implementation() == 'CPython':
+    from glob import glob
+
     from setuptools import Extension
 
-    parameters.update(
-            ext_modules=[Extension('_' + symba.__name__,
-                                   ['src/{}.c'.format(symba.__name__)])],
-            zip_safe=False
-    )
+    parameters.update(ext_modules=[Extension(symba.__name__ + '._'
+                                             + symba.__name__,
+                                             glob('src/*.c'))],
+                      zip_safe=False)
 setup(**parameters)
