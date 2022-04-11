@@ -77,7 +77,7 @@ def square(value: Any) -> Any:
 
 
 try:
-    import _symba
+    from symba._symba import to_square_free
 except ImportError:
     def to_square_free(value: int) -> int:
         while value % 4 == 0:
@@ -88,11 +88,10 @@ except ImportError:
             if factor_candidate_squared > value:
                 break
             quotient, remainder = divmod(value, factor_candidate_squared)
-            if not remainder:
-                return to_square_free(quotient)
+            while not remainder:
+                value = quotient
+                quotient, remainder = divmod(value, factor_candidate_squared)
         return value
-else:
-    to_square_free = _symba.to_square_free
 
 
 def transpose(pairs_sequence: Sequence[Tuple[_T1, _T2]]
