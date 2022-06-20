@@ -1,10 +1,11 @@
 import math
-from fractions import Fraction
 from numbers import Rational
 from typing import (Any,
                     Sequence,
                     Tuple,
                     TypeVar)
+
+from cfractions import Fraction
 
 _T1 = TypeVar('_T1')
 _T2 = TypeVar('_T2')
