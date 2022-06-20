@@ -1,3 +1,3 @@
-from .core.hints import SqrtEvaluator
+from .core import hints as _hints
 
-SqrtEvaluator = SqrtEvaluator
+SqrtEvaluator = _hints.SqrtEvaluator
