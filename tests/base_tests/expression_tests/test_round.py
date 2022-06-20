@@ -1,6 +1,6 @@
-from fractions import Fraction
 from typing import Optional
 
+from cfractions import Fraction
 from hypothesis import given
 
 from symba.base import Expression
