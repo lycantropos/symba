@@ -3,7 +3,6 @@ from abc import abstractmethod
 from numbers import (Rational,
                      Real)
 from typing import (Any,
-                    Optional,
                     Tuple,
                     Union)
 
@@ -11,7 +10,6 @@ from cfractions import Fraction
 from reprit.base import generate_repr
 
 from .expression import Expression
-from .hints import SqrtEvaluator
 from .utils import (digits_count,
                     identity,
                     perfect_sqrt,
@@ -28,9 +26,6 @@ class Constant(Expression):
     @abstractmethod
     def value(self) -> Real:
         """Returns value of the constant."""
-
-    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
-        return self.value
 
     def is_positive(self) -> bool:
         return self.value > 0
@@ -67,9 +62,6 @@ class Finite(Constant):
     @property
     def value(self) -> Rational:
         return self._value
-
-    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
-        return self.value
 
     def extract_common_denominator(self) -> Tuple[int, 'Finite']:
         return self.value.denominator, Finite(self.value.numerator)
@@ -146,9 +138,6 @@ class Infinite(Constant):
 
     def __init__(self, is_positive: bool) -> None:
         self._is_positive = is_positive
-
-    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
-        return self.value
 
     def extract_common_denominator(self) -> Tuple[int, 'Expression']:
         return 1, self

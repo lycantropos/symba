@@ -1,4 +1,3 @@
-import math
 from operator import neg
 
 from hypothesis import strategies
@@ -28,4 +27,3 @@ definite_negative_reals_or_expressions = (definite_negative_reals
                                              .map(abs).map(neg)))
 definite_reals_or_expressions = (definite_negative_reals_or_expressions
                                  | definite_non_negative_reals_or_expressions)
-sqrt_evaluators = strategies.just(math.sqrt)

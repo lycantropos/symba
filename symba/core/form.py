@@ -21,7 +21,6 @@ from .constant import (Constant,
                        Zero,
                        to_expression)
 from .expression import Expression
-from .hints import SqrtEvaluator
 from .term import Term
 from .utils import (BASE,
                     digits_count,
@@ -73,10 +72,6 @@ class Form(Expression):
     @property
     def degree(self) -> int:
         return max(term.degree for term in self.terms)
-
-    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
-        return sum([term.evaluate(sqrt_evaluator) for term in self.terms],
-                   self.tail.evaluate(sqrt_evaluator))
 
     def extract_common_denominator(self) -> Tuple[int, 'Form']:
         terms_common_denominators, _ = transpose(

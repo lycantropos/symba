@@ -2,7 +2,6 @@ import math
 from numbers import Real
 from typing import (TYPE_CHECKING,
                     Any,
-                    Optional,
                     Tuple,
                     Union)
 
@@ -11,7 +10,6 @@ from reprit.base import generate_repr
 from symba.core.utils import (ceil_half,
                               rational_sqrt_lower_bound,
                               rational_sqrt_upper_bound)
-from . import context
 from .constant import (Constant,
                        Finite,
                        NaN,
@@ -19,7 +17,6 @@ from .constant import (Constant,
                        Zero,
                        to_expression)
 from .expression import Expression
-from .hints import SqrtEvaluator
 
 if TYPE_CHECKING:
     from .form import Form
@@ -53,13 +50,6 @@ class Term(Expression):
     @property
     def degree(self) -> int:
         return self.argument.degree + 1
-
-    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
-        return (self.scale.evaluate(sqrt_evaluator)
-                * ((context.sqrt_evaluator.get()
-                    if sqrt_evaluator is None
-                    else sqrt_evaluator)
-                   (self.argument.evaluate(sqrt_evaluator))))
 
     def extract_common_denominator(self) -> Tuple[int, 'Term']:
         common_denominator, scale = self.scale.extract_common_denominator()

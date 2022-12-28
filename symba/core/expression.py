@@ -6,7 +6,6 @@ from typing import (Optional,
                     Tuple,
                     Union)
 
-from .hints import SqrtEvaluator
 from .utils import BASE
 
 
@@ -22,10 +21,6 @@ class Expression(ABC):
     @abstractmethod
     def is_finite(self) -> bool:
         """Checks if the expression is finite."""
-
-    @abstractmethod
-    def evaluate(self, sqrt_evaluator: Optional[SqrtEvaluator] = None) -> Real:
-        """Evaluates the expression."""
 
     @abstractmethod
     def extract_common_denominator(self) -> Tuple[int, 'Expression']:

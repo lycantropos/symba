@@ -1,12 +1,10 @@
 from numbers import Real as _Real
 from typing import Union as _Union
 
-from .core import (context as _context,
-                   expression as _expression)
+from .core import expression as _expression
 from .core.constant import (One as _One,
                             to_expression as _to_expression)
 from .core.term import Term as _Term
-from .hints import SqrtEvaluator as _SqrtEvaluator
 
 Expression = _expression.Expression
 
@@ -32,17 +30,3 @@ def sqrt(argument: _Union[_Real, Expression]) -> Expression:
     return (_Term.from_components(_One, expression)
             if expression.is_finite
             else expression)
-
-
-def get_sqrt_evaluator() -> _SqrtEvaluator:
-    """
-    Returns current square root evaluator.
-    """
-    return _context.sqrt_evaluator.get()
-
-
-def set_sqrt_evaluator(evaluator: _SqrtEvaluator) -> None:
-    """
-    Sets square root evaluator.
-    """
-    _context.sqrt_evaluator.set(evaluator)
