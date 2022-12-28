@@ -7,8 +7,8 @@ symba
 [![](https://img.shields.io/github/license/lycantropos/symba.svg)](https://github.com/lycantropos/symba/blob/master/LICENSE "License")
 [![](https://badge.fury.io/py/symba.svg)](https://badge.fury.io/py/symba "PyPI")
 
-In what follows `python` is an alias for `python3.6` or `pypy3.6`
-or any later version (`python3.7`, `pypy3.7` and so on).
+In what follows `python` is an alias for `python3.7` or `pypy3.7`
+or any later version (`python3.8`, `pypy3.8` and so on).
 
 Installation
 ------------
