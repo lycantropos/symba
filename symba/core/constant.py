@@ -12,7 +12,6 @@ from typing import (Any,
 
 from cfractions import Fraction
 from reprit.base import generate_repr
-from typing_extensions import TypeGuard
 
 from .expression import Expression
 from .hints import (RawConstant,
@@ -153,10 +152,6 @@ class Zero(Constant):
         return (self
                 if isinstance(other, Real)
                 else NotImplemented)
-
-
-def is_zero(value: Expression) -> TypeGuard[Zero]:
-    return isinstance(value, Zero)
 
 
 class FiniteNonZero(Constant):
