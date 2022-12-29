@@ -1,20 +1,31 @@
+from __future__ import annotations
+
 import math
 from abc import abstractmethod
 from numbers import (Rational,
                      Real)
 from typing import (Any,
+                    NoReturn,
                     Tuple,
-                    Union)
+                    Union,
+                    overload)
 
 from cfractions import Fraction
 from reprit.base import generate_repr
+from typing_extensions import TypeGuard
 
 from .expression import Expression
+from .hints import (RawConstant,
+                    RawFinite,
+                    RawUnbound)
 from .utils import (digits_count,
                     identity,
                     perfect_sqrt,
                     positiveness_to_sign,
                     square)
+
+RAW_ZERO = Fraction(0)
+RAW_ONE = Fraction(1)
 
 
 class Constant(Expression):
@@ -24,129 +35,276 @@ class Constant(Expression):
 
     @property
     @abstractmethod
-    def value(self) -> Real:
+    def raw(self) -> RawConstant:
         """Returns value of the constant."""
 
-    def is_positive(self) -> bool:
-        return self.value > 0
-
-    def lower_bound(self) -> Real:
-        return self.value
+    def lower_bound(self) -> RawConstant:
+        return self.raw
 
     upper_bound = lower_bound
 
     def __eq__(self, other: Any) -> Any:
-        return (self.value == other
+        return (self.raw == other
                 if isinstance(other, Real)
                 else (isinstance(other, Constant)
-                      and self.value == other.value
+                      and self.raw == other.raw
                       if isinstance(other, Expression)
                       else NotImplemented))
 
     def __hash__(self) -> int:
-        return hash(self.value)
+        return hash(self.raw)
 
     def __str__(self) -> str:
-        return str(self.value)
+        return str(self.raw)
 
 
-class Finite(Constant):
-    """Represents rational number."""
-    is_finite = True
-
-    __slots__ = '_value',
-
-    def __init__(self, value: Real = 0) -> None:
-        self._value = Fraction(value)
+class Zero(Constant):
+    """Represents zero."""
 
     @property
-    def value(self) -> Rational:
-        return self._value
+    def raw(self) -> Fraction:
+        return RAW_ZERO
 
-    def extract_common_denominator(self) -> Tuple[int, 'Finite']:
-        return self.value.denominator, Finite(self.value.numerator)
+    def extract_common_denominator(self) -> Tuple[int, Zero]:
+        return 1, self
 
-    def extract_common_numerator(self) -> Tuple[int, 'Finite']:
-        return self.value.numerator, One / self.value.denominator
+    def extract_common_numerator(self) -> Tuple[int, FiniteNonZero]:
+        return 0, ONE
 
-    def inverse(self) -> 'Finite':
-        return Finite(Fraction(self.value.denominator, self.value.numerator))
+    def inverse(self) -> NoReturn:
+        raise ZeroDivisionError()
 
     def is_positive(self) -> bool:
-        return self.value > 0
+        return False
+
+    def perfect_sqrt(self) -> Zero:
+        return self
+
+    def significant_digits_count(self) -> int:
+        return 1
+
+    def square(self) -> Zero:
+        return self
+
+    def __new__(cls) -> Zero:
+        return super().__new__(cls)
+
+    @overload
+    def __add__(self, other: RawConstant) -> Zero:
+        ...
+
+    @overload
+    def __add__(self, other: Zero) -> Zero:
+        ...
+
+    @overload
+    def __add__(self, other: Any) -> Any:
+        ...
+
+    def __add__(self, other):
+        other = to_expression(other)
+        return (other
+                if isinstance(other, Zero)
+                else NotImplemented)
+
+    def __bool__(self) -> bool:
+        return False
+
+    @overload
+    def __mul__(self, other: Union[Expression, RawConstant]) -> Zero:
+        ...
+
+    @overload
+    def __mul__(self, other: Any) -> Any:
+        ...
+
+    def __mul__(self, other):
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return self if isinstance(other, Expression) else NotImplemented
+
+    def __neg__(self) -> Zero:
+        return self
+
+    @overload
+    def __radd__(self, other: RawConstant) -> FiniteNonZero:
+        ...
+
+    @overload
+    def __radd__(self, other: Any) -> Any:
+        ...
+
+    def __radd__(self, other):
+        return (to_expression(other)
+                if isinstance(other, Real)
+                else NotImplemented)
+
+    __repr__ = generate_repr(__new__)
+
+    @overload
+    def __rmul__(self, other: RawConstant) -> Zero:
+        ...
+
+    @overload
+    def __rmul__(self, other: Any) -> Any:
+        ...
+
+    def __rmul__(self, other):
+        return (self
+                if isinstance(other, Real)
+                else NotImplemented)
+
+
+def is_zero(value: Expression) -> TypeGuard[Zero]:
+    return isinstance(value, Zero)
+
+
+class FiniteNonZero(Constant):
+    """Represents non-zero rational number."""
+
+    @property
+    def raw(self) -> Fraction:
+        return self._value
+
+    def extract_common_denominator(self) -> Tuple[int, FiniteNonZero]:
+        return self.raw.denominator, FiniteNonZero(self.raw.numerator)
+
+    def extract_common_numerator(self) -> Tuple[int, FiniteNonZero]:
+        return self.raw.numerator, ONE / self.raw.denominator
+
+    def inverse(self) -> FiniteNonZero:
+        return FiniteNonZero(
+                Fraction(self.raw.denominator, self.raw.numerator))
+
+    def is_positive(self) -> bool:
+        return self.raw > 0
 
     def perfect_sqrt(self) -> Expression:
-        return Finite(Fraction(perfect_sqrt(self.value.numerator),
-                               perfect_sqrt(self.value.denominator)))
+        return FiniteNonZero(Fraction(perfect_sqrt(self.raw.numerator),
+                                      perfect_sqrt(self.raw.denominator)))
 
     def significant_digits_count(self) -> int:
         return digits_count(self._value.limit_denominator(1).numerator)
 
-    def square(self) -> 'Finite':
-        return Finite(square(self.value))
+    def square(self) -> FiniteNonZero:
+        return FiniteNonZero(square(self.raw))
 
-    def __add__(self, other: Union[Real, 'Finite']) -> 'Finite':
+    __slots__ = '_value',
+
+    def __init__(self, value: RawConstant) -> None:
+        assert value and math.isfinite(value), value
+        self._value = Fraction(value)
+
+    @overload
+    def __add__(self, other: RawConstant) -> Union[FiniteNonZero, Infinite]:
+        ...
+
+    @overload
+    def __add__(self, other: FiniteNonZero) -> FiniteNonZero:
+        ...
+
+    @overload
+    def __add__(self, other: Zero) -> FiniteNonZero:
+        ...
+
+    @overload
+    def __add__(self, other: Any) -> Any:
+        ...
+
+    def __add__(self, other):
         other = to_expression(other)
-        return ((Finite(self.value + other.value)
-                 if isinstance(other, Finite)
+        return ((FiniteNonZero(self.raw + other.raw)
+                 if isinstance(other, FiniteNonZero)
                  else other.__radd__(self))
                 if isinstance(other, Expression)
                 else NotImplemented)
 
     def __bool__(self) -> bool:
-        return bool(self.value)
+        return bool(self.raw)
 
-    def __mul__(self, other: Union[Real, 'Finite']) -> 'Finite':
+    def __hash__(self) -> int:
+        return hash(self.raw)
+
+    @overload
+    def __mul__(self, other: FiniteNonZero) -> FiniteNonZero:
+        ...
+
+    @overload
+    def __mul__(self, other: RawFinite) -> Union[FiniteNonZero, Zero]:
+        ...
+
+    @overload
+    def __mul__(self, other: RawUnbound) -> Union[FiniteNonZero, Infinite]:
+        ...
+
+    @overload
+    def __mul__(self, other: Zero) -> Zero:
+        ...
+
+    @overload
+    def __mul__(self, other: Any) -> Any:
+        ...
+
+    def __mul__(self, other):
         other = to_expression(other)
-        return ((Finite(self.value * other.value)
-                 if isinstance(other, Finite)
-                 else other.__rmul__(self))
-                if isinstance(other, Expression)
+        return (FiniteNonZero(self.raw * other.raw)
+                if isinstance(other, FiniteNonZero)
                 else NotImplemented)
 
-    def __neg__(self) -> 'Finite':
-        return Finite(-self.value)
+    def __neg__(self) -> FiniteNonZero:
+        return FiniteNonZero(-self.raw)
 
-    def __radd__(self, other: Union[Real, 'Finite']) -> 'Finite':
+    @overload
+    def __radd__(self, other: RawConstant) -> Union[FiniteNonZero, Infinite]:
+        ...
+
+    @overload
+    def __radd__(self, other: Zero) -> FiniteNonZero:
+        ...
+
+    @overload
+    def __radd__(self, other: Any) -> Any:
+        ...
+
+    def __radd__(self, other):
         return (to_expression(other) + self
                 if isinstance(other, Real)
                 else NotImplemented)
 
     __repr__ = generate_repr(__init__)
 
-    def __rmul__(self, other: Union[Real, 'Finite']) -> 'Finite':
+    @overload
+    def __rmul__(self, other: RawConstant) -> FiniteNonZero:
+        ...
+
+    @overload
+    def __rmul__(self, other: Any) -> Any:
+        ...
+
+    def __rmul__(self, other):
         return (to_expression(other) * self
                 if isinstance(other, Real)
                 else NotImplemented)
 
 
-Zero, One = Finite(0), Finite(1)
+Finite = Union[FiniteNonZero, Zero]
+
+ZERO, ONE = Zero(), FiniteNonZero(1)
 
 
 class Infinite(Constant):
-    is_finite = False
-
     @property
-    def degree(self) -> int:
-        return 0
-
-    @property
-    def value(self) -> Real:
+    def raw(self) -> float:
         return positiveness_to_sign(self.is_positive()) * math.inf
 
-    __slots__ = '_is_positive',
-
-    def __init__(self, is_positive: bool) -> None:
-        self._is_positive = is_positive
-
-    def extract_common_denominator(self) -> Tuple[int, 'Expression']:
+    def extract_common_denominator(self) -> Tuple[int, Expression]:
         return 1, self
 
-    def extract_common_numerator(self) -> Tuple[int, 'Expression']:
+    def extract_common_numerator(self) -> Tuple[int, Expression]:
         return 1, self
 
-    def inverse(self) -> 'Expression':
-        return Zero
+    def inverse(self) -> Expression:
+        return ZERO
 
     def is_positive(self) -> bool:
         return self._is_positive
@@ -156,143 +314,169 @@ class Infinite(Constant):
     def significant_digits_count(self) -> int:
         return 0
 
-    def square(self) -> 'Expression':
+    def square(self) -> Expression:
         return Infinity
 
-    def __add__(self, other: Union[Real, 'Expression']) -> Constant:
-        other = to_expression(other)
-        return ((self
-                 if (other.is_finite
-                     or (other is not NaN
-                         and self.is_positive() is other.is_positive()))
-                 else NaN)
+    __slots__ = '_is_positive',
+
+    def __init__(self, is_positive: bool) -> None:
+        self._is_positive = is_positive
+
+    def __hash__(self) -> int:
+        return hash(self.raw)
+
+    @overload
+    def __add__(self, other: Union[RawConstant, Expression]) -> Infinite:
+        ...
+
+    @overload
+    def __add__(self, other: Any) -> Any:
+        ...
+
+    def __add__(self, other):
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (self._add_expression(other)
                 if isinstance(other, Expression)
                 else NotImplemented)
 
-    def __ge__(self, other: Union[Real, 'Expression']) -> bool:
-        other = to_expression(other)
-        return (other is not NaN and (self.is_positive() or self == other)
-                if isinstance(other, (Real, Expression))
-                else NotImplemented)
+    @overload
+    def __ge__(self, other: Union[RawConstant, Expression]) -> bool:
+        ...
 
-    def __gt__(self, other: Union[Real, 'Expression']) -> bool:
-        other = to_expression(other)
-        return (other is not NaN and self.is_positive() and self != other
+    @overload
+    def __ge__(self, other: Any) -> Any:
+        ...
+
+    def __ge__(self, other):
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return ((self.is_positive() or self == other)
                 if isinstance(other, Expression)
                 else NotImplemented)
 
-    def __le__(self, other: Union[Real, 'Expression']) -> bool:
-        other = to_expression(other)
-        return (other is not NaN and (not self.is_positive() or self == other)
+    @overload
+    def __gt__(self, other: Union[RawConstant, Expression]) -> bool:
+        ...
+
+    @overload
+    def __gt__(self, other: Any) -> Any:
+        ...
+
+    def __gt__(self, other):
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return ((self.is_positive() and self != other)
                 if isinstance(other, Expression)
                 else NotImplemented)
 
-    def __lt__(self, other: Union[Real, 'Expression']) -> bool:
-        other = to_expression(other)
-        return (other is not NaN and not self.is_positive() and self != other
+    def __le__(self,
+               other: Union[RawConstant, Expression]) -> bool:
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return ((not self.is_positive() or self == other)
                 if isinstance(other, Expression)
                 else NotImplemented)
 
-    def __mul__(self, other: Union[Real, 'Expression']) -> Constant:
-        other = to_expression(other)
-        return (((Infinity
-                  if self.is_positive() is other.is_positive()
-                  else -Infinity)
-                 if other and other is not NaN
-                 else NaN)
+    @overload
+    def __lt__(self, other: Union[RawConstant, Expression]) -> bool:
+        ...
+
+    @overload
+    def __lt__(self, other: Any) -> Any:
+        ...
+
+    def __lt__(self, other):
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return ((not self.is_positive() and self != other)
                 if isinstance(other, Expression)
                 else NotImplemented)
 
-    def __neg__(self) -> 'Expression':
+    @overload
+    def __mul__(self, other: Union[RawConstant, Expression]) -> Infinite:
+        ...
+
+    @overload
+    def __mul__(self, other: Any) -> Any:
+        ...
+
+    def __mul__(self, other):
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (self._mul_by_expression(other)
+                if isinstance(other, Expression)
+                else NotImplemented)
+
+    def __neg__(self) -> Infinite:
         return Infinite(not self.is_positive())
 
-    __radd__ = __add__
+    @overload
+    def __radd__(self, other: Union[RawConstant, Expression]) -> Infinite:
+        ...
+
+    @overload
+    def __radd__(self, other: Any) -> Any:
+        ...
+
+    def __radd__(self, other):
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (self._add_expression(other)
+                if isinstance(other, Expression)
+                else NotImplemented)
+
     __repr__ = generate_repr(__init__)
-    __rmul__ = __mul__
+
+    @overload
+    def __rmul__(self, other: Union[RawConstant, Expression]) -> Infinite:
+        ...
+
+    @overload
+    def __rmul__(self, other: Any) -> Any:
+        ...
+
+    def __rmul__(self, other):
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (self._mul_by_expression(other)
+                if isinstance(other, Expression)
+                else NotImplemented)
+
+    def _add_expression(self, other: Expression) -> Infinite:
+        if (isinstance(other, Infinite)
+                and self.is_positive() is not other.is_positive()):
+            raise ValueError('Sum of infinities with different signs '
+                             'is undefined.')
+        return self
+
+    def _mul_by_expression(self, other: Expression) -> Infinite:
+        if not other:
+            raise ValueError('Multiplication of infinity by zero '
+                             'is undefined.')
+        return (Infinity
+                if self.is_positive() is other.is_positive()
+                else -Infinity)
 
 
 Infinity = Infinite(True)
 
 
-class _NaN(Constant):
-    is_finite = False
-    value = math.nan
-    _instance = None
-
-    def __new__(cls) -> '_NaN':
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    __slots__ = ()
-
-    def extract_common_denominator(self) -> Tuple[int, 'Expression']:
-        return 1, self
-
-    def extract_common_numerator(self) -> Tuple[int, 'Expression']:
-        return 1, self
-
-    def inverse(self) -> 'Expression':
-        return self
-
-    def is_positive(self) -> bool:
-        return False
-
-    perfect_sqrt = identity
-
-    def significant_digits_count(self) -> int:
-        return 0
-
-    square = identity
-
-    def __add__(self, other: Union[Real, 'Expression']) -> 'Expression':
-        return self
-
-    def __ge__(self, other: Union[Real, 'Expression']) -> bool:
-        return (False
-                if isinstance(other, (Real, Expression))
-                else NotImplemented)
-
-    def __gt__(self, other: Union[Real, 'Expression']) -> bool:
-        return (False
-                if isinstance(other, (Real, Expression))
-                else NotImplemented)
-
-    def __le__(self, other: Union[Real, 'Expression']) -> bool:
-        return (False
-                if isinstance(other, (Real, Expression))
-                else NotImplemented)
-
-    def __lt__(self, other: Union[Real, 'Expression']) -> bool:
-        return (False
-                if isinstance(other, (Real, Expression))
-                else NotImplemented)
-
-    def __mul__(self, other: Union[Real, 'Expression']) -> 'Expression':
-        return self
-
-    __neg__ = identity
-
-    def __radd__(self, other: Union[Real, 'Expression']) -> 'Expression':
-        return self
-
-    def __repr__(self) -> str:
-        return 'NaN'
-
-    def __rmul__(self, other: Union[Real, 'Expression']) -> 'Expression':
-        return self
+@overload
+def to_expression(_value: RawFinite) -> Union[FiniteNonZero, Zero]:
+    ...
 
 
-NaN = _NaN()
+@overload
+def to_expression(_value: RawUnbound) -> Union[FiniteNonZero, Infinite, Zero]:
+    ...
 
 
-def to_expression(other: Union[Real, Expression]) -> Expression:
-    return ((Finite(other)
-             if isinstance(other, Rational)
-             else (Finite(float(other))
-                   if math.isfinite(other)
-                   else (Infinite(other > 0)
-                         if math.isinf(other)
-                         else NaN)))
-            if isinstance(other, Real)
-            else other)
+def to_expression(_value):
+    if math.isnan(_value):
+        raise ValueError('NaN values are not supported.')
+    return (FiniteNonZero(_value)
+            if isinstance(_value, Rational)
+            else (FiniteNonZero(_value)
+                  if math.isfinite(_value)
+                  else Infinite(_value > 0)))

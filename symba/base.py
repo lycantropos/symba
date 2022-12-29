@@ -1,15 +1,16 @@
-from numbers import Real as _Real
 from typing import Union as _Union
 
 from .core import expression as _expression
-from .core.constant import (One as _One,
+from .core.constant import (ONE as _ONE,
+                            Infinite as _Infinite,
                             to_expression as _to_expression)
+from .core.hints import RawConstant as _RawConstant
 from .core.term import Term as _Term
 
 Expression = _expression.Expression
 
 
-def sqrt(argument: _Union[_Real, Expression]) -> Expression:
+def sqrt(argument: _Union[_RawConstant, Expression]) -> Expression:
     """
     Returns square root of the argument:
         exact if it is a perfect square, symbolic instead.
@@ -26,7 +27,9 @@ def sqrt(argument: _Union[_Real, Expression]) -> Expression:
     """
     if argument < 0:
         raise ValueError('Argument should be non-negative.')
-    expression = _to_expression(argument)
-    return (_Term.from_components(_One, expression)
-            if expression.is_finite
-            else expression)
+    expression = (argument
+                  if isinstance(argument, Expression)
+                  else _to_expression(argument))
+    return (expression
+            if isinstance(expression, _Infinite)
+            else _Term.from_components(_ONE, expression))

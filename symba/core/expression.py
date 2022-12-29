@@ -1,12 +1,23 @@
+from __future__ import annotations
+
 import math
 from abc import (ABC,
                  abstractmethod)
 from numbers import Real
-from typing import (Optional,
+from typing import (Any,
+                    Optional,
                     Tuple,
-                    Union)
+                    TypeVar,
+                    Union,
+                    cast,
+                    overload)
 
+from cfractions import Fraction
+
+from .hints import RawConstant
 from .utils import BASE
+
+_Self = TypeVar('_Self')
 
 
 class Expression(ABC):
@@ -17,27 +28,22 @@ class Expression(ABC):
     def degree(self) -> int:
         """Returns degree of the expression."""
 
-    @property
     @abstractmethod
-    def is_finite(self) -> bool:
-        """Checks if the expression is finite."""
-
-    @abstractmethod
-    def extract_common_denominator(self) -> Tuple[int, 'Expression']:
+    def extract_common_denominator(self) -> Tuple[int, Expression]:
         """
         Returns a pair of the common denominator of the expression
         and the rest of the expression.
         """
 
     @abstractmethod
-    def extract_common_numerator(self) -> Tuple[int, 'Expression']:
+    def extract_common_numerator(self) -> Tuple[int, Expression]:
         """
         Returns a pair of the common numerator of the expression
         and the rest of the expression.
         """
 
     @abstractmethod
-    def inverse(self) -> 'Expression':
+    def inverse(self) -> Expression:
         """Returns the expression inverted."""
 
     @abstractmethod
@@ -45,11 +51,11 @@ class Expression(ABC):
         """Checks if the expression is positive."""
 
     @abstractmethod
-    def lower_bound(self) -> Real:
+    def lower_bound(self) -> RawConstant:
         """Returns lower bound of the expression."""
 
     @abstractmethod
-    def perfect_sqrt(self) -> 'Expression':
+    def perfect_sqrt(self) -> Expression:
         """Returns perfect square root part of the expression."""
 
     @abstractmethod
@@ -57,19 +63,19 @@ class Expression(ABC):
         """Returns significant digits count of the expression."""
 
     @abstractmethod
-    def square(self) -> 'Expression':
+    def square(self) -> Expression:
         """Returns the expression squared."""
 
     @abstractmethod
-    def upper_bound(self) -> Real:
+    def upper_bound(self) -> RawConstant:
         """Returns upper bound of the expression."""
 
-    def __abs__(self) -> 'Expression':
+    def __abs__(self) -> Expression:
         """Returns an absolute value of the expression."""
         return self if self.is_positive() else -self
 
     @abstractmethod
-    def __add__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __add__(self, other: Union[RawConstant, Expression]) -> Expression:
         """Returns sum of the expression with the other."""
 
     def __ceil__(self) -> int:
@@ -80,27 +86,47 @@ class Expression(ABC):
         """Return the floor of the expression."""
         return math.floor(self.lower_bound())
 
-    def __floordiv__(self, other: Union[Real, 'Expression']) -> int:
+    def __floordiv__(self, other: Union[RawConstant, Expression]) -> int:
         """Returns quotient of the division of the expression by the other."""
-        return math.floor(self / other)
+        return (self / other).__floor__()
 
-    def __ge__(self, other: Union[Real, 'Expression']) -> bool:
+    @overload
+    def __ge__(self, other: Union[RawConstant, Expression]) -> bool:
+        ...
+
+    @overload
+    def __ge__(self, other: Any) -> Any:
+        ...
+
+    def __ge__(self, other):
         """Checks if the expression is greater than or equal to the other."""
-        from .constant import to_expression
-        other = to_expression(other)
-        return ((not (other - self).is_positive()
-                 if other.is_finite
-                 else other <= self)
+        from .constant import (Infinite,
+                               to_expression)
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return ((other <= self
+                 if isinstance(other, Infinite)
+                 else not (other - self).is_positive())
                 if isinstance(other, Expression)
                 else NotImplemented)
 
-    def __gt__(self, other: Union[Real, 'Expression']) -> bool:
+    @overload
+    def __gt__(self, other: Union[RawConstant, Expression]) -> bool:
+        ...
+
+    @overload
+    def __gt__(self, other: Any) -> Any:
+        ...
+
+    def __gt__(self, other):
         """Checks if the expression is greater than the other."""
-        from .constant import to_expression
-        other = to_expression(other)
-        return (((self - other).is_positive()
-                 if other.is_finite
-                 else other < self)
+        from .constant import (Infinite,
+                               to_expression)
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return ((other < self
+                 if isinstance(other, Infinite)
+                 else (self - other).is_positive())
                 if isinstance(other, Expression)
                 else NotImplemented)
 
@@ -108,50 +134,70 @@ class Expression(ABC):
     def __hash__(self) -> int:
         """Returns hash value of the expression."""
 
-    def __le__(self, other: Union[Real, 'Expression']) -> bool:
+    @overload
+    def __le__(self, other: Union[RawConstant, Expression]) -> bool:
+        ...
+
+    @overload
+    def __le__(self, other: Any) -> Any:
+        ...
+
+    def __le__(self, other):
         """Checks if the expression is lower than or equal to the other."""
-        from .constant import to_expression
-        other = to_expression(other)
-        return ((not (self - other).is_positive()
-                 if other.is_finite
-                 else other >= self)
+        from .constant import (Infinite,
+                               to_expression)
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return ((other >= self
+                 if isinstance(other, Infinite)
+                 else not (self - other).is_positive())
                 if isinstance(other, Expression)
                 else NotImplemented)
 
-    def __lt__(self, other: Union[Real, 'Expression']) -> bool:
+    @overload
+    def __lt__(self, other: Union[RawConstant, Expression]) -> bool:
+        ...
+
+    @overload
+    def __lt__(self, other: Any) -> Any:
+        ...
+
+    def __lt__(self, other):
         """Checks if the expression is lower than the other."""
-        from .constant import to_expression
-        other = to_expression(other)
-        return (((other - self).is_positive()
-                 if other.is_finite
-                 else other > self)
+        from .constant import (Infinite,
+                               to_expression)
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return ((other > self
+                 if isinstance(other, Infinite)
+                 else (other - self).is_positive())
                 if isinstance(other, Expression)
                 else NotImplemented)
 
-    def __mod__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __mod__(self, other: Union[RawConstant, Expression]) -> Expression:
         """Returns remainder of the division of the expression by the other."""
         return self - other * (self // other)
 
     @abstractmethod
-    def __mul__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __mul__(self, other: Union[RawConstant, Expression]) -> Expression:
         """Returns multiplication of the expression with the other."""
 
     @abstractmethod
-    def __neg__(self) -> 'Expression':
+    def __neg__(self) -> Expression:
         """Returns the expression negated."""
 
-    def __pos__(self) -> 'Expression':
+    def __pos__(self) -> Expression:
         """Returns the expression positive."""
         return self
 
-    def __pow__(self, exponent: int) -> 'Expression':
+    def __pow__(self, exponent: int) -> Expression:
         """Returns the expression raised to the given exponent."""
         if not isinstance(exponent, int):
             return NotImplemented
-        from .constant import One
+        from .constant import ONE
         if not exponent:
-            return One
-        result, step = One, self
+            return ONE
+        result, step = ONE, self
         if exponent < 0:
             exponent, step = -exponent, step.inverse()
         while exponent > 1:
@@ -163,48 +209,88 @@ class Expression(ABC):
         return result
 
     @abstractmethod
-    def __radd__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __radd__(self, other: Union[RawConstant, Expression]) -> Expression:
         """Returns sum of the other with the expression."""
 
-    def __rfloordiv__(self, other: Union[Real, 'Expression']) -> int:
+    def __rfloordiv__(self, other: Union[RawConstant, Expression]) -> int:
         """Returns quotient of the division of the other by the expression."""
-        return math.floor(other / self)
+        return (other / self).__floor__()
 
-    def __rmod__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __rmod__(self, other: Union[RawConstant, Expression]) -> Expression:
         """Returns remainder of the division of the other by the expression."""
         return other - self * (other // self)
 
     @abstractmethod
-    def __rmul__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    def __rmul__(self, other: Union[RawConstant, Expression]) -> Expression:
         """Returns multiplication of the other with the expression."""
 
-    def __round__(self, precision: Optional[int] = None) -> 'Expression':
+    def __round__(self,
+                  precision: Optional[int] = None) -> Union[int, Fraction]:
         """Returns the expression rounded to the given precision."""
         scale = BASE ** (1 if precision is None else precision + 1)
-        return round(int(scale * self) / scale, precision)
+        return round(cast(Fraction, int(scale * self) / scale), precision)
 
-    def __rsub__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    @overload
+    def __rsub__(self, other: Union[RawConstant, Expression]) -> Expression:
+        ...
+
+    @overload
+    def __rsub__(self, other: Any) -> Any:
+        ...
+
+    def __rsub__(self, other):
         """Returns difference of the other with the expression."""
+        from .constant import to_expression
+        if isinstance(other, Real):
+            other = to_expression(other)
         return (other + (-self)
-                if isinstance(other, (Real, Expression))
+                if isinstance(other, Expression)
                 else NotImplemented)
 
-    def __rtruediv__(self, other: Real) -> 'Expression':
+    @overload
+    def __rtruediv__(self, other: RawConstant) -> Expression:
+        ...
+
+    @overload
+    def __rtruediv__(self, other: Any) -> Any:
+        ...
+
+    def __rtruediv__(self, other):
         """Returns division of the other by the expression."""
         return (self.inverse() * other
                 if isinstance(other, Real)
                 else NotImplemented)
 
-    def __sub__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    @overload
+    def __sub__(self, other: Union[RawConstant, Expression]) -> Expression:
+        ...
+
+    @overload
+    def __sub__(self, other: Any) -> Any:
+        ...
+
+    def __sub__(self, other):
         """Returns difference of the expression with the other."""
+        from .constant import to_expression
+        if isinstance(other, Real):
+            other = to_expression(other)
         return (self + (-other)
-                if isinstance(other, (Real, Expression))
+                if isinstance(other, Expression)
                 else NotImplemented)
 
-    def __truediv__(self, other: Union[Real, 'Expression']) -> 'Expression':
+    @overload
+    def __truediv__(self: _Self, other: RawConstant) -> _Self:
+        ...
+
+    @overload
+    def __truediv__(self, other: Expression) -> Expression:
+        ...
+
+    def __truediv__(self, other):
         """Returns division of the expression by the other."""
         from .constant import to_expression
-        other = to_expression(other)
+        if isinstance(other, Real):
+            other = to_expression(other)
         return (self * other.inverse()
                 if isinstance(other, Expression)
                 else NotImplemented)
