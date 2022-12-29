@@ -3,8 +3,8 @@ from operator import neg
 from hypothesis import strategies
 
 from symba.base import sqrt
-from symba.core.constant import (One,
-                                 Zero)
+from symba.core.constant import (ONE,
+                                 ZERO)
 from tests.strategies.base import (definite_non_zero_reals,
                                    definite_reals,
                                    finite_non_negative_reals,
@@ -26,8 +26,8 @@ negative_exponents = strategies.integers(MIN_EXPONENT, -1)
 non_negative_exponents = strategies.integers(0, MAX_EXPONENT)
 positive_exponents = strategies.integers(1, MAX_EXPONENT)
 digits_counts = strategies.none() | strategies.integers(-100, 100)
-zero_expressions = strategies.just(Zero)
-unary_expressions = strategies.just(One)
+zero_expressions = strategies.just(ZERO)
+unary_expressions = strategies.just(ONE)
 unary_reals_or_expressions = unary_reals | unary_expressions
 zero_reals_or_expressions = zero_reals | zero_expressions
 finite_square_roots = strategies.builds(sqrt, finite_non_negative_reals)
