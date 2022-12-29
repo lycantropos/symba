@@ -258,17 +258,16 @@ class Form(Expression):
         ...
 
     def __add__(self, other):
-        return (self._add_constant(to_expression(other))
-                if isinstance(other, Real)
-                else (self._add_constant(other)
-                      if isinstance(other, Constant)
-                      else (self._add_term(other)
-                            if isinstance(other, Term)
-                            else
-                            (Form.from_components(self.terms + other.terms,
-                                                  self.tail + other.tail)
-                             if isinstance(other, Form)
-                             else NotImplemented))))
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (self._add_constant(other)
+                if isinstance(other, Constant)
+                else (self._add_term(other)
+                      if isinstance(other, Term)
+                      else (Form.from_components(self.terms + other.terms,
+                                                 self.tail + other.tail)
+                            if isinstance(other, Form)
+                            else NotImplemented)))
 
     def __eq__(self, other: Any) -> Any:
         return (self is other
@@ -292,15 +291,15 @@ class Form(Expression):
         ...
 
     def __mul__(self, other):
-        return (self._multiply_by_real(other)
-                if isinstance(other, Real)
-                else (self._multiply_by_constant(other)
-                      if isinstance(other, Constant)
-                      else (self._multiply_by_term(other)
-                            if isinstance(other, Term)
-                            else (self._multiply_by_form(other)
-                                  if isinstance(other, Form)
-                                  else NotImplemented))))
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (self._multiply_by_constant(other)
+                if isinstance(other, Constant)
+                else (self._multiply_by_term(other)
+                      if isinstance(other, Term)
+                      else (self._multiply_by_form(other)
+                            if isinstance(other, Form)
+                            else NotImplemented)))
 
     def __neg__(self) -> 'Form':
         return Form([-term for term in self.terms],
@@ -315,13 +314,13 @@ class Form(Expression):
         ...
 
     def __radd__(self, other):
-        return (self._add_constant(to_expression(other))
-                if isinstance(other, (Real, Constant))
-                else (self._add_constant(to_expression(other))
-                      if isinstance(other, Constant)
-                      else (self._add_term(other)
-                            if isinstance(other, Term)
-                            else NotImplemented)))
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (self._add_constant(other)
+                if isinstance(other, Constant)
+                else (self._add_term(other)
+                      if isinstance(other, Term)
+                      else NotImplemented))
 
     __repr__ = generate_repr(__init__)
 
@@ -334,13 +333,13 @@ class Form(Expression):
         ...
 
     def __rmul__(self, other):
-        return (self._multiply_by_real(other)
-                if isinstance(other, Real)
-                else (self._multiply_by_constant(other)
-                      if isinstance(other, Constant)
-                      else (self._multiply_by_term(other)
-                            if isinstance(other, Term)
-                            else NotImplemented)))
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (self._multiply_by_constant(other)
+                if isinstance(other, Constant)
+                else (self._multiply_by_term(other)
+                      if isinstance(other, Term)
+                      else NotImplemented))
 
     def __str__(self) -> str:
         return (str(self.terms[0])
@@ -361,9 +360,6 @@ class Form(Expression):
 
     def _add_term(self, other: Term) -> Expression:
         return Form.from_components(self.terms + [other], self.tail)
-
-    def _multiply_by_real(self, other: RawConstant) -> Expression:
-        return self._multiply_by_constant(to_expression(other))
 
     def _multiply_by_constant(self, other: Constant) -> Expression:
         return (self._scale(other)
@@ -737,7 +733,7 @@ def _populate_factors(children: DefaultDict[Factor, Factorization],
 
 def _sift_components(components: Iterable[Expression],
                      terms: List[Term]) -> Finite:
-    tail = ZERO
+    tail: Finite = ZERO
     for component in components:
         if isinstance(component, Term):
             terms.append(component)

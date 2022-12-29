@@ -7,6 +7,7 @@ from numbers import (Rational,
 from typing import (Any,
                     NoReturn,
                     Tuple,
+                    TypeVar,
                     Union,
                     overload)
 
@@ -57,6 +58,10 @@ class Constant(Expression):
         return str(self.raw)
 
 
+_Expression = TypeVar('_Expression',
+                      bound=Expression)
+
+
 class Zero(Constant):
     """Represents zero."""
 
@@ -89,7 +94,11 @@ class Zero(Constant):
         return super().__new__(cls)
 
     @overload
-    def __add__(self, other: RawConstant) -> Zero:
+    def __add__(self, other: RawFinite) -> Finite:
+        ...
+
+    @overload
+    def __add__(self, other: RawUnbound) -> Union[Finite, Infinite]:
         ...
 
     @overload
@@ -97,13 +106,18 @@ class Zero(Constant):
         ...
 
     @overload
+    def __add__(self, other: _Expression) -> _Expression:
+        ...
+
+    @overload
     def __add__(self, other: Any) -> Any:
         ...
 
     def __add__(self, other):
-        other = to_expression(other)
+        if isinstance(other, Real):
+            other = to_expression(other)
         return (other
-                if isinstance(other, Zero)
+                if isinstance(other, Expression)
                 else NotImplemented)
 
     def __bool__(self) -> bool:
@@ -126,7 +140,15 @@ class Zero(Constant):
         return self
 
     @overload
-    def __radd__(self, other: RawConstant) -> FiniteNonZero:
+    def __radd__(self, other: RawFinite) -> Finite:
+        ...
+
+    @overload
+    def __radd__(self, other: RawUnbound) -> Union[Finite, Infinite]:
+        ...
+
+    @overload
+    def __radd__(self, other: _Expression) -> _Expression:
         ...
 
     @overload
@@ -134,8 +156,10 @@ class Zero(Constant):
         ...
 
     def __radd__(self, other):
-        return (to_expression(other)
-                if isinstance(other, Real)
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (other
+                if isinstance(other, Expression)
                 else NotImplemented)
 
     __repr__ = generate_repr(__new__)
@@ -207,11 +231,10 @@ class FiniteNonZero(Constant):
         ...
 
     def __add__(self, other):
-        other = to_expression(other)
-        return ((FiniteNonZero(self.raw + other.raw)
-                 if isinstance(other, FiniteNonZero)
-                 else other.__radd__(self))
-                if isinstance(other, Expression)
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (to_expression(self.raw + other.raw)
+                if isinstance(other, FiniteNonZero)
                 else NotImplemented)
 
     def __bool__(self) -> bool:
@@ -241,7 +264,8 @@ class FiniteNonZero(Constant):
         ...
 
     def __mul__(self, other):
-        other = to_expression(other)
+        if isinstance(other, Real):
+            other = to_expression(other)
         return (FiniteNonZero(self.raw * other.raw)
                 if isinstance(other, FiniteNonZero)
                 else NotImplemented)
@@ -251,10 +275,6 @@ class FiniteNonZero(Constant):
 
     @overload
     def __radd__(self, other: RawConstant) -> Union[FiniteNonZero, Infinite]:
-        ...
-
-    @overload
-    def __radd__(self, other: Zero) -> FiniteNonZero:
         ...
 
     @overload
@@ -470,8 +490,6 @@ def to_expression(_value: RawUnbound) -> Union[FiniteNonZero, Infinite, Zero]:
 def to_expression(_value):
     if math.isnan(_value):
         raise ValueError('NaN values are not supported.')
-    return (FiniteNonZero(_value)
-            if isinstance(_value, Rational)
-            else (FiniteNonZero(_value)
-                  if math.isfinite(_value)
-                  else Infinite(_value > 0)))
+    return ((FiniteNonZero(_value) if _value else ZERO)
+            if isinstance(_value, Rational) or math.isfinite(_value)
+            else Infinite(_value > 0))
