@@ -13,6 +13,7 @@ def read_file(path_string: str) -> str:
     return Path(path_string).read_text(encoding='utf-8')
 
 
+package_data = {symba.__name__: ['py.typed']}
 parameters = dict(
         name=symba.__name__,
         packages=find_packages(exclude=('tests', 'tests.*')),
@@ -43,8 +44,11 @@ if platform.python_implementation() == 'CPython':
 
     from setuptools import Extension
 
-    parameters.update(ext_modules=[Extension(symba.__name__ + '._'
-                                             + symba.__name__,
+    extension_module_name = '_' + symba.__name__
+    package_data[symba.__name__].append('_symba.pyi')
+    parameters.update(ext_modules=[Extension(symba.__name__
+                                             + '.' + extension_module_name,
                                              glob('src/*.c'))],
                       zip_safe=False)
+parameters['package_data'] = package_data
 setup(**parameters)
