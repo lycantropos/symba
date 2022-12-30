@@ -215,7 +215,7 @@ class FiniteNonZero(Constant):
     __slots__ = '_raw',
 
     def __init__(self, raw: RawConstant) -> None:
-        assert raw and math.isfinite(raw), raw
+        assert raw and (isinstance(raw, Rational) or math.isfinite(raw)), raw
         self._raw = Fraction(raw)
 
     @overload
@@ -500,7 +500,7 @@ def to_expression(_value: RawUnbound) -> Union[FiniteNonZero, Infinite, Zero]:
 
 
 def to_expression(_value):
-    if math.isnan(_value):
+    if not isinstance(_value, Rational) and math.isnan(_value):
         raise ValueError('NaN values are not supported.')
     return ((FiniteNonZero(_value) if _value else ZERO)
             if isinstance(_value, Rational) or math.isfinite(_value)
