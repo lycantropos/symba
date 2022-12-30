@@ -1,12 +1,13 @@
 from numbers import Real
 
+import pytest
 from hypothesis import given
 
 from symba.base import Expression
 from . import strategies
 
 
-@given(strategies.reals, strategies.non_zero_expressions)
+@given(strategies.reals, strategies.non_zero_finite_expressions)
 def test_basic(real: Real, expression: Expression) -> None:
     result = real / expression
 
@@ -44,3 +45,15 @@ def test_mul_divisor(real: Real,
                      first: Expression,
                      second: Expression) -> None:
     assert real / (first * second) == (real / first) / second
+
+
+@given(strategies.reals, strategies.zero_expressions)
+def test_division_by_zero(real: Real, expression: Expression) -> None:
+    with pytest.raises(ZeroDivisionError):
+        real / expression
+
+
+@given(strategies.infinite_reals, strategies.infinite_expressions)
+def test_infinity_by_infinity(real: Real, expression: Expression) -> None:
+    with pytest.raises(ArithmeticError):
+        real / expression
