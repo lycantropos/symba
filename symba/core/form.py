@@ -350,7 +350,7 @@ class Form(Expression):
                    if isinstance(self.tail, Zero)
                    else ' ' + _to_signed_value(self.tail)))
 
-    def _add_constant(self, other: Constant) -> Expression:
+    def _add_constant(self, other: Union[Finite, Infinite]) -> Expression:
         tail = self.tail + other
         return (tail
                 if isinstance(tail, Infinite)

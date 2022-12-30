@@ -185,7 +185,7 @@ class FiniteNonZero(Constant):
 
     @property
     def raw(self) -> Fraction:
-        return self._value
+        return self._raw
 
     def extract_common_denominator(self) -> Tuple[int, FiniteNonZero]:
         return self.raw.denominator, FiniteNonZero(self.raw.numerator)
@@ -205,16 +205,18 @@ class FiniteNonZero(Constant):
                                       perfect_sqrt(self.raw.denominator)))
 
     def significant_digits_count(self) -> int:
-        return digits_count(self._value.limit_denominator(1).numerator)
+        return digits_count(self._raw.limit_denominator(1).numerator)
 
     def square(self) -> FiniteNonZero:
         return FiniteNonZero(square(self.raw))
 
-    __slots__ = '_value',
+    _raw: Fraction
+
+    __slots__ = '_raw',
 
     def __init__(self, raw: RawConstant) -> None:
         assert raw and math.isfinite(raw), raw
-        self._value = Fraction(raw)
+        self._raw = Fraction(raw)
 
     @overload
     def __add__(self, other: RawConstant) -> Union[FiniteNonZero, Infinite]:
