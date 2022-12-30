@@ -124,6 +124,10 @@ class Zero(Constant):
         return False
 
     @overload
+    def __mul__(self, other: Infinite) -> NoReturn:
+        ...
+
+    @overload
     def __mul__(self, other: Union[Expression, RawConstant]) -> Zero:
         ...
 
@@ -134,7 +138,11 @@ class Zero(Constant):
     def __mul__(self, other):
         if isinstance(other, Real):
             other = to_expression(other)
-        return self if isinstance(other, Expression) else NotImplemented
+        return (self
+                if isinstance(other, Zero)
+                else (other * self
+                      if isinstance(other, Expression)
+                      else NotImplemented))
 
     def __neg__(self) -> Zero:
         return self
@@ -165,7 +173,7 @@ class Zero(Constant):
     __repr__ = generate_repr(__new__)
 
     @overload
-    def __rmul__(self, other: RawConstant) -> Zero:
+    def __rmul__(self, other: Expression) -> Expression:
         ...
 
     @overload
@@ -173,10 +181,8 @@ class Zero(Constant):
         ...
 
     def __rmul__(self, other):
-        if isinstance(other, Real):
-            other = to_expression(other)
-        return (self
-                if isinstance(other, Expression)
+        return (to_expression(other) * self
+                if isinstance(other, Real)
                 else NotImplemented)
 
 
@@ -274,9 +280,11 @@ class FiniteNonZero(Constant):
             other = to_expression(other)
         return (FiniteNonZero(self.raw * other.raw)
                 if isinstance(other, FiniteNonZero)
-                else (other * self
-                      if isinstance(other, Expression)
-                      else NotImplemented))
+                else (other
+                      if isinstance(other, Zero)
+                      else (other * self
+                            if isinstance(other, Expression)
+                            else NotImplemented)))
 
     def __neg__(self) -> FiniteNonZero:
         return FiniteNonZero(-self.raw)
@@ -309,9 +317,11 @@ class FiniteNonZero(Constant):
     def __rmul__(self, other):
         if isinstance(other, Real):
             other = to_expression(other)
-        return (other * self
-                if isinstance(other, Expression)
-                else NotImplemented)
+        return (other
+                if isinstance(other, Zero)
+                else (other * self
+                      if isinstance(other, Expression)
+                      else NotImplemented))
 
 
 Finite = Union[FiniteNonZero, Zero]
@@ -473,14 +483,14 @@ class Infinite(Constant):
     def _add_expression(self, other: Expression) -> Infinite:
         if (isinstance(other, Infinite)
                 and self.is_positive() is not other.is_positive()):
-            raise ValueError('Sum of infinities with different signs '
-                             'is undefined.')
+            raise ArithmeticError('Sum of infinities with different signs '
+                                  'is undefined.')
         return self
 
     def _mul_by_expression(self, other: Expression) -> Infinite:
         if not other:
-            raise ValueError('Multiplication of infinity by zero '
-                             'is undefined.')
+            raise ArithmeticError('Multiplication of infinity by zero '
+                                  'is undefined.')
         return (Infinity
                 if self.is_positive() is other.is_positive()
                 else -Infinity)
