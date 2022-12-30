@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from abc import (ABC,
                  abstractmethod)
-from numbers import Real
+from numbers import Rational
 from typing import (Any,
                     Optional,
                     Tuple,
@@ -14,10 +14,13 @@ from typing import (Any,
 
 from cfractions import Fraction
 
-from .hints import RawConstant
+from .hints import (RawConstant,
+                    RawFinite,
+                    RawUnbound)
 from .utils import BASE
 
-_Self = TypeVar('_Self')
+_Self = TypeVar('_Self',
+                bound='Expression')
 
 
 class Expression(ABC):
@@ -98,12 +101,12 @@ class Expression(ABC):
     def __ge__(self, other: Any) -> Any:
         ...
 
-    def __ge__(self, other):
+    def __ge__(self, other: Any) -> Any:
         """Checks if the expression is greater than or equal to the other."""
         from .constant import (Infinite,
-                               to_expression)
-        if isinstance(other, Real):
-            other = to_expression(other)
+                               to_constant)
+        if isinstance(other, (Rational, float)):
+            other = to_constant(other)
         return ((other <= self
                  if isinstance(other, Infinite)
                  else not (other - self).is_positive())
@@ -118,12 +121,12 @@ class Expression(ABC):
     def __gt__(self, other: Any) -> Any:
         ...
 
-    def __gt__(self, other):
+    def __gt__(self, other: Any) -> Any:
         """Checks if the expression is greater than the other."""
         from .constant import (Infinite,
-                               to_expression)
-        if isinstance(other, Real):
-            other = to_expression(other)
+                               to_constant)
+        if isinstance(other, (Rational, float)):
+            other = to_constant(other)
         return ((other < self
                  if isinstance(other, Infinite)
                  else (self - other).is_positive())
@@ -142,12 +145,12 @@ class Expression(ABC):
     def __le__(self, other: Any) -> Any:
         ...
 
-    def __le__(self, other):
+    def __le__(self, other: Any) -> Any:
         """Checks if the expression is lower than or equal to the other."""
         from .constant import (Infinite,
-                               to_expression)
-        if isinstance(other, Real):
-            other = to_expression(other)
+                               to_constant)
+        if isinstance(other, (Rational, float)):
+            other = to_constant(other)
         return ((other >= self
                  if isinstance(other, Infinite)
                  else not (self - other).is_positive())
@@ -162,12 +165,12 @@ class Expression(ABC):
     def __lt__(self, other: Any) -> Any:
         ...
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> Any:
         """Checks if the expression is lower than the other."""
         from .constant import (Infinite,
-                               to_expression)
-        if isinstance(other, Real):
-            other = to_expression(other)
+                               to_constant)
+        if isinstance(other, (Rational, float)):
+            other = to_constant(other)
         return ((other > self
                  if isinstance(other, Infinite)
                  else (other - self).is_positive())
@@ -238,27 +241,28 @@ class Expression(ABC):
     def __rsub__(self, other: Any) -> Any:
         ...
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: Any) -> Any:
         """Returns difference of the other with the expression."""
-        from .constant import to_expression
-        if isinstance(other, Real):
-            other = to_expression(other)
+        from .constant import to_constant
+        if isinstance(other, (Rational, float)):
+            other = to_constant(other)
         return (other + (-self)
                 if isinstance(other, Expression)
                 else NotImplemented)
 
     @overload
-    def __rtruediv__(self, other: RawConstant) -> Expression:
+    def __rtruediv__(self,
+                     other: Union[Expression, RawConstant]) -> Expression:
         ...
 
     @overload
     def __rtruediv__(self, other: Any) -> Any:
         ...
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: Any) -> Any:
         """Returns division of the other by the expression."""
         return (self.inverse() * other
-                if isinstance(other, Real)
+                if isinstance(other, (Rational, float))
                 else NotImplemented)
 
     @overload
@@ -269,28 +273,28 @@ class Expression(ABC):
     def __sub__(self, other: Any) -> Any:
         ...
 
-    def __sub__(self, other):
+    def __sub__(self, other: Any) -> Any:
         """Returns difference of the expression with the other."""
-        from .constant import to_expression
-        if isinstance(other, Real):
-            other = to_expression(other)
+        from .constant import to_constant
+        if isinstance(other, (Rational, float)):
+            other = to_constant(other)
         return (self + (-other)
                 if isinstance(other, Expression)
                 else NotImplemented)
 
     @overload
-    def __truediv__(self: _Self, other: RawConstant) -> _Self:
+    def __truediv__(self: _Self, other: RawFinite) -> _Self:
         ...
 
     @overload
-    def __truediv__(self, other: Expression) -> Expression:
+    def __truediv__(self, other: Union[Expression, RawUnbound]) -> Expression:
         ...
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: Any) -> Any:
         """Returns division of the expression by the other."""
-        from .constant import to_expression
-        if isinstance(other, Real):
-            other = to_expression(other)
+        from .constant import to_constant
+        if isinstance(other, (Rational, float)):
+            other = to_constant(other)
         return (self * other.inverse()
                 if isinstance(other, Expression)
                 else NotImplemented)

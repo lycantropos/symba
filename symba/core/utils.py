@@ -1,7 +1,7 @@
 import math
 import sys
 from numbers import Rational
-from typing import (Any,
+from typing import (Callable,
                     Sequence,
                     Tuple,
                     TypeVar)
@@ -54,7 +54,7 @@ def rational_sqrt_upper_bound(value: RawConstant) -> Fraction:
 
 def sqrt_ceil(value: int) -> int:
     value_sqrt_floor = sqrt_floor(value)
-    return value_sqrt_floor + (value != square(value_sqrt_floor))
+    return value_sqrt_floor + (value != value_sqrt_floor * value_sqrt_floor)
 
 
 if sys.version_info < (3, 8):
@@ -75,12 +75,10 @@ else:
 
 def perfect_sqrt(value: int, alternative: int = 1) -> int:
     candidate = sqrt_floor(value)
-    return candidate if square(candidate) == value else alternative
+    return candidate if candidate * candidate == value else alternative
 
 
-def square(value: Any) -> Any:
-    return value * value
-
+to_square_free: Callable[[int], int]
 
 try:
     from symba._symba import to_square_free
