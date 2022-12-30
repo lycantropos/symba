@@ -55,6 +55,7 @@ class Term(Expression):
     def __init__(self,
                  scale: FiniteNonZero,
                  argument: Expression) -> None:
+        from .form import Form
         assert isinstance(argument, (FiniteNonZero, Form, Term)), argument
         self.argument, self.scale = argument, scale
 
