@@ -212,9 +212,9 @@ class FiniteNonZero(Constant):
 
     __slots__ = '_value',
 
-    def __init__(self, value: RawConstant) -> None:
-        assert value and math.isfinite(value), value
-        self._value = Fraction(value)
+    def __init__(self, raw: RawConstant) -> None:
+        assert raw and math.isfinite(raw), raw
+        self._value = Fraction(raw)
 
     @overload
     def __add__(self, other: RawConstant) -> Union[FiniteNonZero, Infinite]:
@@ -237,7 +237,9 @@ class FiniteNonZero(Constant):
             other = to_expression(other)
         return (to_expression(self.raw + other.raw)
                 if isinstance(other, FiniteNonZero)
-                else NotImplemented)
+                else (other + self
+                      if isinstance(other, Expression)
+                      else NotImplemented))
 
     def __bool__(self) -> bool:
         return bool(self.raw)
@@ -270,7 +272,9 @@ class FiniteNonZero(Constant):
             other = to_expression(other)
         return (FiniteNonZero(self.raw * other.raw)
                 if isinstance(other, FiniteNonZero)
-                else NotImplemented)
+                else (other * self
+                      if isinstance(other, Expression)
+                      else NotImplemented))
 
     def __neg__(self) -> FiniteNonZero:
         return FiniteNonZero(-self.raw)
@@ -284,8 +288,10 @@ class FiniteNonZero(Constant):
         ...
 
     def __radd__(self, other):
-        return (to_expression(other) + self
-                if isinstance(other, Real)
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (other + self
+                if isinstance(other, Expression)
                 else NotImplemented)
 
     __repr__ = generate_repr(__init__)
@@ -299,8 +305,10 @@ class FiniteNonZero(Constant):
         ...
 
     def __rmul__(self, other):
-        return (to_expression(other) * self
-                if isinstance(other, Real)
+        if isinstance(other, Real):
+            other = to_expression(other)
+        return (other * self
+                if isinstance(other, Expression)
                 else NotImplemented)
 
 
