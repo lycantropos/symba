@@ -8,7 +8,7 @@ from symba.base import Expression
 from . import strategies
 
 
-@given(strategies.reals_or_expressions, strategies.expressions)
+@given(strategies.reals_or_expressions, strategies.finite_expressions)
 def test_basic(real_or_expression: Union[Real, Expression],
                expression: Expression) -> None:
     result = real_or_expression + expression
@@ -16,7 +16,7 @@ def test_basic(real_or_expression: Union[Real, Expression],
     assert isinstance(result, Expression)
 
 
-@given(strategies.definitely_summable_expressions_with_reals_or_expressions)
+@given(strategies.summable_expressions_with_reals_or_expressions)
 def test_connection_with_add(expression_with_real_or_expression
                              : Tuple[Union[Real, Expression], Expression]
                              ) -> None:

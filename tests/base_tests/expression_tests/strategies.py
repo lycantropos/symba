@@ -5,14 +5,12 @@ from hypothesis import strategies
 from symba.base import sqrt
 from symba.core.constant import (ONE,
                                  ZERO)
-from tests.strategies.base import (definite_non_zero_reals,
-                                   definite_reals,
-                                   finite_non_negative_reals,
+from tests.strategies.base import (finite_non_negative_reals,
                                    finite_non_zero_reals,
                                    finite_reals,
-                                   indefinite_reals,
                                    infinite_reals,
                                    negative_infinite_reals,
+                                   non_zero_reals,
                                    positive_infinite_reals,
                                    reals,
                                    unary_reals,
@@ -43,80 +41,77 @@ positive_infinite_expressions = strategies.builds(sqrt,
 negative_infinite_expressions = positive_infinite_expressions.map(neg)
 infinite_expressions = (negative_infinite_expressions
                         | positive_infinite_expressions)
-definite_expressions = finite_expressions | infinite_expressions
-definite_reals_or_expressions = definite_reals | definite_expressions
-definite_non_zero_expressions = definite_expressions.filter(bool)
-definite_non_zero_reals_or_expressions = (definite_non_zero_reals
-                                          | definite_non_zero_expressions)
+expressions = finite_expressions | infinite_expressions
+reals_or_expressions = reals | expressions
+non_zero_expressions = expressions.filter(bool)
+non_zero_reals_or_expressions = non_zero_reals | non_zero_expressions
+non_zero_finite_reals = finite_reals.filter(bool)
+non_zero_finite_expressions = finite_expressions.filter(bool)
+non_zero_finite_reals_or_expressions = (non_zero_finite_reals
+                                        | non_zero_finite_expressions)
 positive_infinite_reals_or_expressions = (positive_infinite_reals
                                           | positive_infinite_expressions)
 negative_infinite_reals_or_expressions = (negative_infinite_reals
                                           | negative_infinite_expressions)
 infinite_reals_or_expressions = infinite_reals | infinite_expressions
-indefinite_expressions = strategies.builds(sqrt, indefinite_reals)
-expressions = definite_expressions | indefinite_expressions
-non_zero_expressions = expressions.filter(bool)
-reals_or_expressions = reals | expressions
-non_zero_reals_or_expressions = (definite_non_zero_reals_or_expressions
-                                 .filter(bool))
 expressions_with_exponents = (
         strategies.tuples(non_zero_expressions, exponents)
-        | strategies.tuples(expressions, non_negative_exponents))
-definitely_dividable_expressions_with_reals_or_expressions = (
-        strategies.tuples(definite_expressions,
-                          finite_non_zero_reals_or_expressions)
-        | strategies.tuples(finite_expressions,
-                            definite_non_zero_reals_or_expressions))
-definitely_dividable_reals_or_expressions_with_expressions = (
-        strategies.tuples(definite_reals_or_expressions,
-                          finite_non_zero_expressions)
-        | strategies.tuples(finite_reals_or_expressions,
-                            definite_non_zero_expressions))
-definitely_multipliable_expressions_pairs = (
+        | strategies.tuples(expressions, non_negative_exponents)
+)
+dividable_expressions_with_reals_or_expressions = (
+        strategies.tuples(expressions, finite_non_zero_reals_or_expressions)
+        | strategies.tuples(finite_expressions, non_zero_reals_or_expressions)
+)
+dividable_reals_or_expressions_with_expressions = (
+        strategies.tuples(reals_or_expressions, finite_non_zero_expressions)
+        | strategies.tuples(finite_reals_or_expressions, non_zero_expressions)
+)
+multipliable_expressions_pairs = (
         strategies.tuples(finite_expressions, finite_expressions)
-        | strategies.tuples(definite_non_zero_expressions,
-                            definite_non_zero_expressions))
+        | strategies.tuples(non_zero_expressions, non_zero_expressions)
+)
 definitely_multipliable_expressions_with_reals_or_expressions = (
         strategies.tuples(finite_expressions, finite_reals_or_expressions)
-        | strategies.tuples(definite_non_zero_expressions,
-                            definite_non_zero_reals_or_expressions))
-definitely_multipliable_expressions_triplets = (
+        | strategies.tuples(non_zero_expressions,
+                            non_zero_reals_or_expressions))
+multipliable_expressions_triplets = (
         strategies.tuples(finite_expressions, finite_expressions,
                           finite_expressions)
-        | strategies.tuples(definite_non_zero_expressions,
-                            definite_non_zero_expressions,
-                            definite_non_zero_expressions))
-definitely_subtractable_expressions_pairs = (
+        | strategies.tuples(non_zero_expressions, non_zero_expressions,
+                            non_zero_expressions)
+)
+subtractable_expressions_pairs = (
         strategies.tuples(finite_expressions | positive_infinite_expressions,
                           finite_expressions | negative_infinite_expressions)
         | strategies.tuples(finite_expressions | negative_infinite_expressions,
-                            finite_expressions
-                            | positive_infinite_expressions))
-definitely_subtractable_expressions_with_reals_or_expressions = (
+                            finite_expressions | positive_infinite_expressions)
+)
+subtractable_expressions_with_reals_or_expressions = (
         strategies.tuples(finite_expressions | positive_infinite_expressions,
                           finite_reals_or_expressions
                           | negative_infinite_reals_or_expressions)
         | strategies.tuples(finite_expressions | negative_infinite_expressions,
                             finite_reals_or_expressions
                             | positive_infinite_reals_or_expressions))
-definitely_summable_expressions_with_reals_or_expressions = (
+summable_expressions_with_reals_or_expressions = (
         strategies.tuples(finite_expressions | positive_infinite_expressions,
                           finite_reals_or_expressions
                           | positive_infinite_reals_or_expressions)
         | strategies.tuples(finite_expressions | negative_infinite_expressions,
                             finite_reals_or_expressions
-                            | negative_infinite_reals_or_expressions))
-definitely_summable_expressions_pairs = (
+                            | negative_infinite_reals_or_expressions)
+)
+summable_expressions_pairs = (
         strategies.tuples(finite_expressions | positive_infinite_expressions,
                           finite_expressions | positive_infinite_expressions)
         | strategies.tuples(finite_expressions | negative_infinite_expressions,
-                            finite_expressions
-                            | negative_infinite_expressions))
-definitely_summable_expressions_triplets = (
+                            finite_expressions | negative_infinite_expressions)
+)
+summable_expressions_triplets = (
         strategies.tuples(finite_expressions | positive_infinite_expressions,
                           finite_expressions | positive_infinite_expressions,
                           finite_expressions | positive_infinite_expressions)
         | strategies.tuples(finite_expressions | negative_infinite_expressions,
                             finite_expressions | negative_infinite_expressions,
-                            finite_expressions
-                            | negative_infinite_expressions))
+                            finite_expressions | negative_infinite_expressions)
+)

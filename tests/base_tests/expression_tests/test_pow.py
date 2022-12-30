@@ -16,21 +16,21 @@ def test_basic(expression_with_exponent: Tuple[Expression, int]) -> None:
     assert isinstance(result, Expression)
 
 
-@given(strategies.definite_expressions)
+@given(strategies.expressions)
 def test_identity(expression: Expression) -> None:
     result = expression ** 1
 
     assert result == expression
 
 
-@given(strategies.definite_expressions)
+@given(strategies.expressions)
 def test_zero_exponent(expression: Expression) -> None:
     result = expression ** 0
 
     assert result == 1
 
 
-@given(strategies.definite_non_zero_expressions,
+@given(strategies.non_zero_expressions,
        strategies.negative_exponents)
 def test_negative_exponent(expression: Expression, exponent: int) -> None:
     result = expression ** exponent
@@ -46,7 +46,7 @@ def test_zero_base_with_positive_exponent(expression: Expression,
     assert result == expression
 
 
-@given(strategies.definite_expressions, strategies.non_negative_exponents,
+@given(strategies.expressions, strategies.non_negative_exponents,
        strategies.non_negative_exponents)
 def test_exponents_sum(expression: Expression,
                        first_exponent: int,

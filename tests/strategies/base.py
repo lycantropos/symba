@@ -21,13 +21,9 @@ zero_reals = strategies.builds(int) | strategies.builds(Fraction)
 finite_non_zero_reals = finite_reals.filter(bool)
 negative_infinite_reals = strategies.just(-math.inf)
 positive_infinite_reals = strategies.just(math.inf)
-definite_negative_reals = finite_negative_reals | negative_infinite_reals
-definite_non_negative_reals = (finite_non_negative_reals
-                               | positive_infinite_reals)
-definite_non_positive_reals = (finite_non_positive_reals
-                               | negative_infinite_reals)
+negative_reals = finite_negative_reals | negative_infinite_reals
+non_negative_reals = finite_non_negative_reals | positive_infinite_reals
+non_positive_reals = finite_non_positive_reals | negative_infinite_reals
 infinite_reals = negative_infinite_reals | positive_infinite_reals
-definite_reals = finite_reals | infinite_reals
-definite_non_zero_reals = definite_reals.filter(bool)
-indefinite_reals = strategies.just(math.nan)
-reals = definite_reals | indefinite_reals
+reals = finite_reals | infinite_reals
+non_zero_reals = reals.filter(bool)

@@ -8,7 +8,7 @@ from tests.utils import equivalence
 from . import strategies
 
 
-@given(strategies.expressions, strategies.non_zero_reals_or_expressions)
+@given(strategies.expressions, strategies.non_zero_finite_reals_or_expressions)
 def test_basic(expression: Expression,
                real_or_expression: Union[Real, Expression]) -> None:
     result = expression / real_or_expression
@@ -28,15 +28,16 @@ def test_commutative_case(first: Expression, second: Expression) -> None:
                        abs(first) == abs(second))
 
 
-@given(strategies.definite_expressions, strategies.unary_reals_or_expressions)
-def test_right_neutral_element(expression: Expression,
-                               real_or_expression: Union[Real, Expression]
-                               ) -> None:
+@given(strategies.expressions, strategies.unary_reals_or_expressions)
+def test_right_neutral_element(
+        expression: Expression,
+        real_or_expression: Union[Real, Expression]
+) -> None:
     assert expression / real_or_expression == expression
 
 
 @given(strategies.finite_expressions, strategies.finite_expressions,
-       strategies.definite_non_zero_reals_or_expressions)
+       strategies.non_zero_reals_or_expressions)
 def test_add_dividend(first: Expression,
                       second: Expression,
                       real_or_expression: Expression) -> None:
@@ -47,7 +48,7 @@ def test_add_dividend(first: Expression,
 
 
 @given(strategies.finite_expressions, strategies.finite_expressions,
-       strategies.definite_non_zero_reals_or_expressions)
+       strategies.non_zero_reals_or_expressions)
 def test_sub_dividend(first: Expression,
                       second: Expression,
                       real_or_expression: Expression) -> None:
@@ -58,12 +59,13 @@ def test_sub_dividend(first: Expression,
 
 
 @given(strategies.finite_expressions,
-       strategies.definite_non_zero_reals_or_expressions,
-       strategies.definite_non_zero_reals_or_expressions)
-def test_mul_divisor(expression: Expression,
-                     first_real_or_expression: Union[Real, Expression],
-                     second_real_or_expression: Union[Real, Expression]
-                     ) -> None:
+       strategies.non_zero_reals_or_expressions,
+       strategies.non_zero_reals_or_expressions)
+def test_mul_divisor(
+        expression: Expression,
+        first_real_or_expression: Union[Real, Expression],
+        second_real_or_expression: Union[Real, Expression]
+) -> None:
     result = expression / (first_real_or_expression
                            * second_real_or_expression)
 

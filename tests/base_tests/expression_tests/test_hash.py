@@ -19,7 +19,7 @@ def test_determinism(expression: Expression) -> None:
     assert result == hash(expression)
 
 
-@given(strategies.definite_expressions, strategies.definite_expressions)
+@given(strategies.expressions, strategies.expressions)
 def test_connection_with_equality(left_expression: Expression,
                                   right_expression: Expression) -> None:
     assert implication(left_expression == right_expression,

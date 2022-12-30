@@ -8,7 +8,7 @@ from symba.base import Expression
 from . import strategies
 
 
-@given(strategies.reals_or_expressions, strategies.expressions)
+@given(strategies.reals_or_expressions, strategies.non_zero_finite_expressions)
 def test_basic(real_or_expression: Union[Real, Expression],
                expression: Expression) -> None:
     result = real_or_expression * expression

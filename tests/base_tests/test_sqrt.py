@@ -10,21 +10,21 @@ from symba.base import (Expression,
 from . import strategies
 
 
-@given(strategies.definite_non_negative_reals_or_expressions)
+@given(strategies.non_negative_reals_or_expressions)
 def test_basic(value: Union[Real, Expression]) -> None:
     result = sqrt(value)
 
     assert isinstance(result, Expression)
 
 
-@given(strategies.definite_non_negative_reals_or_expressions)
+@given(strategies.non_negative_reals_or_expressions)
 def test_sign(value: Union[Real, Expression]) -> None:
     result = sqrt(value)
 
     assert result >= 0
 
 
-@given(strategies.definite_non_negative_reals_or_expressions)
+@given(strategies.non_negative_reals_or_expressions)
 def test_value(value: Union[Real, Expression]) -> None:
     result = sqrt(value)
 
@@ -35,12 +35,12 @@ def test_value(value: Union[Real, Expression]) -> None:
             or result == value == math.inf)
 
 
-@given(strategies.definite_reals_or_expressions)
+@given(strategies.reals_or_expressions)
 def test_round_trip(value: Union[Real, Expression]) -> None:
     assert sqrt(value ** 2) == abs(value)
 
 
-@given(strategies.definite_negative_reals_or_expressions)
+@given(strategies.negative_reals_or_expressions)
 def test_negative_argument(value: Union[Real, Expression]) -> None:
     with pytest.raises(ValueError):
         sqrt(value)

@@ -13,14 +13,14 @@ def test_basic(real: Real, expression: Expression) -> None:
     assert isinstance(result, Expression)
 
 
-@given(strategies.definite_reals_or_expressions, strategies.unary_expressions)
+@given(strategies.reals_or_expressions, strategies.unary_expressions)
 def test_right_neutral_element(real: Real, expression: Expression) -> None:
     assert real / expression == real
 
 
 @given(strategies.finite_reals_or_expressions,
        strategies.finite_reals_or_expressions,
-       strategies.definite_non_zero_expressions)
+       strategies.non_zero_expressions)
 def test_add_dividend(first_real: Real,
                       second_real: Real,
                       expression: Expression) -> None:
@@ -30,7 +30,7 @@ def test_add_dividend(first_real: Real,
 
 @given(strategies.finite_reals_or_expressions,
        strategies.finite_reals_or_expressions,
-       strategies.definite_non_zero_expressions)
+       strategies.non_zero_expressions)
 def test_sub_dividend(first_real: Real,
                       second_real: Real,
                       expression: Expression) -> None:
@@ -38,8 +38,8 @@ def test_sub_dividend(first_real: Real,
             == (first_real / expression) - (second_real / expression))
 
 
-@given(strategies.finite_reals, strategies.definite_non_zero_expressions,
-       strategies.definite_non_zero_expressions)
+@given(strategies.finite_reals, strategies.non_zero_expressions,
+       strategies.non_zero_expressions)
 def test_mul_divisor(real: Real,
                      first: Expression,
                      second: Expression) -> None:

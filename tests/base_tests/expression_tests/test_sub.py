@@ -9,7 +9,7 @@ from tests.utils import equivalence
 from . import strategies
 
 
-@given(strategies.expressions, strategies.reals_or_expressions)
+@given(strategies.expressions, strategies.finite_reals_or_expressions)
 def test_basic(expression: Expression,
                real_or_expression: Union[Real, Expression]) -> None:
     result = expression - real_or_expression
@@ -24,7 +24,7 @@ def test_self_inverse(expression: Expression) -> None:
     assert result == 0
 
 
-@given(strategies.definitely_subtractable_expressions_pairs)
+@given(strategies.subtractable_expressions_pairs)
 def test_commutative_case(expressions_pair: Tuple[Expression, Expression]
                           ) -> None:
     first, second = expressions_pair
@@ -32,7 +32,7 @@ def test_commutative_case(expressions_pair: Tuple[Expression, Expression]
     assert equivalence(first - second == second - first, first == second)
 
 
-@given(strategies.definite_expressions, strategies.zero_reals_or_expressions)
+@given(strategies.expressions, strategies.zero_reals_or_expressions)
 def test_right_neutral_element(expression: Expression,
                                real_or_expression: Union[Real, Expression]
                                ) -> None:

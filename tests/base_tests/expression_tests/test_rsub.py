@@ -8,7 +8,7 @@ from symba.base import Expression
 from . import strategies
 
 
-@given(strategies.reals_or_expressions, strategies.expressions)
+@given(strategies.reals_or_expressions, strategies.finite_expressions)
 def test_basic(real_or_expression: Union[Real, Expression],
                expression: Expression) -> None:
     result = real_or_expression - expression
@@ -16,7 +16,7 @@ def test_basic(real_or_expression: Union[Real, Expression],
     assert isinstance(result, Expression)
 
 
-@given(strategies.definite_reals_or_expressions, strategies.zero_expressions)
+@given(strategies.reals_or_expressions, strategies.zero_expressions)
 def test_right_neutral_element(real_or_expression: Union[Real, Expression],
                                expression: Expression) -> None:
     result = real_or_expression - expression
@@ -35,7 +35,7 @@ def test_add_subtrahend(real_or_expression: Union[Real, Expression],
 
 
 @given(strategies
-       .definitely_subtractable_expressions_with_reals_or_expressions)
+       .subtractable_expressions_with_reals_or_expressions)
 def test_connection_with_sub(expression_with_real_or_expression
                              : Tuple[Expression, Union[Real, Expression]]
                              ) -> None:
