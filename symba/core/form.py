@@ -211,8 +211,7 @@ class Form(Expression):
                 if (discriminant_is_constant
                         or discriminant_sqrt.square() == discriminant):
                     addend = greater_part + discriminant_sqrt
-                    assert isinstance(addend, Form), addend
-                    if (addend.degree < self.degree
+                    if (not isinstance(addend, Form)
                             or (len(addend.terms) + bool(addend.tail)
                                 < len(self.terms) + bool(self.tail))):
                         return ((addend + lesser_part)
