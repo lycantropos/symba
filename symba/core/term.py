@@ -67,8 +67,9 @@ class Term(Expression):
 
     def inverse(self) -> Term:
         scale = self.scale.inverse()
-        denominator, argument = (self.argument.inverse()
-                                 .extract_common_denominator())
+        denominator, argument = (
+            self.argument.inverse().extract_common_denominator()
+        )
         scale /= denominator
         argument *= denominator
         return Term(scale, argument)

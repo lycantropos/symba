@@ -92,8 +92,8 @@ class Form(Expression):
                 self._scale(FiniteNonZero(common_denominator)))
 
     def extract_common_numerator(self) -> Tuple[int, 'Form']:
-        terms_common_numerators, _ = transpose(
-                [term.extract_common_numerator() for term in self.terms])
+        terms_common_numerators, _ = transpose([term.extract_common_numerator()
+                                                for term in self.terms])
         tail_numerator, _ = self.tail.extract_common_numerator()
         common_numerator = reduce(math.gcd, terms_common_numerators,
                                   tail_numerator)
@@ -110,7 +110,8 @@ class Form(Expression):
             max_factorization = denominator.factors.pop(max_factor)
             numerator = numerator.multiply(
                     denominator
-                    - max_factorization.multiply_by_factor(max_factor))
+                    - max_factorization.multiply_by_factor(max_factor)
+            )
             denominator = (denominator.square()
                            - max_factorization.square() * max_factor.square())
         return numerator.scale_non_zero(denominator.tail.inverse()).express()
