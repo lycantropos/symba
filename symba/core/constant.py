@@ -173,8 +173,10 @@ class Zero(Constant):
         ...
 
     def __rmul__(self, other):
+        if isinstance(other, Real):
+            other = to_expression(other)
         return (self
-                if isinstance(other, Real)
+                if isinstance(other, Expression)
                 else NotImplemented)
 
 
