@@ -2,6 +2,7 @@ from numbers import Real
 from typing import (Tuple,
                     Union)
 
+import pytest
 from hypothesis import given
 
 from symba.base import Expression
@@ -26,3 +27,12 @@ def test_connection_with_mul(expression_with_real_or_expression
     result = real_or_expression * expression
 
     assert result == expression * real_or_expression
+
+
+@given(strategies.infinite_reals_or_expressions, strategies.zero_expressions)
+def test_infinity_by_zero(
+        real_or_expression: Union[Real, Expression],
+        expression: Expression
+) -> None:
+    with pytest.raises(ArithmeticError):
+        real_or_expression * expression

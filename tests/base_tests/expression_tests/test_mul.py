@@ -2,6 +2,7 @@ from numbers import Real
 from typing import (Tuple,
                     Union)
 
+import pytest
 from hypothesis import given
 
 from symba.base import Expression
@@ -52,3 +53,12 @@ def test_associativity(
     first, second, third = expressions_triplet
 
     assert (first * second) * third == first * (second * third)
+
+
+@given(strategies.infinite_expressions, strategies.zero_reals_or_expressions)
+def test_infinity_by_zero(
+        expression: Expression,
+        real_or_expression: Union[Real, Expression]
+) -> None:
+    with pytest.raises(ArithmeticError):
+        expression * real_or_expression
