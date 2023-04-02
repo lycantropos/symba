@@ -9,10 +9,8 @@ services:
         - IMAGE_VERSION=${CPYTHON_IMAGE_VERSION}
     image: lycantropos/symba-cpython:2.0.0
     volumes:
-      - ./pytest.ini:/opt/symba/pytest.ini
+      - ./pyproject.toml:/opt/symba/pyproject.toml
       - ./README.md:/opt/symba/README.md
-      - ./requirements-tests.txt:/opt/symba/requirements-tests.txt
-      - ./requirements.txt:/opt/symba/requirements.txt
       - ./setup.py:/opt/symba/setup.py
       - ./src:/opt/symba/src
       - ./symba:/opt/symba/symba
