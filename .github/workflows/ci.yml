@@ -66,7 +66,7 @@ jobs:
       - name: 'Install packaging tools'
         run: python -m pip install -U pip setuptools
       - name: 'Install coverage dependencies'
-        run: python -m pip install -U coverage
+        run: python -m pip install -U coverage[toml]
       - name: 'Install С++ coverage dependencies'
         run: python -m pip install -U gcovr
         if: ${{ !startsWith(matrix.python_version, 'pypy') }}
