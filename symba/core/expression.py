@@ -104,9 +104,8 @@ class Expression(ABC):
     def __ge__(self, other: Any) -> Any:
         """Checks if the expression is greater than or equal to the other."""
         from .constant import (Infinite,
-                               to_constant)
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+                               try_to_constant)
+        other = try_to_constant(other)
         return ((other <= self
                  if isinstance(other, Infinite)
                  else not (other - self).is_positive())
@@ -124,9 +123,8 @@ class Expression(ABC):
     def __gt__(self, other: Any) -> Any:
         """Checks if the expression is greater than the other."""
         from .constant import (Infinite,
-                               to_constant)
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+                               try_to_constant)
+        other = try_to_constant(other)
         return ((other < self
                  if isinstance(other, Infinite)
                  else (self - other).is_positive())
@@ -148,9 +146,8 @@ class Expression(ABC):
     def __le__(self, other: Any) -> Any:
         """Checks if the expression is lower than or equal to the other."""
         from .constant import (Infinite,
-                               to_constant)
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+                               try_to_constant)
+        other = try_to_constant(other)
         return ((other >= self
                  if isinstance(other, Infinite)
                  else not (self - other).is_positive())
@@ -168,9 +165,8 @@ class Expression(ABC):
     def __lt__(self, other: Any) -> Any:
         """Checks if the expression is lower than the other."""
         from .constant import (Infinite,
-                               to_constant)
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+                               try_to_constant)
+        other = try_to_constant(other)
         return ((other > self
                  if isinstance(other, Infinite)
                  else (other - self).is_positive())
@@ -243,9 +239,8 @@ class Expression(ABC):
 
     def __rsub__(self, other: Any) -> Any:
         """Returns difference of the other with the expression."""
-        from .constant import to_constant
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        from .constant import try_to_constant
+        other = try_to_constant(other)
         return (other + (-self)
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -275,9 +270,8 @@ class Expression(ABC):
 
     def __sub__(self, other: Any) -> Any:
         """Returns difference of the expression with the other."""
-        from .constant import to_constant
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        from .constant import try_to_constant
+        other = try_to_constant(other)
         return (self + (-other)
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -292,9 +286,8 @@ class Expression(ABC):
 
     def __truediv__(self, other: Any) -> Any:
         """Returns division of the expression by the other."""
-        from .constant import to_constant
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        from .constant import try_to_constant
+        other = try_to_constant(other)
         return (self * other.inverse()
                 if isinstance(other, Expression)
                 else NotImplemented)

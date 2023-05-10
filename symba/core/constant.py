@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import math
 from abc import abstractmethod
-from numbers import Rational
+from numbers import (Rational,
+                     Real)
 from typing import (Any,
                     NoReturn,
                     Tuple,
@@ -42,11 +43,10 @@ class Constant(Expression):
     upper_bound = lower_bound
 
     def __eq__(self, other: Any) -> Any:
-        return (self.raw == other
-                if isinstance(other, (Rational, float))
-                else (isinstance(other, Constant)
-                      and self.raw == other.raw
-                      if isinstance(other, Expression)
+        return (isinstance(other, Constant) and self.raw == other.raw
+                if isinstance(other, Expression)
+                else (self.raw == other
+                      if isinstance(other, (Rational, Real))
                       else NotImplemented))
 
     def __hash__(self) -> int:
@@ -112,8 +112,7 @@ class Zero(Constant):
         ...
 
     def __add__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (other
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -130,8 +129,7 @@ class Zero(Constant):
         ...
 
     def __mul__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self
                 if isinstance(other, Zero)
                 else (other * self
@@ -158,8 +156,7 @@ class Zero(Constant):
         ...
 
     def __radd__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (other
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -175,8 +172,9 @@ class Zero(Constant):
         ...
 
     def __rmul__(self, other: Any) -> Any:
-        return (to_constant(other) * self
-                if isinstance(other, (Rational, float))
+        other = try_to_constant(other)
+        return (other * self
+                if isinstance(other, Expression)
                 else NotImplemented)
 
 
@@ -235,8 +233,7 @@ class FiniteNonZero(Constant):
         ...
 
     def __add__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (to_constant(self.raw + other.raw)
                 if isinstance(other, FiniteNonZero)
                 else (other + self
@@ -270,8 +267,7 @@ class FiniteNonZero(Constant):
         ...
 
     def __mul__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (FiniteNonZero(self.raw * other.raw)
                 if isinstance(other, FiniteNonZero)
                 else (other
@@ -292,8 +288,7 @@ class FiniteNonZero(Constant):
         ...
 
     def __radd__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (other + self
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -313,8 +308,7 @@ class FiniteNonZero(Constant):
         ...
 
     def __rmul__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (other
                 if isinstance(other, Zero)
                 else (other * self
@@ -369,8 +363,7 @@ class Infinite(Constant):
         ...
 
     def __add__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._add_expression(other)
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -384,8 +377,7 @@ class Infinite(Constant):
         ...
 
     def __ge__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return ((self.is_positive() or self == other)
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -399,16 +391,14 @@ class Infinite(Constant):
         ...
 
     def __gt__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return ((self.is_positive() and self != other)
                 if isinstance(other, Expression)
                 else NotImplemented)
 
     def __le__(self,
                other: Union[RawConstant, Expression]) -> bool:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return ((not self.is_positive() or self == other)
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -422,8 +412,7 @@ class Infinite(Constant):
         ...
 
     def __lt__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return ((not self.is_positive() and self != other)
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -441,8 +430,7 @@ class Infinite(Constant):
         ...
 
     def __mul__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._mul_by_expression(other)
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -459,8 +447,7 @@ class Infinite(Constant):
         ...
 
     def __radd__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._add_expression(other)
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -480,8 +467,7 @@ class Infinite(Constant):
         ...
 
     def __rmul__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._mul_by_expression(other)
                 if isinstance(other, Expression)
                 else NotImplemented)
@@ -521,3 +507,36 @@ def to_constant(_value: RawConstant) -> Union[FiniteNonZero, Infinite, Zero]:
     return ((FiniteNonZero(_value) if _value else ZERO)
             if isinstance(_value, Rational) or math.isfinite(_value)
             else Infinite(_value > 0))
+
+
+@overload
+def try_to_constant(_value: RawFinite) -> Union[FiniteNonZero, Zero]:
+    ...
+
+
+@overload
+def try_to_constant(
+        _value: RawUnbound
+) -> Union[FiniteNonZero, Infinite, Zero]:
+    ...
+
+
+@overload
+def try_to_constant(_value: Any) -> Any:
+    ...
+
+
+def try_to_constant(_value: Any) -> Any:
+    if not isinstance(_value, Rational):
+        if isinstance(_value, Real):
+            if math.isnan(_value):
+                raise ValueError('NaN values are not supported.')
+            elif math.isinf(_value):
+                return Infinite(float(_value) > 0)
+        try:
+            numerator, denominator = _value.as_integer_ratio()
+        except Exception:
+            return _value
+        else:
+            _value = Fraction(numerator, denominator)
+    return FiniteNonZero(_value) if _value else ZERO

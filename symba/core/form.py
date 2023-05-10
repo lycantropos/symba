@@ -27,7 +27,8 @@ from .constant import (ONE,
                        FiniteNonZero,
                        Infinite,
                        Zero,
-                       to_constant)
+                       to_constant,
+                       try_to_constant)
 from .expression import Expression
 from .hints import (RawConstant,
                     RawFinite,
@@ -286,8 +287,7 @@ class Form(Expression):
         ...
 
     def __add__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._add_constant(other)
                 if isinstance(other, (FiniteNonZero, Infinite, Zero))
                 else (self._add_term(other)
@@ -312,7 +312,7 @@ class Form(Expression):
                     and set(self.terms) == set(other.terms))
                 if isinstance(other, Form)
                 else (False
-                      if isinstance(other, (Expression, Rational, float))
+                      if isinstance(other, (Expression, Rational, Real))
                       else NotImplemented))
 
     def __hash__(self) -> int:
@@ -351,8 +351,7 @@ class Form(Expression):
         ...
 
     def __mul__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._multiply_by_constant(other)
                 if isinstance(other, Constant)
                 else (self._multiply_by_term(other)
@@ -374,8 +373,7 @@ class Form(Expression):
         ...
 
     def __radd__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._add_constant(other)
                 if isinstance(other, (FiniteNonZero, Infinite, Zero))
                 else (self._add_term(other)
@@ -417,8 +415,7 @@ class Form(Expression):
         ...
 
     def __rmul__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._multiply_by_constant(other)
                 if isinstance(other, Constant)
                 else (self._multiply_by_term(other)

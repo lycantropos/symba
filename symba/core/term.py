@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from numbers import Rational
 from typing import (TYPE_CHECKING,
                     Any,
                     Tuple,
@@ -16,7 +15,8 @@ from .constant import (ONE,
                        FiniteNonZero,
                        Infinite,
                        Zero,
-                       to_constant)
+                       to_constant,
+                       try_to_constant)
 from .expression import Expression
 from .hints import (RawConstant,
                     RawFinite,
@@ -129,8 +129,7 @@ class Term(Expression):
 
     def __add__(self, other: Any) -> Any:
         from .form import Form
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._add_constant(other)
                 if isinstance(other, Constant)
                 else (Form.from_components([self, other])
@@ -161,8 +160,7 @@ class Term(Expression):
         ...
 
     def __ge__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return ((other <= self
                  if isinstance(other, Infinite)
                  else (not other.is_positive()
@@ -182,8 +180,7 @@ class Term(Expression):
         ...
 
     def __gt__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return ((other < self
                  if isinstance(other, Infinite)
                  else ((not other.is_positive()
@@ -206,8 +203,7 @@ class Term(Expression):
         ...
 
     def __le__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return ((other >= self
                  if isinstance(other, Infinite)
                  else ((other.is_positive()
@@ -227,8 +223,7 @@ class Term(Expression):
         ...
 
     def __lt__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return ((other > self
                  if isinstance(other, Infinite)
                  else ((other.is_positive() and other.square() > self.square())
@@ -267,8 +262,7 @@ class Term(Expression):
         ...
 
     def __mul__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._multiply_by_constant(other)
                 if isinstance(other, Constant)
                 else (self._multiply_by_term(other)
@@ -287,8 +281,7 @@ class Term(Expression):
         ...
 
     def __radd__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._add_constant(other)
                 if isinstance(other, Constant)
                 else NotImplemented)
@@ -316,8 +309,7 @@ class Term(Expression):
         ...
 
     def __rmul__(self, other: Any) -> Any:
-        if isinstance(other, (Rational, float)):
-            other = to_constant(other)
+        other = try_to_constant(other)
         return (self._multiply_by_constant(other)
                 if isinstance(other, Constant)
                 else NotImplemented)
