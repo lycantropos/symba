@@ -1,3 +1,2 @@
 include LICENSE
-include symba/py.typed
 recursive-include src *.c
