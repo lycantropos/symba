@@ -502,11 +502,15 @@ def to_constant(_value: RawUnbound) -> Union[FiniteNonZero, Infinite, Zero]:
 
 
 def to_constant(_value: RawConstant) -> Union[FiniteNonZero, Infinite, Zero]:
-    if not isinstance(_value, Rational) and math.isnan(_value):
-        raise ValueError('NaN values are not supported.')
-    return ((FiniteNonZero(_value) if _value else ZERO)
-            if isinstance(_value, Rational) or math.isfinite(_value)
-            else Infinite(_value > 0))
+    if not isinstance(_value, Rational):
+        if isinstance(_value, Real):
+            if math.isnan(_value):
+                raise ValueError('NaN values are not supported.')
+            elif math.isinf(_value):
+                return Infinite(float(_value) > 0)
+        numerator, denominator = _value.as_integer_ratio()
+        _value = Fraction(numerator, denominator)
+    return FiniteNonZero(_value) if _value else ZERO
 
 
 @overload
